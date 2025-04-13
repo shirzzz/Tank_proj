@@ -3,12 +3,14 @@
 #define TANK_H
 #include "CanonDirection.h"
 #include "shape.h"
+#include "Direction.h"
 class Tank : public Shape {
     char index_tank;
     CanonDirection canon_dir;
     int num_bullets;
     int last_time_shoot;
     int last_time_backward;
+    Direction direction
 public:
     Tank(int x, int y, Direction direction, char index_tank, CanonDirection canon_direction);
     void shoot();
@@ -18,6 +20,9 @@ public:
     void rotate_quarter_right();
     void move_forward();
     void move_backward();
+    int getX() const;
+    int getY() const;
+    Direction getDirection() const;
 };
 
 

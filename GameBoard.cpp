@@ -180,6 +180,22 @@ void GameBoard::shootFromTank(char index_tank, CanonDirection cdir) {
         }
         tank2->shoot();
     }
+    
+    bool GameBoard::isCellWalkable(int x, int y) const {
+        if (x < 0 || y < 0 || y >= height || x >= width) return false;
+        char c = board[y][x];
+        return c != '#' && c != '@';  // walls and mines are not walkable
+    }
+
+    CellType GameBoard::getCell(int x, int y) const {
+        if (x < 0 || y < 0 || y >= height || x >= width) {
+            return CellType::WALL; // Treat out-of-bounds as wall
+        }
+        return board[y][x];
+    }
+    
+    int GameBoard::getWidth() const { return width; }
+    int GameBoard::getHeight() const { return height; }
 }
 
 

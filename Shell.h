@@ -4,15 +4,15 @@
 
 #ifndef SHELL_H
 #define SHELL_H
-#include "canon_direction.h"
+#include "CanonDirection.h"
 #include "shape.h"
 
 
 class Shell : public Shape {
-    canon_direction canon_dir;
+    CanonDirection canon_dir;
     int speed;
 public:
-    Shell(int x, int y, int direction, canon_direction cdir);
+    Shell(int x, int y, int direction, CanonDirection cdir);
 };
 
 

@@ -1,6 +1,6 @@
 #ifndef GAMEBOARD_H
 #define GAMEBOARD_H
-#include <vector>
+#include "vector"
 #include "CellType.h"
 #include "CanonDirection.h"
 #include "Tank.h"
@@ -19,6 +19,10 @@ public:
     void placeShell(int x, int y);
     void moveTank(char tankIndex, int newX, int newY);
     void shootFromTank(char index_tank, CanonDirection cdir);
+    bool isCellWalkable(int x, int y) const;
+    CellType getCell(int x, int y) const;
+    int getWidth() const;
+    int getHeight() const;
 };
 
 #endif //GAMEBOARD_H

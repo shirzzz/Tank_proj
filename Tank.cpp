@@ -141,6 +141,8 @@ void Tank::rotate_quarter_right() {
     }
 }
 void Tank::move_forward() {
+    
+    //לשים לב אם הוא יכול לזוז גם באלכסון?
     //אני לא יודעת איך לדעת לאן אני לא יודעת איך לדעת לאן הוא זז
     switch(direction) {
         case Direction::UP:
@@ -173,5 +175,17 @@ void Tank::move_backward() {
             x--;
         break;
     }
+}
+
+int Tank::getX() const {
+    return x;
+}
+
+int Tank::getY() const {
+    return y;
+}
+
+Direction Tank::getDirection() const {
+    return direction;
 }
 
