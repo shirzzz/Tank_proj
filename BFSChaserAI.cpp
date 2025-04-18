@@ -9,12 +9,13 @@
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
+#include "DirectionUtils.h"
 #include <cmath>
 
 
 // Checks whether the tile directly in front of the tank is in the path of any shell
 // Simulates shell movement and returns true if the shell will collide with the forward tile
-bool isDangerAhead(const Tank& tank, const GameBoard& board) {
+bool isDangerAhead(const Tank& tank, GameBoard& board) {
     int tx = tank.getX();
     int ty = tank.getY();
     auto [dx, dy] = directionToVector(tank.getDirection());

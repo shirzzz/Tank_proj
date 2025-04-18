@@ -4,23 +4,29 @@
 
 #ifndef SHAPE_H
 #define SHAPE_H
-#include "Direction.h"
+#include "CanonDirection.h"
+#include <utility>
 //רציתי שזה יהיה מחלקה אבסטרקטית אבל לא הצלחתי
 
 class Shape {
 protected:
     int x, y;
-    Direction direction;
+    CanonDirection direction;
 public:
-    Shape(int x, int y,Direction direction);
+
+    virtual ~Shape() = default; // Virtual destructor for proper cleanup
+    Shape(int x, int y,CanonDirection direction);
+    Shape(int x, int y);
     void move();
-    void update_position(int new_x, int new_y);
+    void updatePosition(int new_x, int new_y);
     int getX() const { return x; }
     int getY() const { return y; }
-    Direction getDirection() const { return direction; }
-    void setDirection(Direction new_direction) { direction = new_direction; }
+    CanonDirection getDirection() const { return direction; }
+    void setDirection(CanonDirection new_direction) { direction = new_direction; }
     void setX(int new_x) { x = new_x; }
     void setY(int new_y) { y = new_y; }
+    std::pair<int,int> getPosition() const { return {x, y}; }
+
 };
 
 

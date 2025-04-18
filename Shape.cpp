@@ -3,43 +3,43 @@
 //
 
 #include "shape.h"
-Shape::Shape(int x, int y, Direction direction) : x(x), y(y), direction(direction) {
+Shape::Shape(int x, int y, CanonDirection direction) : x(x), y(y), direction(direction) {
     // Initialize the shape's position and dimensions
 }
 void Shape::move() {
     // Move the shape in the current direction
     switch (direction) {
-        case Direction::UP:
+        case CanonDirection::U:
             y++;
         break;
-        case Direction::DOWN:
+        case CanonDirection::D:
             y--;
         break;
-        case Direction::LEFT:
+        case CanonDirection::L:
             x--;
         break;
-        case Direction::RIGHT:
+        case CanonDirection::R:
             x++;
         break;
-        case Direction::UP_LEFT:
+        case CanonDirection::UL:
             x--;
-        y++;
+            y++;
         break;
-        case Direction::UP_RIGHT:
+        case CanonDirection::UR:
             x++;
-        y++;
+            y++;
         break;
-        case Direction::DOWN_LEFT:
+        case CanonDirection::DL:
             x--;
-        y--;
+            y--;
         break;
-        case Direction::DOWN_RIGHT:
+        case CanonDirection::DR:
             x++;
-        y--;
+            y--;
         break;
     }
 }
-void Shape::update_position(int new_x, int new_y) {
-    x = new_x;
+void Shape::updatePosition(int new_x, int new_y) {
+    x= new_x;
     y = new_y;
 }

@@ -5,8 +5,7 @@
         WALL,
         TANK1,
         TANK2,
-        SHELL1,
-        SHELL2,
+        SHELL,
         MINE
     };
 #endif //CELLTYPE_H

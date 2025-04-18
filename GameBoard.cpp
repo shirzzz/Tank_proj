@@ -17,6 +17,10 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
     file >> width >> height;
     file.ignore(); // Ignore the newline after width and height
     board.clear();
+    walls.resize(height);
+    for (int i = 0; i < height; ++i) {
+        walls[i].resize(width);
+    }
     std::string line;
     int count_lines = 0;
     board.resize(height, std::vector<CellType>(width, CellType::EMPTY));
@@ -39,12 +43,13 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
             char c = line[x];
             if(c == '1') {
                 board[count_lines][x] = CellType::TANK1;
-                tank1 = new Tank(x, count_lines, Direction::LEFT, '1',CanonDirection::L); // Assuming direction 0 for tank1
+                tank1 = new Tank(x, count_lines, CanonDirection::L, '1'); // Assuming direction 0 for tank1
             } else if(c == '2') {
                 board[count_lines][x] = CellType::TANK2;
-                tank2 = new Tank(x, count_lines, Direction::RIGHT, '2', CanonDirection::R); // Assuming direction 1 for tank2
+                tank2 = new Tank(x, count_lines, CanonDirection::R, '2'); // Assuming direction 1 for tank2
             } else if(c == '#') {
                 board[count_lines][x] = CellType::WALL;
+                walls[count_lines][x] = Wall(x, count_lines); // Assuming Wall constructor takes x and y
             } else if(c == '@'){
                 board[count_lines][x] = CellType::MINE;
             }
@@ -80,11 +85,8 @@ void GameBoard::displayBoard() {
                 case CellType::TANK2:
                     std::cout << "2";
                     break;
-                case CellType::SHELL1:
+                case CellType::SHELL:
                     std::cout << "o";
-                    break;
-                case CellType::SHELL2:
-                    std::cout << "O";
                     break;
                 case CellType::MINE:
                     std::cout << "@";
@@ -94,18 +96,9 @@ void GameBoard::displayBoard() {
         std::cout << std::endl;
     }
 }
-void GameBoard::placeTank(int x, int y, char index_tank, CanonDirection cdir) {
-    if (index_tank == '1') {
-        tank1 = new Tank(x, y, Direction::LEFT, index_tank, cdir);
-        board[y][x] = CellType::TANK1;
-    } else if (index_tank == '2') {
-        tank2 = new Tank(x, y, Direction::RIGHT, index_tank, cdir);
-        board[y][x] = CellType::TANK2;
-    }
-}
 void GameBoard::placeShell(int x, int y) {
     //האם צריכה להיות הפרדה בין הפגז של טנק 1 לפגז של טנק 2?
-        board[y][x] = CellType::SHELL1;
+        board[y][x] = CellType::SHELL;
 }
 void GameBoard::moveTank(char tankIndex, int newX, int newY) {
     if (tankIndex == '1' && tank1) {
@@ -120,71 +113,12 @@ void GameBoard::moveTank(char tankIndex, int newX, int newY) {
         board[newY][newX] = CellType::TANK2; // Set new position
     }
 }
-void GameBoard::shootFromTank(char index_tank, CanonDirection cdir) {
-    if (index_tank == '1' && tank1) {
-        // Logic to shoot from tank1
-        switch(cdir) {
-            case CanonDirection::U:
-                placeShell(tank1->getX(), tank1->getY()+1);
-                break;
-            case CanonDirection::UR:
-                placeShell(tank1->getX()+1, tank1->getY()+1);
-                break;
-            case CanonDirection::R:
-                placeShell(tank1->getX()+1, tank1->getY());
-                break;
-            case CanonDirection::DR:
-                placeShell(tank1->getX()+1, tank1->getY()-1);
-                break;
-            case CanonDirection::D:
-                placeShell(tank1->getX(), tank1->getY()-1);
-                break;
-            case CanonDirection::DL:
-                placeShell(tank1->getX()-1, tank1->getY()-1);
-                break;
-            case CanonDirection::L:
-                placeShell(tank1->getX()-1, tank1->getY());
-                break;
-            case CanonDirection::UL:
-                placeShell(tank1->getX()-1, tank1->getY()+1);
-                break;
-        }
-        tank1->shoot();
-    } else if (index_tank == '2' && tank2) {
-        // Logic to shoot from tank2
-        switch(cdir) {
-            case CanonDirection::U:
-                placeShell(tank2->getX(), tank2->getY()+1);
-                break;
-            case CanonDirection::UR:
-                placeShell(tank2->getX()+1, tank2->getY()+1);
-                break;
-            case CanonDirection::R:
-                placeShell(tank2->getX()+1, tank2->getY());
-                break;
-            case CanonDirection::DR:
-                placeShell(tank2->getX()+1, tank2->getY()-1);
-                break;
-            case CanonDirection::D:
-                placeShell(tank2->getX(), tank2->getY()-1);
-                break;
-            case CanonDirection::DL:
-                placeShell(tank2->getX()-1, tank2->getY()-1);
-                break;
-            case CanonDirection::L:
-                placeShell(tank2->getX()-1, tank2->getY());
-                break;
-            case CanonDirection::UL:
-                placeShell(tank2->getX()-1, tank2->getY()+1);
-                break;
-        }
-        tank2->shoot();
-    }
+
     
     bool GameBoard::isCellWalkable(int x, int y) const {
         if (x < 0 || y < 0 || y >= height || x >= width) return false;
-        char c = board[y][x];
-        return c != '#' && c != '@';  // walls and mines are not walkable
+        CellType c = board[y][x];
+        return c != CellType::MINE && c != CellType::WALL;  // walls and mines are not walkable
     }
 
     CellType GameBoard::getCell(int x, int y) const {

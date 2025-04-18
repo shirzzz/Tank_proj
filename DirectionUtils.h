@@ -1,2 +1,5 @@
+#include "Direction.h"
+#include <utility>
+#include "CanonDirection.h"
 std::pair<int, int> directionToVector(Direction dir);
-Direction getDirectionFromDelta(int dx, int dy);
+CanonDirection getDirectionFromDelta(int dx, int dy);

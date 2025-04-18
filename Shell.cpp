@@ -6,4 +6,4 @@
 #include "CanonDirection.h"
 #include "shape.h"
 
-Shell::Shell(int x, int y, Direction direction, CanonDirection cdir) : Shape(x, y, direction), canon_dir(cdir), speed(1){};
+Shell::Shell(int x, int y, CanonDirection cdir) : Shape(x, y, cdir), speed(1){};

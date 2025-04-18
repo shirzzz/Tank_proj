@@ -10,9 +10,9 @@ class Tank : public Shape {
     int num_bullets;
     int last_time_shoot;
     int last_time_backward;
-    Direction direction
+    Direction direction;
 public:
-    Tank(int x, int y, Direction direction, char index_tank, CanonDirection canon_direction);
+    Tank(int x, int y,  CanonDirection canon_direction, char index_tank);
     void shoot();
     void rotate_eighth_left();
     void rotate_eighth_right();
@@ -22,7 +22,11 @@ public:
     void move_backward();
     int getX() const;
     int getY() const;
+    char getIndexTank() const;
+    CanonDirection getCanonDirection() const;
+    int getNumBullets() const;
     Direction getDirection() const;
+    void moving_algorithm();
 };
 
 

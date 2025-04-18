@@ -2,16 +2,15 @@
 #include "Tank.h"
 
 #include <CanonDirection.h>
-
+#include <BFSChaserAI.h>
 #include "shape.h"
 #include <iostream>
-#include "Direction.h"
-Tank::Tank(int x, int y, Direction direction, char index_tank, CanonDirection canon_direction) : Shape(x, y, direction), index_tank(index_tank), canon_dir(canon_direction), num_bullets(16), last_time_shoot(0), last_time_backward(0) {
+Tank::Tank(int x, int y, CanonDirection canon_direction, char index_tank) : Shape(x, y, canon_direction), index_tank(index_tank), num_bullets(16), last_time_shoot(0), last_time_backward(0) {
     if(index_tank == '1') {
-        this->Shape::direction = Direction::LEFT; // Tank 1 starts facing left
+        this->Shape::direction = CanonDirection::L; // Tank 1 starts facing left
     }
     else {
-        this->Shape::direction = Direction::RIGHT; // Tank 2 starts facing right
+        this->Shape::direction = CanonDirection::R; // Tank 2 starts facing right
     }
 }
 void Tank::shoot() {
@@ -141,38 +140,67 @@ void Tank::rotate_quarter_right() {
     }
 }
 void Tank::move_forward() {
-    
-    //לשים לב אם הוא יכול לזוז גם באלכסון?
-    //אני לא יודעת איך לדעת לאן אני לא יודעת איך לדעת לאן הוא זז
-    switch(direction) {
-        case Direction::UP:
+    switch(canon_dir) {
+        case CanonDirection::U:
             y++;
         break;
-        case Direction::DOWN:
+        case CanonDirection::D:
             y--;
         break;
-        case Direction::LEFT:
+        case CanonDirection::L:
             x--;
         break;
-        case Direction::RIGHT:
+        case CanonDirection::R:
             x++;
+        break;
+        case CanonDirection::UR:
+            x++;
+        y++;
+        break;
+        case CanonDirection::UL:
+            x--;
+        y++;
+        break;
+        case CanonDirection::DR:
+            x++;
+        y--;
+        break;
+        case CanonDirection::DL:
+            x--;
+        y--;
         break;
     }
 }
 void Tank::move_backward() {
     //אני לא יודעת איך לדעת לאן אני לא יודעת איך לדעת לאן הוא זז
-    switch(direction) {
-        case Direction::UP:
+    switch(canon_dir) {
+        case CanonDirection::U:
             y--;
         break;
-        case Direction::DOWN:
+        case CanonDirection::D:
             y++;
         break;
-        case Direction::LEFT:
+        case CanonDirection::L:
             x++;
         break;
-        case Direction::RIGHT:
+        case CanonDirection::R:
             x--;
+        break;
+        case CanonDirection::UR:
+            x--;
+            y--;
+        break;
+        case CanonDirection::UL:
+            x++;
+            y--;
+        break;
+        case CanonDirection::DR:
+            x--;
+            y++;
+        break;
+        case CanonDirection::DL:
+            x++;
+            y++;
         break;
     }
 }
@@ -184,8 +212,12 @@ int Tank::getX() const {
 int Tank::getY() const {
     return y;
 }
-
-Direction Tank::getDirection() const {
-    return direction;
+CanonDirection Tank::getCanonDirection() const{
+    return canon_dir;
 }
+
+char Tank::getIndexTank() const {
+    return index_tank;
+}
+
 
