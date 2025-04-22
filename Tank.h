@@ -23,8 +23,8 @@ public:
     void rotateEighthRight();
     void rotateQuarterLeft();
     void rotateQuarterRight();
-    void moveForward();
-    void moveBackward();
+    void moveForward(int board_width, int board_height);
+    void moveBackward(int board_width, int board_height);
     int getX() const;
     int getY() const;
     char getIndexTank() const;

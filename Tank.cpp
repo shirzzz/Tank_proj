@@ -140,71 +140,73 @@ void Tank::rotateQuarterRight() {
             break;
     }
 }
-void Tank::moveForward() {
-    switch(canon_dir) {
-        case CanonDirection::U:
-            y++;
-        break;
-        case CanonDirection::D:
-            y--;
-        break;
-        case CanonDirection::L:
-            x--;
-        break;
-        case CanonDirection::R:
-            x++;
-        break;
-        case CanonDirection::UR:
-            x++;
-        y++;
-        break;
-        case CanonDirection::UL:
-            x--;
-        y++;
-        break;
-        case CanonDirection::DR:
-            x++;
-        y--;
-        break;
-        case CanonDirection::DL:
-            x--;
-        y--;
-        break;
+void Tank::moveForward(int board_width, int board_height) {
+    int x_moved = x;
+    int y_moved = y;
+
+    switch (canon_dir) {
+        case CanonDirection::U:  y_moved++; break;
+        case CanonDirection::D:  y_moved--; break;
+        case CanonDirection::L:  x_moved--; break;
+        case CanonDirection::R:  x_moved++; break;
+        case CanonDirection::UR: x_moved++; y_moved++; break;
+        case CanonDirection::UL: x_moved--; y_moved++; break;
+        case CanonDirection::DR: x_moved++; y_moved--; break;
+        case CanonDirection::DL: x_moved--; y_moved--; break;
     }
+
+    // Wrap around horizontally
+    if (x_moved < 0) x_moved += board_width;
+    if (x_moved >= board_width) x_moved -= board_width;
+
+    // Wrap around vertically
+    if (y_moved < 0) y_moved += board_height;
+    if (y_moved >= board_height) y_moved -= board_height;
+
+    // Apply the move
+    x = x_moved;
+    y = y_moved;
 }
-void Tank::moveBackward() {
-    //אני לא יודעת איך לדעת לאן אני לא יודעת איך לדעת לאן הוא זז
-    switch(canon_dir) {
-        case CanonDirection::U:
-            y--;
-        break;
-        case CanonDirection::D:
-            y++;
-        break;
-        case CanonDirection::L:
-            x++;
-        break;
-        case CanonDirection::R:
-            x--;
-        break;
-        case CanonDirection::UR:
-            x--;
-            y--;
-        break;
-        case CanonDirection::UL:
-            x++;
-            y--;
-        break;
-        case CanonDirection::DR:
-            x--;
-            y++;
-        break;
-        case CanonDirection::DL:
-            x++;
-            y++;
-        break;
+
+void Tank::moveBackward(int board_width, int board_height) {
+    int x_moved = x;
+    int y_moved = y;
+    switch (canon_dir) {
+        case CanonDirection::U: y_moved--;
+            break;
+        case CanonDirection::D: y_moved++;
+            break;
+        case CanonDirection::L: x_moved++;
+            break;
+        case CanonDirection::R: x_moved--;
+            break;
+        case CanonDirection::UR: x_moved--;
+            y_moved--;
+            break;
+        case CanonDirection::UL: x_moved++;
+            y_moved--;
+            break;
+        case CanonDirection::DR: x_moved--;
+            y_moved++;
+            break;
+        case CanonDirection::DL: x_moved++;
+            y_moved++;
+            break;
     }
+
+    // Wrap around horizontally
+    if (x_moved < 0) x_moved += board_width;
+    if (x_moved >= board_width) x_moved -= board_width;
+
+    // Wrap around vertically
+    if (y_moved < 0) y_moved += board_height;
+    if (y_moved >= board_height) y_moved -= board_height;
+
+    // Apply the move
+    x = x_moved;
+    y = y_moved;
 }
+
 
 int Tank::getX() const {
     return x;
@@ -213,7 +215,8 @@ int Tank::getX() const {
 int Tank::getY() const {
     return y;
 }
-CanonDirection Tank::getCanonDirection() const{
+
+CanonDirection Tank::getCanonDirection() const {
     return canon_dir;
 }
 

@@ -68,7 +68,7 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
         waiting_to_go_back = -1;
         tank->setWaitingToGoBack(waiting_to_go_back);
         tank->addAction(ActionType::MOVE_BACKWARD);
-        tank->moveBackward();
+        tank->moveBackward(game_board.getWidth(), game_board.getHeight());
         return;
     }
     switch (action) {
@@ -78,7 +78,7 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
                 break;
             }
              else {
-                tank->moveForward();
+                tank->moveForward(game_board.getWidth(), game_board.getHeight());
                  tank->addAction(ActionType::MOVE_FORWARD);
                  break;
             }
@@ -91,7 +91,7 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
                 if(tank->getActions()[tank->getActions().size() - 1] == ActionType::MOVE_BACKWARD) { //we can make the tank go back
                     tank->setWaitingToGoBack(-1);
                     tank->addAction(ActionType::MOVE_BACKWARD);
-                    tank->moveBackward();
+                    tank->moveBackward(game_board.getWidth(), game_board.getHeight();
                 }
                 else {
                     waiting_to_go_back = 4; // Set waiting_to_go_back to 4
@@ -149,9 +149,9 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
             else if(tank->getNumBullets() == 0) {
                 tank->addAction(ActionType::INVALID_ACTION);
                 if(tank1->getNumBullets() ==0 && tank2->getNumBullets() == 0) {
-                    tank1->addAction(ActionType::DRAW);
-                    tank2->addAction(ActionType::DRAW);
-                    game_over = true;
+                    if(moves_left > 40) {
+                        moves_left = 40;
+                    }
                 }
             }
             else {

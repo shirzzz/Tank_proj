@@ -13,7 +13,7 @@ int main() {
     }
     GameManager game_manager(gameBoard);
     int step = 0;
-    while(!game_manager.isGameOver()) {
+    while(!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
         if(step % 2 == 0) {
             game_manager.updateShells();
             game_manager.updateGame();
@@ -23,6 +23,9 @@ int main() {
         }
         gameBoard.displayBoard();
         step++;
+        if(game_manager.getMovesLeft() <= 40) {
+            game_manager.setMovesLeft(game_manager.getMovesLeft() - 1);
+        }
     }
     return 0;
 } 

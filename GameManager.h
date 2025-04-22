@@ -11,6 +11,7 @@ private:
     bool game_over = false;
     Tank *tank1 = nullptr;
     Tank *tank2 = nullptr;
+    int moves_left = INT_MAX;
 
 public:
     GameManager(GameBoard& board) : game_board(board) {
@@ -25,6 +26,8 @@ public:
     bool isGameOver() const { return game_over; }
     Tank* getTank1() { return tank1; }
     Tank* getTank2() { return tank2; }
+    int getMovesLeft() const { return moves_left; }
+    void setMovesLeft(int moves) { moves_left = moves; }
 };
 
 
