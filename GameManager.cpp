@@ -9,23 +9,23 @@
 #include "Chased.h"
 #include "DirectionUtils.h"
 #include "ActionType.h"
+#include "ActionType.cpp"
 #include "CanonDirection.h"
 #include "CellType.h"
 #include "GameManager.h"
 
 void GameManager::endGame() {
-    actions.push_back("Game Over");
     displayGame();
     game_over = true;
 }
 
-void displayGame() {
+void GameManager::displayGame() {
     std::cout << "Tank 1 Actions:" << std::endl;
-    for (const auto& action : actions_tank1) {
+    for (const auto& action : this->getTank1()->getActions()) {
         std::cout << action << std::endl;
     }
     std::cout << "Tank 2 Actions:" << std::endl;
-    for (const auto& action : actions_tank2) {
+    for (const auto& action : this->tank2->getActions()) {
         std::cout << action << std::endl;
     }
     std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
@@ -62,44 +62,56 @@ void GameManager::updateShells() {
 }
 
 void GameManager::processAction(Tank* tank, ActionType action, const std::string& name) {
-    std::vector<std::string>& tankActions =
-        (tank->getIndexTank() == '1') ? actions_tank1 : actions_tank2;
-
     switch (action) {
         case ActionType::MOVE_FORWARD:
-            tank->move_forward();
-            tankActions.push_back(name + " moved forward");
+            tank->moveForward();
+            tank->addAction(ActionType::MOVE_FORWARD);
             break;
         case ActionType::MOVE_BACKWARD:
-            tank->move_backward();
-            tankActions.push_back(name + " moved backward");
+            tank->moveBackward();
+            tank->addAction(ActionType::MOVE_BACKWARD);
             break;
         case ActionType::ROTATE_EIGHTH_LEFT:
-            tank->rotate_eighth_left();
-            tankActions.push_back(name + " rotated eighth left");
+            tank->rotateEighthLeft();
+            tank->addAction(ActionType::ROTATE_EIGHTH_LEFT);
             break;
         case ActionType::ROTATE_EIGHTH_RIGHT:
-            tank->rotate_eighth_right();
-            tankActions.push_back(name + " rotated eighth right");
+            tank->rotateEighthRight();
+            tank->addAction(ActionType::ROTATE_EIGHTH_RIGHT);
             break;
         case ActionType::ROTATE_QUARTER_LEFT:
-            tank->rotate_quarter_left();
-            tankActions.push_back(name + " rotated quarter left");
+            tank->rotateQuarterLeft();
+            tank->addAction(ActionType::ROTATE_QUARTER_LEFT);
             break;
         case ActionType::ROTATE_QUARTER_RIGHT:
-            tank->rotate_quarter_right();
-            tankActions.push_back(name + " rotated quarter right");
+            tank->rotateQuarterRight();
+            tank->addAction(ActionType::ROTATE_QUARTER_RIGHT);
             break;
         case ActionType::SHOOT: {
             tank->shoot();
             Shell shell(tank->getX(), tank->getY(), tank->getCanonDirection());
             game_board.addShell(shell);
-            tankActions.push_back(name + " shot");
+            tank->addAction(ActionType::SHOOT);
             break;
         }
+        case ActionType::WIN:
+            std::cout << "Game Over: " << name << " wins!" << std::endl;
+            tank->addAction(ActionType::WIN);
+            endGame();
+            break;
+        case ActionType::LOSE:
+            std::cout << "Game Over: " << name << " loses!" << std::endl;
+            tank->addAction(ActionType::LOSE);
+            endGame();
+            break;
+        case ActionType::DRAW:
+            std::cout << "Game Over: It's a draw!" << std::endl;
+            tank->addAction(ActionType::DRAW);
+            endGame();
+            break;
         case ActionType::INVALID_ACTION:
             std::cout << "bad step" << std::endl;
-            tankActions.push_back(name + " made an invalid action");
+            tank->addAction(ActionType::INVALID_ACTION);
             break;
     }
 }

@@ -31,6 +31,7 @@ public:
     int getNumBullets() const;
     ActionType movingAlgorithm(GameBoard & game_board);
     void addAction(ActionType action);
+    std::vector<ActionType> getActions() const;
 };
 
 

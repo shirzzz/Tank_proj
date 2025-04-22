@@ -23,6 +23,8 @@ public:
     void endGame();
     void processAction(Tank* tank, ActionType action, const std::string& name);
     bool isGameOver() const { return game_over; }
+    Tank* getTank1() { return tank1; }
+    Tank* getTank2() { return tank2; }
 };
 
 

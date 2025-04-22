@@ -239,4 +239,7 @@ ActionType Tank::movingAlgorithm(GameBoard & game_board) {
 void Tank::addAction(ActionType action) {
     my_actions.push_back(action);
 }
+std::vector<ActionType> Tank::getActions() const {
+    return my_actions;
+}
 

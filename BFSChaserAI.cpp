@@ -1,7 +1,6 @@
 #include "BFSChaserAI.h"
 #include "CanonDirection.h"
 #include "CellType.h"
-#include "Direction.h"
 #include "GameBoard.h"
 #include "Tank.h"
 #include "ActionType.h"

@@ -21,6 +21,9 @@ enum class ActionType {
     SHELL_MOVE_UP_RIGHT,
     SHELL_MOVE_DOWN_LEFT,
     SHELL_MOVE_DOWN_RIGHT,
+    WIN,
+    LOSE,
+    DRAW,
 };
 
 
