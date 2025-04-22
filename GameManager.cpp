@@ -62,36 +62,104 @@ void GameManager::updateShells() {
 }
 
 void GameManager::processAction(Tank* tank, ActionType action, const std::string& name) {
+    int waiting_to_go_back = tank->getWatingToGoBack();
+    int waiting_to_shoot_again = tank->getWaitingToShootAgain();
+    if (waiting_to_go_back == 0) {
+        waiting_to_go_back = -1;
+        tank->setWaitingToGoBack(waiting_to_go_back);
+        tank->addAction(ActionType::MOVE_BACKWARD);
+        tank->moveBackward();
+        return;
+    }
     switch (action) {
         case ActionType::MOVE_FORWARD:
-            tank->moveForward();
-            tank->addAction(ActionType::MOVE_FORWARD);
-            break;
+            if(waiting_to_go_back >= 1) {
+                tank->setWaitingToGoBack(-1); // Reset waiting_to_go_back and doing nothing
+                break;
+            }
+             else {
+                tank->moveForward();
+                 tank->addAction(ActionType::MOVE_FORWARD);
+                 break;
+            }
         case ActionType::MOVE_BACKWARD:
-            tank->moveBackward();
-            tank->addAction(ActionType::MOVE_BACKWARD);
-            break;
+            if(waiting_to_go_back >= 1) {
+                tank->setWaitingToGoBack(waiting_to_go_back--); // Reset waiting_to_go_back and doing nothing
+                break;
+            }
+            else {
+                if(tank->getActions()[tank->getActions().size() - 1] == ActionType::MOVE_BACKWARD) { //we can make the tank go back
+                    tank->setWaitingToGoBack(-1);
+                    tank->addAction(ActionType::MOVE_BACKWARD);
+                    tank->moveBackward();
+                }
+                else {
+                    waiting_to_go_back = 4; // Set waiting_to_go_back to 4
+                    tank->setWaitingToGoBack(waiting_to_go_back);
+                }
+                break;
+            }
+
         case ActionType::ROTATE_EIGHTH_LEFT:
-            tank->rotateEighthLeft();
-            tank->addAction(ActionType::ROTATE_EIGHTH_LEFT);
+            if(waiting_to_go_back == -1) {
+                tank->rotateEighthLeft();
+                tank->addAction(ActionType::ROTATE_EIGHTH_LEFT);
+            }
+            else {
+                waiting_to_go_back--;
+                tank->setWaitingToGoBack(waiting_to_go_back);
+            }
             break;
         case ActionType::ROTATE_EIGHTH_RIGHT:
-            tank->rotateEighthRight();
-            tank->addAction(ActionType::ROTATE_EIGHTH_RIGHT);
+            if(waiting_to_go_back == -1) {
+                tank->rotateEighthRight();
+                tank->addAction(ActionType::ROTATE_EIGHTH_RIGHT);
+            }
+            else {
+                waiting_to_go_back--;
+                tank->setWaitingToGoBack(waiting_to_go_back);
+            }
             break;
         case ActionType::ROTATE_QUARTER_LEFT:
-            tank->rotateQuarterLeft();
-            tank->addAction(ActionType::ROTATE_QUARTER_LEFT);
+            if(waiting_to_go_back == -1) {
+                tank->rotateQuarterLeft();
+                tank->addAction(ActionType::ROTATE_QUARTER_LEFT);
+            }
+            else {
+                waiting_to_go_back--;
+                tank->setWaitingToGoBack(waiting_to_go_back);
+            }
             break;
         case ActionType::ROTATE_QUARTER_RIGHT:
-            tank->rotateQuarterRight();
-            tank->addAction(ActionType::ROTATE_QUARTER_RIGHT);
+            if(waiting_to_go_back == -1) {
+                tank->rotateQuarterRight();
+                tank->addAction(ActionType::ROTATE_QUARTER_RIGHT);
+            }
+            else {
+                waiting_to_go_back--;
+                tank->setWaitingToGoBack(waiting_to_go_back);
+            }
             break;
         case ActionType::SHOOT: {
-            tank->shoot();
-            Shell shell(tank->getX(), tank->getY(), tank->getCanonDirection());
-            game_board.addShell(shell);
-            tank->addAction(ActionType::SHOOT);
+            if(waiting_to_shoot_again != -1) {
+                tank->addAction(ActionType::INVALID_ACTION);
+                waiting_to_shoot_again--;
+                tank->setWaitingToShootAgain(waiting_to_shoot_again);
+            }
+            else if(tank->getNumBullets() == 0) {
+                tank->addAction(ActionType::INVALID_ACTION);
+                if(tank1->getNumBullets() ==0 && tank2->getNumBullets() == 0) {
+                    tank1->addAction(ActionType::DRAW);
+                    tank2->addAction(ActionType::DRAW);
+                    game_over = true;
+                }
+            }
+            else {
+                tank->shoot();
+                tank->addAction(ActionType::SHOOT);
+                waiting_to_shoot_again = 4; // Set waiting_to_shoot_again to 4
+                tank->setWaitingToShootAgain(waiting_to_shoot_again);
+            }
             break;
         }
         case ActionType::WIN:

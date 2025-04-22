@@ -12,10 +12,17 @@ int main() {
         return 1;
     }
     GameManager game_manager(gameBoard);
+    int step = 0;
     while(!game_manager.isGameOver()) {
-        game_manager.updateGame();
-        game_manager.updateShells();
+        if(step % 2 == 0) {
+            game_manager.updateShells();
+            game_manager.updateGame();
+        }
+        else {
+            game_manager.updateShells();
+        }
         gameBoard.displayBoard();
+        step++;
     }
     return 0;
 } 
