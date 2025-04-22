@@ -6,11 +6,11 @@
 #include "CanonDirection.h"
 #include "Tank.h"
 #include "Shell.h"
+#include "Shells.h"
 #include <string>
 #include <vector>
 #include <Wall.h>
 #include <algorithm>
-#include "Shells.h"
 
 class GameBoard {
     int width, height;
@@ -21,27 +21,39 @@ class GameBoard {
     Shells shellsList;
 
 public:
+    // Initialization
     bool loadBoardFromFile(const std::string& filename);
     void displayBoard();
+
+    // Placement and Movement
     void placeTank(int x, int y, char index_tank, CanonDirection cdir);
     void placeShell(int x, int y);
     void moveTank(char tankIndex, int newX, int newY);
     void shootFromTank(char index_tank, CanonDirection cdir);
 
+    // State Queries
     bool isCellWalkable(int x, int y) const;
     CellType getCell(int x, int y) const;
     int getWidth() const;
     int getHeight() const;
 
+    // Tank Accessors
+    Tank* getTank1() { return tank1; }
+    Tank* getTank2() { return tank2; }
+
+    // Shells access
     const std::vector<Shell>& getShells() const {
         return shellsList.getShellsList();
     }
 
-    Tank* getTank1() { return tank1; }
-    Tank* getTank2() { return tank2; }
+    std::vector<Shell>& getShells() {
+        return shellsList.accessShells(); // Mutable reference to shells
+    }
 
+    // Board Accessor
     std::vector<std::vector<CellType>> getBoard() { return board; }
 
+    // Shell Management
     void updateShellPosition(Shell* shell, int x, int y) {
         if (x >= 0 && y >= 0 && y < height && x < width)
             board[y][x] = CellType::SHELL;
@@ -64,6 +76,16 @@ public:
         shellsList.removeShellAt(x, y);
     }
 
+    void addShell(const Shell& shell) {
+        shellsList.addShell(shell);
+        int x = shell.getX();
+        int y = shell.getY();
+        if (x >= 0 && y >= 0 && y < height && x < width) {
+            board[y][x] = CellType::SHELL;
+        }
+    }
+
+    // Wall Management
     Wall* getWall(int x, int y) {
         if (x >= 0 && y >= 0 && y < height && x < width)
             return &walls[y][x];
@@ -75,16 +97,7 @@ public:
         int y = wall->getY();
         if (x >= 0 && y >= 0 && y < height && x < width) {
             board[y][x] = CellType::EMPTY;
-            walls[y][x] = Wall(0, 0); // Reset wall
-        }
-    }
-
-    void addShell(const Shell& shell) {
-        shellsList.addShell(shell);
-        int x = shell.getX();
-        int y = shell.getY();
-        if (x >= 0 && y >= 0 && y < height && x < width) {
-            board[y][x] = CellType::SHELL;
+            walls[y][x] = Wall(0, 0); // Reset wall placeholder
         }
     }
 };

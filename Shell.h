@@ -10,8 +10,14 @@
 
 class Shell : public Shape {
     int speed;
+
+private:
+    std::pair<int, int> previousPosition;
+
 public:
     Shell(int x, int y, CanonDirection cdir);
+    void storePreviousPosition() { previousPosition = {x, y}; }
+    std::pair<int, int> getPreviousPosition() const { return previousPosition; }
 
     void moveShell(GameBoard& game_board) {
         int dx = 0, dy = 0;
@@ -53,6 +59,7 @@ public:
         if (!game_board.isCellWalkable(x, y)) {
             // Handle collision (e.g., remove shell)
         }
+        
     }
 };
 
