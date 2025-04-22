@@ -4,11 +4,14 @@
 #include "GameBoard.h"
 #include "string"
 #include "ActionType.h"
+
 class GameManager {
 private:
     GameBoard& game_board;
     bool game_over = false;
-    std::vector<std::string> actions;
+    std::vector<std::string> actions_tank1;
+    std::vector<std::string> actions_tank2;
+
 public:
     GameManager(GameBoard& board) : game_board(board) {};
     void updateGame();

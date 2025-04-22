@@ -18,22 +18,30 @@ void GameManager::endGame() {
     game_over = true;
 }
 
-void GameManager::displayGame() {
-    std::cout << "Actions: " << std::endl;
-    for (const auto& action : actions) {
+void displayGame() {
+    std::cout << "Tank 1 Actions:" << std::endl;
+    for (const auto& action : actions_tank1) {
+        std::cout << action << std::endl;
+    }
+    std::cout << "Tank 2 Actions:" << std::endl;
+    for (const auto& action : actions_tank2) {
         std::cout << action << std::endl;
     }
     std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
-} // ← missing brace added here!
+}
+
 
 void GameManager::updateShells() {
-    std::vector<Shell>shells = game_board.getShells();
+    auto& shells = game_board.getShells(); // Reference, not copy!
+
     for (size_t i = 0; i < shells.size(); ) {
         Shell& shell = shells[i];
         shell.moveShell();
         std::pair<int, int> current_position = shell.getPosition();
 
-        if (game_board.getCell(current_position.first, current_position.second) == CellType::WALL) {
+        CellType cell = game_board.getCell(current_position.first, current_position.second);
+
+        if (cell == CellType::WALL) {
             Wall* wall = game_board.getWall(current_position.first, current_position.second);
             if (wall) {
                 wall->setLives(wall->getLives() - 1);
@@ -42,56 +50,59 @@ void GameManager::updateShells() {
                 }
             }
             game_board.removeShell(shell);
-            // Don't increment i — shell list might have shifted
-        } else if (game_board.getCell(current_position.first, current_position.second) == CellType::TANK1 ||
-                   game_board.getCell(current_position.first, current_position.second) == CellType::TANK2) {
+            // Don't increment i — shell list might have shifted due to erase
+        } else if (cell == CellType::TANK1 || cell == CellType::TANK2) {
             endGame();
             game_board.removeShell(shell);
         } else {
-            ++i; // Only advance if no shell was removed
+            ++i;
         }
     }
 }
 
 void GameManager::processAction(Tank* tank, ActionType action, const std::string& name) {
+    std::vector<std::string>& tankActions =
+        (tank->getIndexTank() == '1') ? actions_tank1 : actions_tank2;
+
     switch (action) {
         case ActionType::MOVE_FORWARD:
             tank->move_forward();
-            actions.push_back(name + " moved forward");
+            tankActions.push_back(name + " moved forward");
             break;
         case ActionType::MOVE_BACKWARD:
             tank->move_backward();
-            actions.push_back(name + " moved backward");
+            tankActions.push_back(name + " moved backward");
             break;
         case ActionType::ROTATE_EIGHTH_LEFT:
             tank->rotate_eighth_left();
-            actions.push_back(name + " rotated eighth left");
+            tankActions.push_back(name + " rotated eighth left");
             break;
         case ActionType::ROTATE_EIGHTH_RIGHT:
             tank->rotate_eighth_right();
-            actions.push_back(name + " rotated eighth right");
+            tankActions.push_back(name + " rotated eighth right");
             break;
         case ActionType::ROTATE_QUARTER_LEFT:
             tank->rotate_quarter_left();
-            actions.push_back(name + " rotated quarter left");
+            tankActions.push_back(name + " rotated quarter left");
             break;
         case ActionType::ROTATE_QUARTER_RIGHT:
             tank->rotate_quarter_right();
-            actions.push_back(name + " rotated quarter right");
+            tankActions.push_back(name + " rotated quarter right");
             break;
         case ActionType::SHOOT: {
             tank->shoot();
             Shell shell(tank->getX(), tank->getY(), tank->getCanonDirection());
             game_board.addShell(shell);
-            actions.push_back(name + " shot");
+            tankActions.push_back(name + " shot");
             break;
         }
         case ActionType::INVALID_ACTION:
-            std::cout << "Invalid action!" << std::endl;
-            actions.push_back(name + " made an invalid action");
+            std::cout << "bad step" << std::endl;
+            tankActions.push_back(name + " made an invalid action");
             break;
     }
 }
+
 
 void GameManager::updateGame() {
     if (game_over) return; // Don't update if game ended
