@@ -9,11 +9,14 @@ class GameManager {
 private:
     GameBoard& game_board;
     bool game_over = false;
-    std::vector<std::string> actions_tank1;
-    std::vector<std::string> actions_tank2;
+    Tank *tank1 = nullptr;
+    Tank *tank2 = nullptr;
 
 public:
-    GameManager(GameBoard& board) : game_board(board) {};
+    GameManager(GameBoard& board) : game_board(board) {
+        tank1 = board.getTank1();
+        tank2 = board.getTank2();
+    };
     void updateGame();
     void updateShells();
     void displayGame();

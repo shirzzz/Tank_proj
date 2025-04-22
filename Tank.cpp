@@ -3,6 +3,7 @@
 
 #include <CanonDirection.h>
 #include <BFSChaserAI.h>
+#include <Chased.h>
 #include "shape.h"
 #include <iostream>
 Tank::Tank(int x, int y, CanonDirection canon_direction, char index_tank) : Shape(x, y, canon_direction), index_tank(index_tank), num_bullets(16), last_time_shoot(0), last_time_backward(0) {
@@ -22,7 +23,7 @@ void Tank::shoot() {
         std::cout << "No bullets left!" << std::endl;
     }
 }
-void Tank::rotate_eighth_left() {
+void Tank::rotateEighthLeft() {
     // Rotate the tank's canon direction 45 degrees to the left
     switch (canon_dir) {
         case CanonDirection::U:
@@ -52,7 +53,7 @@ void Tank::rotate_eighth_left() {
     }
 
 }
-void Tank::rotate_eighth_right() {
+void Tank::rotateEighthRight() {
     // Rotate the tank's canon direction 45 degrees to the right
     switch (canon_dir) {
         case CanonDirection::U:
@@ -81,7 +82,7 @@ void Tank::rotate_eighth_right() {
             break;
     }
 }
-void Tank::rotate_quarter_left() {
+void Tank::rotateQuarterLeft() {
     // Rotate the tank's canon direction 90 degrees to the left
     switch (canon_dir) {
         case CanonDirection::U:
@@ -110,7 +111,7 @@ void Tank::rotate_quarter_left() {
             break;
     }
 }
-void Tank::rotate_quarter_right() {
+void Tank::rotateQuarterRight() {
     // Rotate the tank's canon direction 90 degrees to the right
     switch (canon_dir) {
         case CanonDirection::U:
@@ -139,7 +140,7 @@ void Tank::rotate_quarter_right() {
             break;
     }
 }
-void Tank::move_forward() {
+void Tank::moveForward() {
     switch(canon_dir) {
         case CanonDirection::U:
             y++;
@@ -171,7 +172,7 @@ void Tank::move_forward() {
         break;
     }
 }
-void Tank::move_backward() {
+void Tank::moveBackward() {
     //אני לא יודעת איך לדעת לאן אני לא יודעת איך לדעת לאן הוא זז
     switch(canon_dir) {
         case CanonDirection::U:
@@ -220,4 +221,22 @@ char Tank::getIndexTank() const {
     return index_tank;
 }
 
+int Tank::getNumBullets() const {
+    return num_bullets;
+}
+ActionType Tank::movingAlgorithm(GameBoard & game_board) {
+    if(index_tank == '1') {
+        // Tank 1 (AI Chaser)
+        BFSChaserAI ai1;
+        ActionType action1 = ai1.decideNextAction(game_board, *game_board.getTank1(), *game_board.getTank2());
+        return action1;
+    }
+        // Tank 2 (Chased)
+        Chased chased;
+        ActionType action2 = chased.decideNextAction(game_board, *game_board.getTank2(), *game_board.getTank1());
+        return action2;
+}
+void Tank::addAction(ActionType action) {
+    my_actions.push_back(action);
+}
 

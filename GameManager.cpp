@@ -11,6 +11,7 @@
 #include "ActionType.h"
 #include "CanonDirection.h"
 #include "CellType.h"
+#include "GameManager.h"
 
 void GameManager::endGame() {
     actions.push_back("Game Over");
@@ -106,14 +107,10 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
 
 void GameManager::updateGame() {
     if (game_over) return; // Don't update if game ended
-
-    // Tank 1 (AI Chaser)
-    BFSChaserAI ai1;
-    ActionType action1 = ai1.decideNextAction(game_board, *game_board.getTank1(), *game_board.getTank2());
+    Tank* tank1 = game_board.getTank1();
+    Tank* tank2 = game_board.getTank2();
+    ActionType action1 = tank1->movingAlgorithm();
     processAction(game_board.getTank1(), action1, "Tank 1");
-
-    // Tank 2 (Chased)
-    Chased chased;
-    ActionType action2 = chased.decideNextAction(game_board, *game_board.getTank2(), *game_board.getTank1());
+    ActionType action2 = tank2->movingAlgorithm();
     processAction(game_board.getTank2(), action2, "Tank 2");
 }

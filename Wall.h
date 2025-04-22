@@ -12,7 +12,6 @@ private:
   int lives;
 
 public:
-    Wall(int x, int y, int width, int height);
     Wall(int x, int y);
     std::pair<int, int> getPosition(){return {x, y};}
     int getLives() const { return lives; }
