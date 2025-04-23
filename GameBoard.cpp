@@ -7,7 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
+#include "BFSChaserAI.h"
+#include "Chased.h"
 bool GameBoard::loadBoardFromFile(const std::string &filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -19,7 +20,7 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
     file.ignore(); // Ignore the newline after width and height
 
     board.clear();
-    walls.resize(height, std::vector<Wall>(width));
+    walls.resize(height, std::vector<Wall>(width, Wall(0, 0)));
     board.resize(height, std::vector<CellType>(width, CellType::EMPTY));
 
     std::string line;
@@ -124,5 +125,56 @@ CellType GameBoard::getCell(int x, int y) const {
     return board[y][x];
 }
 
+void GameBoard::moveShell(Shell *shell) {
+    int dx = 0, dy = 0;
+    CanonDirection direction = shell->getDirection();
+    board[shell->getY()][ shell->getX()] = CellType::EMPTY; // Clear previous position
+    int speed = 1; // Speed of the shell
+    switch (direction) {
+        case CanonDirection::U:  dy = speed; break;
+        case CanonDirection::UR: dx = speed; dy = speed; break;
+        case CanonDirection::R:  dx = speed; break;
+        case CanonDirection::DR: dx = speed; dy = -speed; break;
+        case CanonDirection::D:  dy = -speed; break;
+        case CanonDirection::DL: dx = -speed; dy = -speed; break;
+        case CanonDirection::L:  dx = -speed; break;
+        case CanonDirection::UL: dx = -speed; dy = speed; break;
+    }
+
+    int x_moved = shell->getX() + dx;
+    int y_moved = shell->getY() + dy;
+
+    // Wrap around horizontally
+    if (x_moved < 0) x_moved += width;
+    if (x_moved >= width) x_moved -= width;
+
+    // Wrap around vertically
+    if (y_moved < 0) y_moved += height;
+    if (y_moved >= height) y_moved -= height;
+
+    // Update position
+    shell->setX(x_moved);
+    shell->setY(y_moved);
+
+    // Update the shell's position on the game board
+    updateShellPosition(shell, shell->getX(), shell->getY());
+
+    // Check for collision with walls or tanks
+    if (!isCellWalkable(shell->getX(), shell->getY())) {
+        // Handle collision (e.g., remove shell)
+    }
+    board[shell->getY()][shell->getX()] = CellType::SHELL; // Update the board with the shell's new position
+
+
+}
+ActionType GameBoard::movingAlgorithm(Tank& tank) {
+    if (tank.getIndexTank() == '1') {
+        BFSChaserAI ai;
+        return ai.decideNextAction(*this, *tank1, *tank2);
+    } else {
+        Chased chasedAI;
+        return chasedAI.decideNextAction(*this, *tank2, *tank1);
+    }
+}
 int GameBoard::getWidth() const { return width; }
 int GameBoard::getHeight() const { return height; }

@@ -11,7 +11,6 @@
 #include <vector>
 #include <Wall.h>
 #include <algorithm>
-
 class GameBoard {
     int width, height;
     std::vector<std::vector<CellType>> board;
@@ -100,6 +99,31 @@ public:
             walls[y][x] = Wall(0, 0); // Reset wall placeholder
         }
     }
+    void removeTank(char index_tank) {
+        Tank *tank = nullptr;
+        if(index_tank == '1') {
+            tank = tank1;
+        }
+        else if(index_tank == '2') {
+            tank = tank2;
+        }
+        int x = tank->getX();
+        int y = tank->getY();
+        if (x >= 0 && y >= 0 && y < height && x < width) {
+            board[y][x] = CellType::EMPTY;
+        }
+    }
+
+    void removeShellAt(int x, int y) {
+        for(Shell shell : shellsList.getShellsList()) {
+            if(shell.getX() == x && shell.getY() == y) {
+                board[y][x] = CellType::EMPTY;
+                break;
+            }
+        }
+    }
+    void moveShell(Shell* shell);
+    ActionType movingAlgorithm(Tank& tank);
 };
 
 #endif // GAMEBOARD_H

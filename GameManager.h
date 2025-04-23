@@ -50,6 +50,7 @@ public:
 
     // Modifiers
     void setMovesLeft(int moves) { moves_left = moves; }
+    void removeTank(char index);   // Remove a tank from the game board
 };
 
 #endif // GAMEMANAGER_H

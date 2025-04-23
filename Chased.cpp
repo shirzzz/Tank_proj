@@ -7,12 +7,12 @@
 #include <vector>
 
 // Check if any shell will move into the tile in front of the tank
-bool isDangerAhead(const Tank& tank, GameBoard& board) {
+bool Chased::isDangerAhead(const Tank& tank,const GameBoard& board) {
     auto [dx, dy] = directionToVector(tank.getDirection());
     int fx = tank.getX() + dx;
     int fy = tank.getY() + dy;
 
-    for (Shell& shell : board.getShells()) {
+    for (const Shell& shell : board.getShells()) {
         int sx = shell.getX();
         int sy = shell.getY();
         auto [sdx, sdy] = directionToVector(shell.getDirection());
@@ -69,7 +69,7 @@ ActionType rotateToward(const Tank& self, const Tank& opponent) {
     return ActionType::ROTATE_QUARTER_LEFT;
 }
 
-ActionType decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent) {
+ActionType Chased::decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent) {
     // 1. Avoid danger if necessary
     if (isDangerAhead(self, board)) {
         return rotateToward(self, opponent);  // Or choose another evasive action

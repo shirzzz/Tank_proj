@@ -4,7 +4,6 @@
 #include "CanonDirection.h"
 #include "shape.h"
 #include "ActionType.h"
-#include "GameBoard.h"
 #include "DestructionCause.h"
 
 #include <vector>
@@ -50,12 +49,11 @@ public:
     int getNumBullets() const;
 
     // Movement Logic
-    ActionType movingAlgorithm(GameBoard& game_board);
     void addAction(ActionType action);
     std::vector<ActionType> getActions() const;
 
     // Wait State Control
-    int getWatingToGoBack() const { return waiting_to_go_back; }
+    int getWaitingToGoBack() const { return waiting_to_go_back; }
     void setWaitingToGoBack(int waiting) { waiting_to_go_back = waiting; }
 
     int getWaitingToShootAgain() const { return waitng_to_shoot_again; }

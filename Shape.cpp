@@ -6,6 +6,10 @@
 Shape::Shape(int x, int y, CanonDirection direction) : x(x), y(y), direction(direction) {
     // Initialize the shape's position and dimensions
 }
+Shape::Shape(int x, int y): x(x), y(y) {
+    // Initialize the shape's position and dimensions
+}
+
 void Shape::move() {
     // Move the shape in the current direction
     switch (direction) {

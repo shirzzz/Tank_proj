@@ -1,9 +1,11 @@
 #ifndef SHELLS_H
 #define SHELLS_H
-
+#include <algorithm>
 #include <vector>
-#include "Shell.h"  // Ensure this is available for Shell references
 
+#include "Shell.h"
+
+static_assert(sizeof(Shell) > 0, "Shell is not being included!");
 class Shells {
 private:
     std::vector<Shell> shellsList;

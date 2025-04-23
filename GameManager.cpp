@@ -9,7 +9,7 @@
 #include "ActionType.h"
 #include "CanonDirection.h"
 #include "CellType.h"
-
+#include "ActionType.cpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -55,7 +55,7 @@ void GameManager::updateShells() {
         shell.storePreviousPosition();
     }
     for (Shell& shell : shells) {
-        shell.moveShell();
+        game_board.moveShell(&shell);
     }
 }
 
@@ -146,13 +146,14 @@ void GameManager::resolveTankCollisions() {
 }
 
 void GameManager::processAction(Tank* tank, ActionType action, const std::string& name) {
-    int wtgBack = tank->getWatingToGoBack();
+    int wtgBack = tank->getWaitingToGoBack();
     int wtgShoot = tank->getWaitingToShootAgain();
 
     if (wtgBack == 0) {
         tank->setWaitingToGoBack(-1);
         tank->addAction(ActionType::MOVE_BACKWARD);
         tank->moveBackward(game_board.getWidth(), game_board.getHeight());
+        game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
         return;
     }
 
@@ -161,6 +162,7 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
             if (wtgBack >= 1) tank->setWaitingToGoBack(-1);
             else {
                 tank->moveForward(game_board.getWidth(), game_board.getHeight());
+                game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
                 tank->addAction(ActionType::MOVE_FORWARD);
             }
             break;
@@ -174,6 +176,7 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
                     tank->setWaitingToGoBack(-1);
                     tank->addAction(ActionType::MOVE_BACKWARD);
                     tank->moveBackward(game_board.getWidth(), game_board.getHeight());
+                    game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
                 } else {
                     tank->setWaitingToGoBack(4);
                 }
@@ -248,10 +251,10 @@ void GameManager::updateGame() {
     tank1->storePreviousPosition();
     tank2->storePreviousPosition();
 
-    ActionType action1 = tank1->movingAlgorithm(game_board);
+    ActionType action1 = game_board.movingAlgorithm(*tank1);
     processAction(tank1, action1, "Tank 1");
 
-    ActionType action2 = tank2->movingAlgorithm(game_board);
+    ActionType action2 = game_board.movingAlgorithm(*tank2);
     processAction(tank2, action2, "Tank 2");
 }
 

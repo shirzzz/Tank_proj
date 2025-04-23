@@ -14,7 +14,7 @@
 
 // Checks whether the tile directly in front of the tank is in the path of any shell
 // Simulates shell movement and returns true if the shell will collide with the forward tile
-bool isDangerAhead(const Tank& tank, GameBoard& board) {
+bool isDangerAhead(const Tank& tank,const GameBoard& board) {
     int tx = tank.getX();
     int ty = tank.getY();
     auto [dx, dy] = directionToVector(tank.getDirection());
@@ -51,8 +51,8 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
     if (targetX == -1 || targetY == -1) {
         int dx = opponent.getX() - self.getX();
         int dy = opponent.getY() - self.getY();
-        Direction desiredDir = getDirectionFromDelta(dx, dy);
-        Direction currentDir = self.getDirection();
+        CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
+        CanonDirection currentDir = self.getDirection();
 
         if (currentDir != desiredDir) {
             int curIdx = static_cast<int>(currentDir);
@@ -60,11 +60,11 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
             int diff = (desIdx - curIdx + 8) % 8;
 
             // Choose best rotation
-            if (diff == 1 || diff == 2) return ActionType::ROTATE_1_8_RIGHT;
-            if (diff == 6 || diff == 7) return ActionType::ROTATE_1_8_LEFT;
-            if (diff == 3) return ActionType::ROTATE_1_4_RIGHT;
-            if (diff == 5) return ActionType::ROTATE_1_4_LEFT;
-            if (diff == 4) return ActionType::ROTATE_1_4_RIGHT;
+            if (diff == 1 || diff == 2) return ActionType::ROTATE_EIGHTH_RIGHT;
+            if (diff == 6 || diff == 7) return ActionType::ROTATE_EIGHTH_LEFT;
+            if (diff == 3) return ActionType::ROTATE_QUARTER_RIGHT;
+            if (diff == 5) return ActionType::ROTATE_QUARTER_LEFT;
+            if (diff == 4) return ActionType::ROTATE_QUARTER_RIGHT;
         }
 
         return ActionType::SHOOT; // Already aligned
@@ -73,13 +73,13 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
     // Step 3: Path found - align with direction and move forward
     int dx = targetX - self.getX();
     int dy = targetY - self.getY();
-    Direction desiredDir = getDirectionFromDelta(dx, dy);
-    Direction currentDir = self.getDirection();
+    CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
+    CanonDirection currentDir = self.getDirection();
 
     // Step 4: Already aligned - move unless there's danger ahead
     if (currentDir == desiredDir) {
         if (!isDangerAhead(self, board)) return ActionType::MOVE_FORWARD;
-        return ActionType::ROTATE_1_8_LEFT; // dodge
+        return ActionType::ROTATE_EIGHTH_LEFT; // dodge
     }
 
     // Step 5: Not aligned - choose best rotation toward direction
@@ -87,11 +87,11 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
     int desIdx = static_cast<int>(desiredDir);
     int diff = (desIdx - curIdx + 8) % 8;
 
-    if (diff == 1 || diff == 2) return ActionType::ROTATE_1_8_RIGHT;
-    if (diff == 6 || diff == 7) return ActionType::ROTATE_1_8_LEFT;
-    if (diff == 3) return ActionType::ROTATE_1_4_RIGHT;
-    if (diff == 5) return ActionType::ROTATE_1_4_LEFT;
-    if (diff == 4) return ActionType::ROTATE_1_4_RIGHT;
+    if (diff == 1 || diff == 2) return ActionType::ROTATE_EIGHTH_RIGHT;
+    if (diff == 6 || diff == 7) return ActionType::ROTATE_EIGHTH_LEFT;
+    if (diff == 3) return ActionType::ROTATE_QUARTER_RIGHT;
+    if (diff == 5) return ActionType::ROTATE_QUARTER_LEFT;
+    if (diff == 4) return ActionType::ROTATE_QUARTER_RIGHT;
 
     return ActionType::MOVE_FORWARD;
 }

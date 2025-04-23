@@ -6,7 +6,7 @@
 #include "GameBoard.h"
 #include "GameManager.h"
 #include "ActionType.h"
-
+#include "ActionType.cpp"
 int main() {
     GameBoard gameBoard;
     std::string filename;

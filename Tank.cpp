@@ -126,17 +126,6 @@ void Tank::rotateQuarterRight() {
     }
 }
 
-// AI Behavior
-ActionType Tank::movingAlgorithm(GameBoard& game_board) {
-    if (index_tank == '1') {
-        BFSChaserAI ai;
-        return ai.decideNextAction(game_board, *game_board.getTank1(), *game_board.getTank2());
-    } else {
-        Chased chasedAI;
-        return chasedAI.decideNextAction(game_board, *game_board.getTank2(), *game_board.getTank1());
-    }
-}
-
 // Actions Tracking
 void Tank::addAction(ActionType action) {
     my_actions.push_back(action);
