@@ -9,21 +9,21 @@
 #include "ActionType.h"
 #include "CanonDirection.h"
 #include "CellType.h"
-#include "ActionType.cpp"
 #include <iostream>
 #include <vector>
 #include <string>
 
+
+
 // Track tanks after removal for reporting
 Tank* lastKnownTank1 = nullptr;
 Tank* lastKnownTank2 = nullptr;
-
 void GameManager::endGame() {
     displayGame();
     game_over = true;
 }
 
-void GameManager::displayGame() {
+void GameManager::displayGame() const {
     std::cout << "Tank 1 Actions:\n";
     if (lastKnownTank1) {
         for (const auto& action : lastKnownTank1->getActions()) {
@@ -40,27 +40,27 @@ void GameManager::displayGame() {
 
     std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
 
-    if (!game_board.getTank1() && lastKnownTank1) {
+    if (!shared_board->getTank1() && lastKnownTank1) {
         std::cout << "Tank 1 was destroyed. Cause: " << lastKnownTank1->getDestructionCauseStr() << std::endl;
     }
 
-    if (!game_board.getTank2() && lastKnownTank2) {
+    if (!shared_board->getTank2() && lastKnownTank2) {
         std::cout << "Tank 2 was destroyed. Cause: " << lastKnownTank2->getDestructionCauseStr() << std::endl;
     }
 }
 
-void GameManager::updateShells() {
-    auto& shells = game_board.getShells();
+void GameManager::updateShells() const {
+    auto& shells = shared_board->getShells();
     for (Shell& shell : shells) {
         shell.storePreviousPosition();
     }
     for (Shell& shell : shells) {
-        game_board.moveShell(&shell);
+        shared_board->moveShell(&shell);
     }
 }
 
 void GameManager::resolveShellCollisions() {
-    auto& shells = game_board.getShells();
+    auto& shells = shared_board->getShells();
     std::vector<std::pair<int, int>> toExplode;
 
     // Check for shell-to-shell collisions
@@ -73,6 +73,7 @@ void GameManager::resolveShellCollisions() {
 
             if (pi == pj || (pi == oj && pj == oi)) {
                 toExplode.push_back(pi);
+                toExplode.push_back(pj);
             }
         }
     }
@@ -81,108 +82,120 @@ void GameManager::resolveShellCollisions() {
     for (Shell& shell : shells) {
         auto pos = shell.getPosition();
         int x = pos.first;
-        int y = pos.second; 
-        CellType cell = game_board.getCell(x, y);
-
+        int y = pos.second;
+        int pre_shell_x = shell.getPreviousPosition().first;
+        int pre_shell_y = shell.getPreviousPosition().second;
+        CellType cell = shared_board->getCell(x, y)->getCellType();
+        CellType pre_cell = shared_board->getCell(pre_shell_x, pre_shell_y)->getCellType();
         if (cell == CellType::WALL) {
-            Wall* wall = game_board.getWall(x, y);
+           Wall* wall = static_cast<Wall*>(shared_board->getCell(x, y));
             if (wall) {
                 wall->setLives(wall->getLives() - 1);
                 if (wall->getLives() <= 0) {
-                    game_board.removeWall(wall);
+                    shared_board->removeWall(wall);
                 }
             }
             toExplode.push_back({x, y});
         } else if (cell == CellType::TANK1 || cell == CellType::TANK2) {
-            Tank* target = (cell == CellType::TANK1) ? game_board.getTank1() : game_board.getTank2();
+            std::shared_ptr<Tank> target = (cell == CellType::TANK1) ? shared_board->getTank1() : shared_board->getTank2();
             if (target) {
                 target->setDestructionCause(DestructionCause::SHELL);
-                if (target->getIndexTank() == '1') lastKnownTank1 = target;
-                else lastKnownTank2 = target;
+                if (target->getIndexTank() == '1') {
+                    lastKnownTank1 = target;
+                }
+                else {
+                    lastKnownTank2 = target;
+                }
+                target->addAction(ActionType::LOSE);
             }
             toExplode.push_back({x, y});
         }
+        // else if (
+        //     shared_board->removeShellAt(pre_shell_x, pre_shell_y);
+        // }
     }
 
     // Remove all shells that should explode
     for (const auto& pos : toExplode) {
         int x = pos.first;
         int y = pos.second;
-        game_board.removeShellAt(x, y);
+        shared_board->removeShellAt(x, y);
     }
 }
 
 void GameManager::resolveTankCollisions() {
-    Tank* t1 = game_board.getTank1();
-    Tank* t2 = game_board.getTank2();
+    if (!tank1 || !tank2) return;
 
-    if (!t1 || !t2) return;
-
-    auto p1 = t1->getPosition();
-    auto p2 = t2->getPosition();
-    auto o1 = t1->getPreviousPosition();
-    auto o2 = t2->getPreviousPosition();
+    auto p1 = tank1->getPosition();
+    auto p2 = tank2->getPosition();
+    auto o1 = tank1->getPreviousPosition();
+    auto o2 = tank2->getPreviousPosition();
 
     if (p1 == p2 || (p1 == o2 && p2 == o1)) {
-        t1->setDestructionCause(DestructionCause::TANK);
-        t2->setDestructionCause(DestructionCause::TANK);
-        lastKnownTank1 = t1;
-        lastKnownTank2 = t2;
-        game_board.removeTank('1');
-        game_board.removeTank('2');
+        tank1->setDestructionCause(DestructionCause::TANK);
+        tank2->setDestructionCause(DestructionCause::TANK);
+        lastKnownTank1 = tank1;
+        lastKnownTank2 = tank2;
+        shared_board->removeTank(tank1);
+        shared_board->removeTank(tank2);
+        tank1->addAction(ActionType::DRAW);
+        tank2->addAction(ActionType::DRAW);
         endGame();
         return;
     }
 
-    for (Tank* tank : {t1, t2}) {
+    for (std::shared_ptr<Tank> tank : {tank1, tank2}) {
         auto pos = tank->getPosition();
         int x = pos.first;
         int y = pos.second;
-        if (game_board.getCell(x, y) == CellType::MINE) {
+        if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
             tank->setDestructionCause(DestructionCause::MINE);
-            if (tank->getIndexTank() == '1') lastKnownTank1 = tank;
+            if(tank->getIndexTank() == '1'){
+                lastKnownTank1 = tank;
+                }
             else lastKnownTank2 = tank;
-
-            game_board.getBoard()[y][x] = CellType::EMPTY;
-            game_board.removeTank(tank->getIndexTank());
+           tank->addAction(ActionType::LOSE);
+            (shared_board->setCell(x, y, new Empty(x, y)));
+            shared_board->removeTank(tank);
+            tank->addAction(ActionType::LOSE);
             endGame();
             return;
         }
     }
 }
 
-void GameManager::processAction(Tank* tank, ActionType action, const std::string& name) {
-    int wtgBack = tank->getWaitingToGoBack();
-    int wtgShoot = tank->getWaitingToShootAgain();
+void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {
+    int waiting_to_go_back = tank->getWaitingToGoBack();
+    int waiting_to_shoot = tank->getWaitingToShootAgain();
 
-    if (wtgBack == 0) {
+    if (waiting_to_go_back == 0) {
         tank->setWaitingToGoBack(-1);
         tank->addAction(ActionType::MOVE_BACKWARD);
-        tank->moveBackward(game_board.getWidth(), game_board.getHeight());
-        game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
+        tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
+        shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
         return;
     }
 
     switch (action) {
         case ActionType::MOVE_FORWARD:
-            if (wtgBack >= 1) tank->setWaitingToGoBack(-1);
+            if (waiting_to_go_back >= 1) tank->setWaitingToGoBack(-1);
             else {
-                tank->moveForward(game_board.getWidth(), game_board.getHeight());
-                game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
+                tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
+                shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
                 tank->addAction(ActionType::MOVE_FORWARD);
             }
             break;
 
         case ActionType::MOVE_BACKWARD:
-            if (wtgBack >= 1) {
-                tank->setWaitingToGoBack(wtgBack - 1);
+            if (waiting_to_go_back >= 1) {
+                tank->setWaitingToGoBack(waiting_to_go_back - 1);
             } else {
                 if (!tank->getActions().empty() && 
                     tank->getActions().back() == ActionType::MOVE_BACKWARD) {
                     tank->setWaitingToGoBack(-1);
                     tank->addAction(ActionType::MOVE_BACKWARD);
-                    tank->moveBackward(game_board.getWidth(), game_board.getHeight());
-                    game_board.moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
+                    tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
+                    shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
                 } else {
                     tank->setWaitingToGoBack(4);
                 }
@@ -193,30 +206,30 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
         case ActionType::ROTATE_EIGHTH_RIGHT:
         case ActionType::ROTATE_QUARTER_LEFT:
         case ActionType::ROTATE_QUARTER_RIGHT:
-            if (wtgBack == -1) {
+            if (waiting_to_go_back == -1) {
                 if (action == ActionType::ROTATE_EIGHTH_LEFT) tank->rotateEighthLeft();
                 if (action == ActionType::ROTATE_EIGHTH_RIGHT) tank->rotateEighthRight();
                 if (action == ActionType::ROTATE_QUARTER_LEFT) tank->rotateQuarterLeft();
                 if (action == ActionType::ROTATE_QUARTER_RIGHT) tank->rotateQuarterRight();
                 tank->addAction(action);
             } else {
-                tank->setWaitingToGoBack(wtgBack - 1);
+                tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
 
         case ActionType::SHOOT:
-            if (wtgShoot != -1) {
+            if (waiting_to_shoot != -1) {
                 tank->addAction(ActionType::INVALID_ACTION);
-                tank->setWaitingToShootAgain(wtgShoot - 1);
+                tank->setWaitingToShootAgain(waiting_to_shoot - 1);
             } else if (tank->getNumBullets() == 0) {
                 tank->addAction(ActionType::INVALID_ACTION);
-                if (game_board.getTank1()->getNumBullets() == 0 &&
-                    game_board.getTank2()->getNumBullets() == 0) {
+                if (shared_board->getTank1()->getNumBullets() == 0 &&
+                    shared_board->getTank2()->getNumBullets() == 0) {
                     if (moves_left > 40) moves_left = 40;
                 }
             } else {
                 tank->shoot();
-                game_board.addShell(Shell(tank->getX(), tank->getY(), tank->getCanonDirection()));
+                shared_board->addShell(Shell(tank->getX(), tank->getY(), tank->getCanonDirection()));
                 tank->addAction(ActionType::SHOOT);
                 tank->setWaitingToShootAgain(4);
             }
@@ -250,26 +263,25 @@ void GameManager::processAction(Tank* tank, ActionType action, const std::string
 void GameManager::updateGame() {
     if (game_over) return;
 
-    Tank* tank1 = game_board.getTank1();
-    Tank* tank2 = game_board.getTank2();
+    std::shared_ptr<Tank> tank1 = shared_board->getTank1();
+    std::shared_ptr<Tank> tank2 = shared_board->getTank2();
     if (!tank1 || !tank2) return;
+    tank1->setPreviousPosition();
+    tank2->setPreviousPosition();
 
-    tank1->storePreviousPosition();
-    tank2->storePreviousPosition();
-
-    ActionType action1 = game_board.movingAlgorithm(*tank1);
+    ActionType action1 = shared_board->movingAlgorithm(*tank1);
     processAction(tank1, action1, "Tank 1");
 
-    ActionType action2 = game_board.movingAlgorithm(*tank2);
+    ActionType action2 = shared_board->movingAlgorithm(*tank2);
     processAction(tank2, action2, "Tank 2");
 }
 
 void GameManager::removeTank(char index) {
     if (index == '1') {
-        game_board.removeTank('1');
+        shared_board->removeTank(tank1);
         lastKnownTank1 = nullptr;
     } else if (index == '2') {
-        game_board.removeTank('2');
+        shared_board->removeTank(tank2);
         lastKnownTank2 = nullptr;
     }
 }

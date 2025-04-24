@@ -6,7 +6,7 @@
 #include "GameBoard.h"
 #include "GameManager.h"
 #include "ActionType.h"
-#include "ActionType.cpp"
+
 int main() {
     GameBoard gameBoard;
     std::string filename;
@@ -18,7 +18,7 @@ int main() {
         return 1;
     }
 
-    GameManager game_manager(gameBoard);
+    GameManager game_manager;
     int step = 0;
 
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
@@ -52,7 +52,8 @@ int main() {
     }
 
     // Tank 1
-    Tank* tank1 = game_manager.getTank1();
+    //
+    std::shared_ptr<Tank> tank1 = game_manager.getTank1();
     file << "Tank 1 Actions:\n";
     if (tank1) {
         for (const auto& action : tank1->getActions()) {
@@ -62,7 +63,7 @@ int main() {
     }
 
     // Tank 2
-    Tank* tank2 = game_manager.getTank2();
+    std::shared_ptr<Tank> tank2 = game_manager.getTank2();
     file << "Tank 2 Actions:\n";
     if (tank2) {
         for (const auto& action : tank2->getActions()) {

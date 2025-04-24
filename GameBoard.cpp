@@ -3,30 +3,41 @@
 #include "Tank.h"
 #include "Shell.h"
 #include "CanonDirection.h"
+#include "Shape.h"
+#include "Empty.h"
+#include "Wall.h"
 
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 #include "BFSChaserAI.h"
 #include "Chased.h"
+#include "Mine.h"
+
 bool GameBoard::loadBoardFromFile(const std::string &filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file: " << filename << std::endl;
+    int count_tanks_for_player1 = 0;
+    int count_tanks_for_player2 = 0;
+    std::ofstream file_errors("input_errors.txt");
+    if (!file_errors) {
+        std::cerr << "Failed to open file for writing input errors." << std::endl;
+        return false;
+    }
+    std::ifstream file_board(filename);
+    if (!file_board.is_open()) {
+        std::cerr << "Error opening file of the board: " << filename << std::endl;
         return false;
     }
 
-    file >> width >> height;
-    file.ignore(); // Ignore the newline after width and height
+    file_board >> width >> height;
+    file_board.ignore(); // Ignore the newline after width and height
 
-    board.clear();
-    walls.resize(height, std::vector<Wall>(width, Wall(0, 0)));
-    board.resize(height, std::vector<CellType>(width, CellType::EMPTY));
+    board = std::make_shared<std::vector<std::vector<Shape*>>>(height, std::vector<Shape*>(width, new Empty(-1, -1)));
 
     std::string line;
     int count_lines = 0;
 
-    while (std::getline(file, line)) {
+    while (std::getline(file_board, line)) {
         if (line.empty()) {
             std::cerr << "Error: Empty line in file." << std::endl;
             return false;
@@ -43,22 +54,31 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
             char c = line[x];
             switch (c) {
                 case '1':
-                    board[count_lines][x] = CellType::TANK1;
-                    tank1 = new Tank(x, count_lines, CanonDirection::L, '1');
+                    if (count_tanks_for_player1 >= 1) {
+                        std::cerr << "Error: More than one tank for player 1." << std::endl;
+                        return false;
+                    }
+                    tank1 = std::make_shared<Tank>(x, count_lines, '1');
+                    (*board)[count_lines][x] = tank1.get();
+                    count_tanks_for_player1++;
                     break;
                 case '2':
-                    board[count_lines][x] = CellType::TANK2;
-                    tank2 = new Tank(x, count_lines, CanonDirection::R, '2');
+                    if (count_tanks_for_player2 >= 1) {
+                        std::cerr << "Error: More than one tank for player 2." << std::endl;
+                        return false;
+                    }
+                    tank2 = std::make_shared<Tank>(x, count_lines, '2');
+                    (*board)[count_lines][x] = tank2.get();
+                    count_tanks_for_player2++;
                     break;
                 case '#':
-                    board[count_lines][x] = CellType::WALL;
-                    walls[count_lines][x] = Wall(x, count_lines);
+                    (*board)[count_lines][x] = new Wall(x, count_lines);
                     break;
                 case '@':
-                    board[count_lines][x] = CellType::MINE;
+                    (*board)[count_lines][x] = new Mine(x, count_lines);
                     break;
                 case ' ':
-                    board[count_lines][x] = CellType::EMPTY;
+                    (*board)[count_lines][x] = new Empty(x, count_lines);
                     break;
                 default:
                     std::cerr << "Error: Invalid character in file: " << c << std::endl;
@@ -73,72 +93,113 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
         return false;
     }
 
-    file.close();
+    file_board.close();
     return true;
 }
 
-void GameBoard::displayBoard() {
+void  GameBoard::displayBoard() const {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            switch (board[y][x]) {
-                case CellType::EMPTY:  std::cout << " "; break;
-                case CellType::WALL:   std::cout << "#"; break;
-                case CellType::TANK1:  std::cout << "1"; break;
-                case CellType::TANK2:  std::cout << "2"; break;
-                case CellType::SHELL:  std::cout << "o"; break;
-                case CellType::MINE:   std::cout << "@"; break;
+            if ((*board)[y][x]) {
+                switch ((*board)[y][x]->getCellType()) {
+                    case CellType::EMPTY:
+                        std::cout << " ";
+                        break;
+                    case CellType::WALL:
+                        std::cout << "#";
+                        break;
+                    case CellType::TANK1:
+                        std::cout << "1";
+                        break;
+                    case CellType::TANK2:
+                        std::cout << "2";
+                        break;
+                    case CellType::SHELL:
+                        std::cout << "o";
+                        break;
+                    case CellType::MINE:
+                        std::cout << "@";
+                        break;
+                    default:
+                        std::cout << "?"; // Handle unknown cell types
+                        break;
+                }
+            } else {
+                std::cout << "?"; // Handle null pointer case
             }
         }
         std::cout << std::endl;
     }
 }
 
-void GameBoard::placeShell(int x, int y) {
-    // Future enhancement: differentiate shells by tank
-    board[y][x] = CellType::SHELL;
+// void GameBoard::placeShell(int x, int y) const {
+//     (*board)[y][x] = new Shell(x, y, CanonDirection::U); // Default direction, might need to be updated
+// }
+void GameBoard::updateShellPosition(Shell *shell, int newX, int newY) {
+    if (shell) {
+        shell->setX(newX);
+        shell->setY(newY);
+    }
 }
 
-void GameBoard::moveTank(char tankIndex, int newX, int newY) {
+void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
     if (tankIndex == '1' && tank1) {
-        board[tank1->getY()][tank1->getX()] = CellType::EMPTY;
+        (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
         tank1->setX(newX);
         tank1->setY(newY);
-        board[newY][newX] = CellType::TANK1;
+        (*board)[newY][newX] = tank1.get();
     } else if (tankIndex == '2' && tank2) {
-        board[tank2->getY()][tank2->getX()] = CellType::EMPTY;
+        (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
         tank2->setX(newX);
         tank2->setY(newY);
-        board[newY][newX] = CellType::TANK2;
+        (*board)[newY][newX] = tank2.get();
     }
 }
 
 bool GameBoard::isCellWalkable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    CellType c = board[y][x];
-    return c != CellType::MINE && c != CellType::WALL;
+    if ((*board)[y][x]) {
+        CellType c = (*board)[y][x]->getCellType();
+        return c != CellType::MINE && c != CellType::WALL && c != CellType::TANK1 && c != CellType::TANK2 && c != CellType::SHELL;
+    }
+    return false; // Consider null pointers as not walkable
 }
 
-CellType GameBoard::getCell(int x, int y) const {
-    if (x < 0 || y < 0 || x >= width || y >= height) {
-        return CellType::WALL; // Out-of-bounds is treated as a wall
-    }
-    return board[y][x];
-}
 
 void GameBoard::moveShell(Shell *shell) {
     int dx = 0, dy = 0;
     CanonDirection direction = shell->getDirection();
-    board[shell->getY()][ shell->getX()] = CellType::EMPTY; // Clear previous position
+    (*board)[shell->getY()][shell->getX()] = new Empty(shell->getX(), shell->getY()); // Clear previous position
     int speed = 1; // Speed of the shell
     switch (direction) {
-        case CanonDirection::U:  dy = speed; break;
-        case CanonDirection::UR: dx = speed; dy = speed; break;
-        case CanonDirection::R:  dx = speed; break;
-        case CanonDirection::DR: dx = speed; dy = -speed; break;
-        case CanonDirection::D:  dy = -speed; break;
-        case CanonDirection::DL: dx = -speed; dy = -speed; break;
-        case CanonDirection::L:  dx = -speed; break;
-        case CanonDirection::UL: dx = -speed; dy = speed; break;
+        case CanonDirection::U:
+            dy = -speed;
+            break;
+        case CanonDirection::UR:
+            dx = speed;
+            dy = -speed;
+            break;
+        case CanonDirection::R:
+            dx = speed;
+            break;
+        case CanonDirection::DR:
+            dx = speed;
+            dy = speed;
+            break;
+        case CanonDirection::D:
+            dy = speed;
+            break;
+        case CanonDirection::DL:
+            dx = -speed;
+            dy = speed;
+            break;
+        case CanonDirection::L:
+            dx = -speed;
+            break;
+        case CanonDirection::UL:
+            dx = -speed;
+            dy = -speed;
+            break;
     }
 
     int x_moved = shell->getX() + dx;
@@ -162,19 +223,31 @@ void GameBoard::moveShell(Shell *shell) {
     // Check for collision with walls or tanks
     if (!isCellWalkable(shell->getX(), shell->getY())) {
         // Handle collision (e.g., remove shell)
+        (*board)[shell->getY()][shell->getX()] = new Empty(shell->getX(), shell->getY()); // Remove shell from board
+        delete shell; // Important to deallocate memory if shell is destroyed
+        shell = nullptr; // Set pointer to null to avoid dangling pointer
+        return;
     }
-    board[shell->getY()][shell->getX()] = CellType::SHELL; // Update the board with the shell's new position
-
-
+    (*board)[shell->getY()][shell->getX()] = new Shell(shell->getX(), shell->getY(), shell->getDirection()); // Update the board with the shell's new position
 }
-ActionType GameBoard::movingAlgorithm(Tank& tank) {
-    if (tank.getIndexTank() == '1') {
+
+
+
+ActionType GameBoard::movingAlgorithm(Tank &tank) {
+    if (tank.getIndexTank() == '1' && tank1) {
         BFSChaserAI ai;
         return ai.decideNextAction(*this, *tank1, *tank2);
-    } else {
+    } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;
         return chasedAI.decideNextAction(*this, *tank2, *tank1);
     }
+    return ActionType::INVALID_ACTION; // Default action if tank is not found
 }
-int GameBoard::getWidth() const { return width; }
-int GameBoard::getHeight() const { return height; }
+
+int GameBoard::getWidth() const {
+    return width;
+}
+
+int GameBoard::getHeight() const {
+    return height;
+}

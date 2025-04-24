@@ -17,7 +17,7 @@
 bool BFSChaserAI::isDangerAhead(const Tank& tank, const GameBoard& board) {
     int tx = tank.getX();
     int ty = tank.getY();
-    auto dir = directionToVector(tank.getDirection());
+    auto dir = directionToVector(tank.getCanonDirection());
     int dx = dir.first;
     int dy = dir.second;
 
@@ -61,7 +61,7 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
         int dx = opponent.getX() - self.getX();
         int dy = opponent.getY() - self.getY();
         CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
-        CanonDirection currentDir = self.getDirection();
+        CanonDirection currentDir = self.getCanonDirection();
 
         if (currentDir != desiredDir) {
             int curIdx = static_cast<int>(currentDir);
@@ -83,7 +83,7 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
     int dx = targetX - self.getX();
     int dy = targetY - self.getY();
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
-    CanonDirection currentDir = self.getDirection();
+    CanonDirection currentDir = self.getCanonDirection();
 
     // Step 4: Already aligned - move unless there's danger ahead
     if (currentDir == desiredDir) {
@@ -91,7 +91,7 @@ ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& sel
         return ActionType::ROTATE_EIGHTH_LEFT; // dodge
     }
 
-    // Step 5: Not aligned - choose best rotation toward direction
+    // Step 5: Not aligned - choose the best rotation toward direction
     int curIdx = static_cast<int>(currentDir);
     int desIdx = static_cast<int>(desiredDir);
     int diff = (desIdx - curIdx + 8) % 8;
@@ -161,7 +161,7 @@ std::pair<int, int> BFSChaserAI::findNextStepTowardOpponent(
             if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
             if (visited.count(index(nx, ny))) continue;
         
-            CellType cell = board.getCell(nx, ny);
+            CellType cell = board.getCell(nx, ny)->getCellType();
             if (cell == CellType::WALL || cell == CellType::MINE) continue;
         
             visited.insert(index(nx, ny));

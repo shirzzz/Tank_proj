@@ -8,7 +8,7 @@
 
 // Check if any shell will move into the tile in front of the tank
 bool Chased::isDangerAhead(const Tank& tank,const GameBoard& board) {
-    std::pair<int, int> dir = directionToVector(tank.getDirection());
+    std::pair<int, int> dir = directionToVector(tank.getCanonDirection());
     int dx = dir.first;
     int dy = dir.second;
     int fx = tank.getX() + dx;
@@ -91,12 +91,12 @@ ActionType Chased::decideNextAction(GameBoard& board, const Tank& self, const Ta
     }
 
     // 4. Default action: move toward the opponent
-    std::pair<int, int> next_cell = {(directionToVector(self.getDirection())).first + self.getX(),
-                                (directionToVector(self.getDirection())).second + self.getY()};
-    if(board.getBoard()[next_cell.first][next_cell.second] == CellType::WALL) {
+    std::pair<int, int> next_cell = {(directionToVector(self.getCanonDirection())).first + self.getX(),
+                                (directionToVector(self.getCanonDirection())).second + self.getY()};
+    if(board.getCell(next_cell.first,next_cell.second)->getCellType() == CellType::WALL) {
         return ActionType::ROTATE_EIGHTH_LEFT; // Or some other action
     }
-    if (board.getCell(next_cell.first, next_cell.second) == CellType::MINE) {
+    if (board.getCell(next_cell.first, next_cell.second)->getCellType() == CellType::MINE) {
         return ActionType::ROTATE_EIGHTH_LEFT; // Or some other action
     }
     return ActionType::MOVE_FORWARD;

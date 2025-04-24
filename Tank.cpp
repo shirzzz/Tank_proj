@@ -7,13 +7,14 @@
 
 #include <iostream>
 
-Tank::Tank(int x, int y, CanonDirection canon_direction, char index_tank)
-    : Shape(x, y, canon_direction), index_tank(index_tank),
-      num_bullets(16), last_time_shoot(0), last_time_backward(0) {
+Tank::Tank(int x, int y, char index_tank)
+    : Shape(x, y), index_tank(index_tank),num_bullets(16){
     if (index_tank == '1') {
-        this->Shape::direction = CanonDirection::L;
+        canon_dir = CanonDirection::L;
+        this->cell_type = CellType::TANK1;
     } else {
-        this->Shape::direction = CanonDirection::R;
+        canon_dir = CanonDirection::R;
+        this->cell_type = CellType::TANK2;
     }
 }
 
@@ -45,7 +46,7 @@ void Tank::moveForward(int board_width, int board_height) {
     if (x_moved >= board_width) x_moved -= board_width;
     if (y_moved < 0) y_moved += board_height;
     if (y_moved >= board_height) y_moved -= board_height;
-
+    previousPosition = {x, y}; // Store previous position before moving
     x = x_moved;
     y = y_moved;
 }
@@ -68,7 +69,7 @@ void Tank::moveBackward(int board_width, int board_height) {
     if (x_moved >= board_width) x_moved -= board_width;
     if (y_moved < 0) y_moved += board_height;
     if (y_moved >= board_height) y_moved -= board_height;
-
+    previousPosition = {x, y}; // Store previous position before moving
     x = x_moved;
     y = y_moved;
 }
@@ -136,7 +137,7 @@ std::vector<ActionType> Tank::getActions() const {
 }
 
 // Position Tracking
-void Tank::storePreviousPosition() {
+void Tank::setPreviousPosition() {
     previousPosition = {x, y};
 }
 

@@ -15,7 +15,6 @@ private:
     char index_tank;
     std::vector<ActionType> my_actions;
     CanonDirection canon_dir;
-
     int num_bullets;
     int last_time_shoot;
     int last_time_backward;
@@ -30,7 +29,7 @@ private:
 
 public:
     // Constructor
-    Tank(int x, int y, CanonDirection canon_direction, char index_tank);
+    Tank(int x, int y, char index_tank);
 
     // Actions
     void shoot();
@@ -64,7 +63,7 @@ public:
     std::string getReason() const { return reason; }
 
     // Collision Tracking
-    void storePreviousPosition();
+    void setPreviousPosition();
     std::pair<int, int> getPreviousPosition() const;
 
     // Destruction Reporting
