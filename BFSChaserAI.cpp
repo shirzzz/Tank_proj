@@ -14,10 +14,12 @@
 
 // Checks whether the tile directly in front of the tank is in the path of any shell
 // Simulates shell movement and returns true if the shell will collide with the forward tile
-bool isDangerAhead(const Tank& tank,const GameBoard& board) {
+bool BFSChaserAI::isDangerAhead(const Tank& tank, const GameBoard& board) {
     int tx = tank.getX();
     int ty = tank.getY();
-    auto [dx, dy] = directionToVector(tank.getDirection());
+    auto dir = directionToVector(tank.getDirection());
+    int dx = dir.first;
+    int dy = dir.second;
 
     int fx = tx + dx;
     int fy = ty + dy;
@@ -26,7 +28,10 @@ bool isDangerAhead(const Tank& tank,const GameBoard& board) {
     for (const Shell& shell : board.getShells()) {
         int sx = shell.getX();
         int sy = shell.getY();
-        auto [sdx, sdy] = directionToVector(shell.getDirection());
+        auto sdir = directionToVector(shell.getDirection());
+        int sdx = sdir.first;
+        int sdy = sdir.second;
+        
 
         // Simulate 5 future steps of shell movement
         for (int step = 0; step < 5; ++step) {
@@ -45,8 +50,12 @@ bool isDangerAhead(const Tank& tank,const GameBoard& board) {
 // Chooses an action each turn: move, rotate, or shoot
 ActionType BFSChaserAI::decideNextAction(const GameBoard& board, const Tank& self, const Tank& opponent) {
     // Step 1: Try to get a BFS path toward the opponent
-    auto [targetX, targetY] = findNextStepTowardOpponent(board, self, opponent);
+    auto target = findNextStepTowardOpponent(board, self, opponent);
+    int targetX = target.first;
+    int targetY = target.second;
 
+
+    
     // Step 2: If no path is found, fallback to rotating and shooting
     if (targetX == -1 || targetY == -1) {
         int dx = opponent.getX() - self.getX();
@@ -129,7 +138,9 @@ std::pair<int, int> BFSChaserAI::findNextStepTowardOpponent(
     };
 
     while (!q.empty()) {
-        auto [x, y] = q.front();
+        auto front = q.front();
+        int x = front.first;
+        int y = front.second;
         q.pop();
 
         if (x == goalX && y == goalY) {
@@ -140,19 +151,22 @@ std::pair<int, int> BFSChaserAI::findNextStepTowardOpponent(
             return {x, y};
         }
 
-        for (auto [dx, dy] : directions) {
+        for (const auto& dir : directions) {
+            int dx = dir.first;
+            int dy = dir.second;
+        
             int nx = x + dx;
             int ny = y + dy;
-
+        
             if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
             if (visited.count(index(nx, ny))) continue;
-
+        
             CellType cell = board.getCell(nx, ny);
             if (cell == CellType::WALL || cell == CellType::MINE) continue;
-
+        
             visited.insert(index(nx, ny));
-            cameFrom[index(nx, ny)] = {x, y};
-            q.push({nx, ny});
+            cameFrom[index(nx, ny)] = std::make_pair(x, y);  // use make_pair for GCC 6.3
+            q.push(std::make_pair(nx, ny));                  // same here
         }
     }
 

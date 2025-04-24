@@ -8,14 +8,18 @@
 
 // Check if any shell will move into the tile in front of the tank
 bool Chased::isDangerAhead(const Tank& tank,const GameBoard& board) {
-    auto [dx, dy] = directionToVector(tank.getDirection());
+    std::pair<int, int> dir = directionToVector(tank.getDirection());
+    int dx = dir.first;
+    int dy = dir.second;
     int fx = tank.getX() + dx;
     int fy = tank.getY() + dy;
 
     for (const Shell& shell : board.getShells()) {
         int sx = shell.getX();
         int sy = shell.getY();
-        auto [sdx, sdy] = directionToVector(shell.getDirection());
+        auto dir = directionToVector(shell.getDirection());
+        int sdx = dir.first;
+        int sdy = dir.second;
 
         for (int step = 0; step < 5; ++step) {
             if (sx == fx && sy == fy) return true;

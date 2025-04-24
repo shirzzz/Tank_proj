@@ -9,7 +9,7 @@
 #include "Shells.h"
 #include <string>
 #include <vector>
-#include <Wall.h>
+#include "Wall.h"
 #include <algorithm>
 class GameBoard {
     int width, height;

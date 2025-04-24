@@ -79,7 +79,9 @@ void GameManager::resolveShellCollisions() {
 
     // Check shell interactions with walls and tanks
     for (Shell& shell : shells) {
-        auto [x, y] = shell.getPosition();
+        auto pos = shell.getPosition();
+        int x = pos.first;
+        int y = pos.second; 
         CellType cell = game_board.getCell(x, y);
 
         if (cell == CellType::WALL) {
@@ -103,7 +105,9 @@ void GameManager::resolveShellCollisions() {
     }
 
     // Remove all shells that should explode
-    for (auto [x, y] : toExplode) {
+    for (const auto& pos : toExplode) {
+        int x = pos.first;
+        int y = pos.second;
         game_board.removeShellAt(x, y);
     }
 }
@@ -131,7 +135,9 @@ void GameManager::resolveTankCollisions() {
     }
 
     for (Tank* tank : {t1, t2}) {
-        auto [x, y] = tank->getPosition();
+        auto pos = tank->getPosition();
+        int x = pos.first;
+        int y = pos.second;
         if (game_board.getCell(x, y) == CellType::MINE) {
             tank->setDestructionCause(DestructionCause::MINE);
             if (tank->getIndexTank() == '1') lastKnownTank1 = tank;
