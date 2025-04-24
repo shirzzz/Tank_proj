@@ -237,7 +237,7 @@ ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, s
     else {
         std::vector<std::vector<int>> graph = getGraphOutOfBoard(shared_board);
         std::vector<int> path = getFutureMovesBfs(graph, tank1->getX() * 10 + tank1->getY(), tank2->getX() * 10 + tank2->getY());
-        my_future_moves = getFutureMoves(path, tank1);
+        my_future_moves = getFutureMoves(path, tank1, tank2);
     }
     return my_future_moves[0];
 }
