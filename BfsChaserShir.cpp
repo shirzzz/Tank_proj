@@ -272,6 +272,38 @@ std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::share
     return graph;
 }
 
+bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> board) {
+    int tx = tank.getX();
+    int ty = tank.getY();
+    auto dir = directionToVector(tank.getCanonDirection());
+    int dx = dir.first;
+    int dy = dir.second;
+
+    int fx = tx + dx;
+    int fy = ty + dy;
+
+    // Check each shell to see if it will pass through (fx, fy)
+    for (const Shell& shell : board.getShells()) {
+        int sx = shell.getX();
+        int sy = shell.getY();
+        auto sdir = directionToVector(shell.getDirection());
+        int sdx = sdir.first;
+        int sdy = sdir.second;
+        
+
+        // Simulate 5 future steps of shell movement
+        for (int step = 0; step < 5; ++step) {
+            if (sx == fx && sy == fy) return true;
+            sx += sdx;
+            sy += sdy;
+
+            if (sx < 0 || sx >= board.getWidth() || sy < 0 || sy >= board.getHeight()) break;
+        }
+    }
+
+    return false;
+}
+
 bool BfsChaserShir::isFacingOpponent(const Tank& self, const Tank& opponent) {
     int dx = opponent.getX() - self.getX();
     int dy = opponent.getY() - self.getY();

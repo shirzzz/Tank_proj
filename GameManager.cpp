@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include "Shells.h"
 
 
 
@@ -92,10 +93,11 @@ void GameManager::resolveShellCollisions() {
             if (wall) {
                 wall->setLives(wall->getLives() - 1);
                 if (wall->getLives() <= 0) {
-                    shared_board->removeWall(wall);
+                    shared_board->removeWall(wall);;
+                    toExplode.push_back({x, y});
                 }
             }
-            toExplode.push_back({x, y});
+            shared_board->removeShellAt(x, y);
         } else if (cell == CellType::TANK1 || cell == CellType::TANK2) {
             std::shared_ptr<Tank> target = (cell == CellType::TANK1) ? shared_board->getTank1() : shared_board->getTank2();
             if (target) {
@@ -162,6 +164,31 @@ void GameManager::resolveTankCollisions() {
             return;
         }
     }
+
+    // Check if a tank moved into a shell's position
+    auto& shells = shared_board->getShells();
+    for (const Shell& shell : shells) {
+        auto shellPos = shell.getPosition();
+
+        for (std::shared_ptr<Tank> tank : {tank1, tank2}) {
+            if (tank && tank->getPosition() == shellPos) {
+                tank->setDestructionCause(DestructionCause::SHELL);
+
+            if (tank->getIndexTank() == '1') {
+                lastKnownTank1 = tank;
+            } else {
+                lastKnownTank2 = tank;
+            }
+
+            tank->addAction(ActionType::LOSE);
+            shared_board->removeTank(tank);
+            shared_board->removeShellAt(shellPos.first, shellPos.second);
+
+            endGame();
+            return;
+        }
+    }
+}
 }
 
 void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {

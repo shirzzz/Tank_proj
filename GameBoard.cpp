@@ -6,7 +6,7 @@
 #include "Shape.h"
 #include "Empty.h"
 #include "Wall.h"
-
+#include "Shells.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -235,7 +235,7 @@ void GameBoard::moveShell(Shell *shell) {
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
-        BFSChaserAI ai;
+        BFSChaserShir getNextMove;
         return ai.decideNextAction(*this, *tank1, *tank2);
     } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;
