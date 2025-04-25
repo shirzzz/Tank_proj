@@ -84,10 +84,10 @@ void GameManager::resolveShellCollisions() {
         auto pos = shell.getPosition();
         int x = pos.first;
         int y = pos.second;
-        int pre_shell_x = shell.getPreviousPosition().first;
-        int pre_shell_y = shell.getPreviousPosition().second;
+        //int pre_shell_x = shell.getPreviousPosition().first;
+       // int pre_shell_y = shell.getPreviousPosition().second;
         CellType cell = shared_board->getCell(x, y)->getCellType();
-        CellType pre_cell = shared_board->getCell(pre_shell_x, pre_shell_y)->getCellType();
+       // CellType pre_cell = shared_board->getCell(pre_shell_x, pre_shell_y)->getCellType();
         if (cell == CellType::WALL) {
            Wall* wall = static_cast<Wall*>(shared_board->getCell(x, y));
             if (wall) {
@@ -230,16 +230,38 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             break;
 
         case ActionType::ROTATE_EIGHTH_LEFT:
+            if (waiting_to_go_back == -1) {
+                tank->rotateEighthLeft();
+                tank->addAction(action);
+            }
+            else {
+                tank->setWaitingToGoBack(waiting_to_go_back - 1);
+            }
+            break;
         case ActionType::ROTATE_EIGHTH_RIGHT:
+            if (waiting_to_go_back == -1) {
+                tank->rotateEighthRight();
+                tank->addAction(action);
+            }
+            else {
+                tank->setWaitingToGoBack(waiting_to_go_back - 1);
+            }
+            break;
         case ActionType::ROTATE_QUARTER_LEFT:
+            if (waiting_to_go_back == -1) {
+                tank->rotateQuarterLeft();
+                tank->addAction(action);
+            }
+            else {
+                tank->setWaitingToGoBack(waiting_to_go_back - 1);
+            }
+            break;
         case ActionType::ROTATE_QUARTER_RIGHT:
             if (waiting_to_go_back == -1) {
-                if (action == ActionType::ROTATE_EIGHTH_LEFT) tank->rotateEighthLeft();
-                if (action == ActionType::ROTATE_EIGHTH_RIGHT) tank->rotateEighthRight();
-                if (action == ActionType::ROTATE_QUARTER_LEFT) tank->rotateQuarterLeft();
-                if (action == ActionType::ROTATE_QUARTER_RIGHT) tank->rotateQuarterRight();
+                tank->rotateQuarterRight();
                 tank->addAction(action);
-            } else {
+            }
+            else {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;

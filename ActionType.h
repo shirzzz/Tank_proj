@@ -14,14 +14,6 @@ enum class ActionType {
     ROTATE_QUARTER_RIGHT,
     SHOOT,
     INVALID_ACTION,
-    SHELL_MOVE_LEFT,
-    SHELL_MOVE_RIGHT,
-    SHELL_MOVE_UP,
-    SHELL_MOVE_DOWN,
-    SHELL_MOVE_UP_LEFT,
-    SHELL_MOVE_UP_RIGHT,
-    SHELL_MOVE_DOWN_LEFT,
-    SHELL_MOVE_DOWN_RIGHT,
     WIN,
     LOSE,
     DRAW,
@@ -37,14 +29,6 @@ inline std::string toString(ActionType action) {
         case ActionType::ROTATE_QUARTER_RIGHT: return "ROTATE_QUARTER_RIGHT";
         case ActionType::SHOOT: return "SHOOT";
         case ActionType::INVALID_ACTION: return "INVALID_ACTION";
-        case ActionType::SHELL_MOVE_LEFT: return "SHELL_MOVE_LEFT";
-        case ActionType::SHELL_MOVE_RIGHT: return "SHELL_MOVE_RIGHT";
-        case ActionType::SHELL_MOVE_UP: return "SHELL_MOVE_UP";
-        case ActionType::SHELL_MOVE_DOWN: return "SHELL_MOVE_DOWN";
-        case ActionType::SHELL_MOVE_UP_LEFT: return "SHELL_MOVE_UP_LEFT";
-        case ActionType::SHELL_MOVE_UP_RIGHT: return "SHELL_MOVE_UP_RIGHT";
-        case ActionType::SHELL_MOVE_DOWN_LEFT: return "SHELL_MOVE_DOWN_LEFT";
-        case ActionType::SHELL_MOVE_DOWN_RIGHT: return "SHELL_MOVE_DOWN_RIGHT";
         case ActionType::WIN: return "WIN";
         case ActionType::LOSE: return "LOSE";
         case ActionType::DRAW: return "DRAW";

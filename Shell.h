@@ -10,8 +10,8 @@
 class Shell : public Shape {
 private:
     std::pair<int, int> previousPosition;
-    int speed;
-    CanonDirection canon_dir;
+    int speed = 1 ;
+    CanonDirection canon_dir= CanonDirection::U; // Default direction
 
 public:
     Shell(int x, int y, CanonDirection cdir);

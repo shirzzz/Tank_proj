@@ -18,7 +18,7 @@ int main() {
         return 1;
     }
 
-    GameManager game_manager;
+    GameManager game_manager(gameBoard.getGameBoard());
     int step = 0;
 
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
