@@ -57,8 +57,9 @@ main.o: main.cpp GameBoard.h GameManager.h ActionType.h
 
 # Clean up build files
 clean:
-rm -f $(OBJECTS) $(TARGET)
-rm -f input_errors.txt Output.txt random_board.txt
+		rm -f $(OBJECTS) $(TARGET)
+		rm -rf log_file.txt
+		rm -rf input_errors.txt
 
 # Phony targets
 .PHONY: all clean

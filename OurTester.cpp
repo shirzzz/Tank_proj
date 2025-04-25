@@ -42,7 +42,7 @@ FILE* buildRandomBoardFile() {
     }
 
     fclose(file);
-    return file;
+    return nullptr;
 }
 
 bool testLoadingBoardFromFile() {

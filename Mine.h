@@ -4,7 +4,7 @@
 
 #ifndef MINE_H
 #define MINE_H
-#include "shape.h"
+#include "Shape.h"
 
 
 class Mine : public Shape {

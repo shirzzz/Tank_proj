@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CanonDirection.h"
-#include "shape.h"
+#include "Shape.h"
 
 class Shell : public Shape {
 private:

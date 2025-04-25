@@ -2,7 +2,7 @@
 #define TANK_H
 
 #include "CanonDirection.h"
-#include "shape.h"
+#include "Shape.h"
 #include "ActionType.h"
 #include "DestructionCause.h"
 

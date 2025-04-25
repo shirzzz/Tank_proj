@@ -4,7 +4,7 @@
 
 #ifndef WALL_H
 #define WALL_H
-#include "shape.h"
+#include "Shape.h"
 #include <utility>
 
 class Wall :public Shape{
