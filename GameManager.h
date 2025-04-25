@@ -11,7 +11,7 @@
 
 class GameManager {
 private:
-    std::shared_ptr<GameBoard> shared_board = GameBoard::getGameBoard();
+    std::shared_ptr<GameBoard> shared_board; // Shared pointer to the game board
     bool game_over = false;
 
     std::shared_ptr<Tank> tank1 = nullptr;
@@ -23,7 +23,7 @@ private:
     std::shared_ptr<Tank> lastKnownTank2 = nullptr;
 
 public:
-    GameManager() {
+    GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
         tank1 = shared_board->getTank1();
         tank2 = shared_board->getTank2();
     }

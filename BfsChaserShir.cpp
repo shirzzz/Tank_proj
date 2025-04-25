@@ -58,7 +58,7 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
                     moves.push_back(ActionType::MOVE_BACKWARD);
                 } else if (dx == 0 && dy == -1) {
                     moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if(dx = 1 && dy == 0) {
+                } else if(dx == 1 && dy == 0) {
                     moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
                 } else if(dx == 1 && dy == 1) {
                     moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
@@ -79,7 +79,7 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
                     moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
                 } else if (dx == 0 && dy == -1) {
                     moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if(dx = 1 && dy == 0) {
+                } else if(dx == 1 && dy == 0) {
                     moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
                 } else if(dx == 1 && dy == 1) {
                     moves.push_back(ActionType::MOVE_FORWARD);
@@ -273,10 +273,9 @@ std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::share
 }
 
 bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> board) {
-    Tank* tank = board->getTank1().get();
-    int tx = tank->getX();
-    int ty = tank->getY();
-    auto dir = directionToVector(tank->getCanonDirection());
+    int tx = self.getX();
+    int ty = self.getY();
+    auto dir = directionToVector(self.getCanonDirection());
     int dx = dir.first;
     int dy = dir.second;
 
