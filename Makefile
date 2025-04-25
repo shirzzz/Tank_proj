@@ -1,0 +1,64 @@
+CPP = g++
+CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic #-fsanitize=address
+
+# Target executable
+TARGET = main
+
+# Source files
+SOURCES = BFSChaserAI.cpp BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp
+HEADERS = ActionType.h BFSChaserAI.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Shells.h Tank.h TankAI.h Wall.h
+
+# Object files
+OBJECTS = $(SOURCES:.cpp=.o)
+
+# Default target
+all: $(TARGET)
+
+# Link object files to create the executable
+$(TARGET): $(OBJECTS)
+	$(CPP) $(CPP_FLAGS) -o $(TARGET) $(OBJECTS)
+
+# Compile source files into object files
+BFSChaserAI.o: BFSChaserAI.cpp BFSChaserAI.h CanonDirection.h CellType.h GameBoard.h Tank.h ActionType.h Shell.h DirectionUtils.h
+	$(CPP) $(CPP_FLAGS) -c BFSChaserAI.cpp -o BFSChaserAI.o
+
+BfsChaserShir.o: BfsChaserShir.cpp BfsChaserShir.h GameBoard.h DirectionUtils.h ActionType.h
+	$(CPP) $(CPP_FLAGS) -c BfsChaserShir.cpp -o BfsChaserShir.o
+
+Chased.o: Chased.cpp Chased.h DirectionUtils.h ActionType.h GameBoard.h Tank.h Shell.h
+	$(CPP) $(CPP_FLAGS) -c Chased.cpp -o Chased.o
+
+DirectionUtils.o: DirectionUtils.cpp DirectionUtils.h CanonDirection.h
+	$(CPP) $(CPP_FLAGS) -c DirectionUtils.cpp -o DirectionUtils.o
+
+GameBoard.o: GameBoard.cpp GameBoard.h CellType.h Tank.h Shell.h Shape.h Empty.h Wall.h Shells.h Mine.h Chased.h BFSChaserAI.h BfsChaserShir.h
+	$(CPP) $(CPP_FLAGS) -c GameBoard.cpp -o GameBoard.o
+
+GameManager.o: GameManager.cpp GameManager.h GameBoard.h Tank.h Shell.h DestructionCause.h BFSChaserAI.h Chased.h ActionType.h CanonDirection.h CellType.h Shells.h Empty.h
+	$(CPP) $(CPP_FLAGS) -c GameManager.cpp -o GameManager.o
+
+OurTester.o: OurTester.cpp OurTester.h GameBoard.h
+	$(CPP) $(CPP_FLAGS) -c OurTester.cpp -o OurTester.o
+
+Shape.o: Shape.cpp Shape.h
+	$(CPP) $(CPP_FLAGS) -c Shape.cpp -o Shape.o
+
+Shell.o: Shell.cpp Shell.h Shape.h CanonDirection.h
+	$(CPP) $(CPP_FLAGS) -c Shell.cpp -o Shell.o
+
+Tank.o: Tank.cpp Tank.h Shape.h CanonDirection.h ActionType.h DestructionCause.h
+	$(CPP) $(CPP_FLAGS) -c Tank.cpp -o Tank.o
+
+Wall.o: Wall.cpp Wall.h Shape.h
+	$(CPP) $(CPP_FLAGS) -c Wall.cpp -o Wall.o
+
+main.o: main.cpp GameBoard.h GameManager.h ActionType.h
+	$(CPP) $(CPP_FLAGS) -c main.cpp -o main.o
+
+# Clean up build files
+clean:
+rm -f $(OBJECTS) $(TARGET)
+rm -f input_errors.txt Output.txt random_board.txt
+
+# Phony targets
+.PHONY: all clean
