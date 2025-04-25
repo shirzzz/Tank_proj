@@ -5,51 +5,87 @@
 #include <unordered_set>
 #include "GameBoard.h"
 #include "DirectionUtils.h"
+#include "iostream"
 std::vector<int> BfsChaserShir::getFutureMovesBfs(std::vector<std::vector<int>> graph, int start, int end) {
     std::vector<int> moves;
     std::queue<int> q;
     std::unordered_set<int> visited;
     std::unordered_map<int, int> parent;
 
+    // Check if start and end are valid nodes
+    if (start < 0 || static_cast<size_t>(start) >= graph.size() || 
+        end < 0 || static_cast<size_t>(end) >= graph.size()) {
+        // Return empty moves if invalid
+        return moves;
+    }
+
     q.push(start);
     visited.insert(start);
+
+    bool pathFound = false;
 
     while (!q.empty()) {
         int current = q.front();
         q.pop();
 
         if (current == end) {
+            pathFound = true;
             break;
         }
 
-        for (int neighbor : graph[current]) {
-            if (visited.find(neighbor) == visited.end()) {
-                visited.insert(neighbor);
-                parent[neighbor] = current;
-                q.push(neighbor);
+        // Make sure current is within bounds of the graph
+        if (current >= 0 && static_cast<size_t>(current) < graph.size()) {
+            for (int neighbor : graph[current]) {
+                if (visited.find(neighbor) == visited.end()) {
+                    visited.insert(neighbor);
+                    parent[neighbor] = current;
+                    q.push(neighbor);
+                }
             }
         }
     }
 
-    // Backtrack to find the path
-    for (int at = end; at != start; at = parent[at]) {
-        moves.push_back(at);
+    // Only backtrack if we found a path
+    if (pathFound) {
+        std::cout << "Path found from " << start << " to " << end << std::endl;
+        int at = end;
+        while (at != start) {
+            // Check if the path is valid
+            if (parent.find(at) == parent.end()) {
+                // Path is broken, return empty vector
+                return std::vector<int>();
+            }
+            moves.push_back(at);
+            at = parent[at];
+        }
+        std::reverse(moves.begin(), moves.end());
     }
-    std::reverse(moves.begin(), moves.end());
+    
     return moves;
 }
-
 std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
     std::vector<ActionType> moves;
+    std::cout<<"getFutureMoves"<<std::endl;
     CanonDirection canon_direction = tank1->getCanonDirection();
+    std::cout<<canon_direction<<std::endl;
     for (size_t i = 1; i < 6; ++i) {
         //the name of each cell is x*10 + y
+        std::cout<<"got here"<<std::endl;
+        if(path == std::vector<int>()) {
+            std::cout<<"path is empty"<<std::endl;
+            break;
+        }
+        std::cout<<path.size()<<std::endl;
         int dx = path[i] / 10 - path[i - 1] / 10;
         int dy = path[i] % 10 - path[i - 1] % 10;
+        std::cout<<dx<<std::endl;
         if(isFacingOpponent(*tank1.get(), *tank2.get())) {
+            std::cout<<"facing opponent"<<std::endl;
             moves.push_back(ActionType::SHOOT);
             continue;
         }
+        std::cout<<"got1"<<std::endl;
+        std::cout<<canon_direction<<std::endl;
         switch (canon_direction) {
             case CanonDirection::U:
                if (dx == 0 && dy == 0) {
@@ -225,33 +261,42 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
                 }
             break;
         }
+        std::cout<<"got2"<<std::endl;
     }
     return moves;
 }
 ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
     if(!my_future_moves.empty()) {
+        std::cout<<"my_future_moves.size() = "<<my_future_moves.size()<<std::endl;
         ActionType next_move = my_future_moves[0];
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
     }
     else {
+        std::cout<<"creating new path"<<std::endl;
         std::vector<std::vector<int>> graph = getGraphOutOfBoard(shared_board);
+        std::cout<<"graph.size() = "<<graph.size()<<std::endl;
         std::vector<int> path = getFutureMovesBfs(graph, tank1->getX() * 10 + tank1->getY(), tank2->getX() * 10 + tank2->getY());
+        std::cout<<"path.size() = "<<path.size()<<std::endl;
         my_future_moves = getFutureMoves(path, tank1, tank2);
+        std::cout<<"my_future_moves.size() = "<<my_future_moves.size()<<std::endl;
     }
     return my_future_moves[0];
 }
 
 std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::shared_ptr<GameBoard> board) {
+    std::cout<<"getGraphOutOfBoard"<<std::endl;
     int width = board->getWidth();
     int height = board->getHeight();
-    std::vector<std::vector<int>> graph(width * height);
+    std::vector<std::vector<int>> graph((10*width) * height);
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
+            std::cout<<"x = "<<x<<"y = "<<y<<std::endl;
             if (board->isCellWalkable(x, y)) {
                 int cell_index = x * 10 + x;
                 if (x > 0 && board->isCellWalkable(x - 1, y)) {
                     graph[cell_index].push_back(cell_index - 10);
+                    std::cout<<"here 1 "<<std::endl;
                     graph[(x-1) * 10 + y].push_back(cell_index);
                 }
                 if (x < width - 1 && board->isCellWalkable(x + 1, y)) {
@@ -305,11 +350,14 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
 }
 
 bool BfsChaserShir::isFacingOpponent(const Tank& self, const Tank& opponent) {
+    std::cout<<"isFacingOpponent"<<std::endl;
     int dx = opponent.getX() - self.getX();
     int dy = opponent.getY() - self.getY();
-
+    std::cout<<"dx = "<<dx<<std::endl;
+    std::cout<<"dy = "<<dy<<std::endl;
     if (dx == 0 && dy == 0) return false; // Same position (somehow?)
 
     CanonDirection dirToOpponent = getDirectionFromDelta(dx, dy);
+    std::cout<<"dirToOpponent = "<<dirToOpponent<<std::endl;
     return self.getCanonDirection() == dirToOpponent;
 }

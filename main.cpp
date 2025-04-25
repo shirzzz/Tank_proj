@@ -17,20 +17,25 @@ int main() {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
-
+    std::cout<<"here?"<<std::endl;
     GameManager game_manager(gameBoard.getGameBoard());
+    std::cout<<"GameManager initialized."<<std::endl;
     int step = 0;
 
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
         // Step 1: Move all shells
+        std::cout<<"Moving shells."<<std::endl;
         game_manager.updateShells();
 
         // Step 2: Resolve shell collisions
+        std::cout<<"Resolving shell collisions."<<std::endl;
         game_manager.resolveShellCollisions();
 
         // Step 3: On even steps, update tanks and resolve tank collisions
         if (step % 2 == 0) {
+            std::cout<<"Updating tanks."<<std::endl;
             game_manager.updateGame();
+            std::cout<<"Resolving tank collisions."<<std::endl;
             game_manager.resolveTankCollisions();
         }
 

@@ -311,18 +311,21 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
 
 void GameManager::updateGame() {
     if (game_over) return;
-
+    std::cout << "Updating game..." << std::endl;
     std::shared_ptr<Tank> tank1 = shared_board->getTank1();
     std::shared_ptr<Tank> tank2 = shared_board->getTank2();
     if (!tank1 || !tank2) return;
     tank1->setPreviousPosition();
     tank2->setPreviousPosition();
-
+    std::cout << "Tank 1 position: " << tank1->getPosition().first << ", " << tank1->getPosition().second << std::endl;
+    std::cout << "Tank 2 position: " << tank2->getPosition().first << ", " << tank2->getPosition().second << std::endl;
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
     processAction(tank1, action1, "Tank 1");
+    std::cout << "Tank 1 action: " << action1 << std::endl;
 
     ActionType action2 = shared_board->movingAlgorithm(*tank2);
     processAction(tank2, action2, "Tank 2");
+    std::cout << "Tank 2 action: " << action2 << std::endl;
 }
 
 void GameManager::removeTank(char index) {
