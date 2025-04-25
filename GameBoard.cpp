@@ -18,7 +18,6 @@
 #include "BfsChaserShir.h"
 
 bool GameBoard::loadBoardFromFile(const std::string &filename) {
-    std::cout << "Loading board from file: " << filename << std::endl;
     int count_tanks_for_player1 = 0;
     int count_tanks_for_player2 = 0;
     std::ofstream file_errors("input_errors.txt");
@@ -170,6 +169,14 @@ bool GameBoard::isCellWalkable(int x, int y) const {
     }
     return false; // Consider null pointers as not walkable
 }
+bool GameBoard::isCellPassable(int x, int y) const {
+    if (x < 0 || y < 0 || x >= width || y >= height) return false;
+    if ((*board)[y][x]) {
+        CellType c = (*board)[y][x]->getCellType();
+        return c == CellType::EMPTY|| c == CellType::TANK1 ||c == CellType::TANK2;
+    }
+    return false; // Consider null pointers as not walkable
+}
 
 
 void GameBoard::moveShell(Shell *shell) {
@@ -240,18 +247,11 @@ void GameBoard::moveShell(Shell *shell) {
 
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
-    std::cout << "Moving algorithm for tank: " << tank.getIndexTank() << std::endl;
     if (tank.getIndexTank() == '1' && tank1) {
-        std::cout << "Tank 1 is moving." << std::endl;
         BfsChaserShir chaser_algorithm;
-        std::cout << "Chaser algorithm initialized." << std::endl;
-        std::cout << "Getting next move." << std::endl;
         return chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
     } else if (tank.getIndexTank() == '2' && tank2) {
-        std::cout << "Tank 2 is moving." << std::endl;
         Chased chasedAI;
-        std::cout << "Chased AI initialized." << std::endl;
-        std::cout << "Getting next action." << std::endl;
         return chasedAI.decideNextAction(*this, *tank2, *tank1);
     }
     return ActionType::INVALID_ACTION; // Default action if tank is not found

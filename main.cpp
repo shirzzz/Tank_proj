@@ -17,9 +17,9 @@ int main() {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
-    std::cout<<"here?"<<std::endl;
+  
     GameManager game_manager(gameBoard.getGameBoard());
-    std::cout<<"GameManager initialized."<<std::endl;
+   
     int step = 0;
 
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
@@ -40,13 +40,14 @@ int main() {
         }
 
         // Step 4: Display the current game board
-        gameBoard.displayBoard();
+        
 
         // Step 5: Decrement moves left if in the final 40-move phase
         step++;
         if (game_manager.getMovesLeft() <= 40) {
             game_manager.setMovesLeft(game_manager.getMovesLeft() - 1);
         }
+        gameBoard.displayBoard();
     }
 
     // Step 6: Write actions and termination reasons to a file

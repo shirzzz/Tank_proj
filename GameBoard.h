@@ -113,6 +113,8 @@ public:
             (*board)[y][x] = shape;
         }
     }
+    
+    bool isCellPassable(int x, int y) const;
 
 };
 
