@@ -3,6 +3,7 @@
 #include "Tank.h"
 #include "Shell.h"
 #include "CanonDirection.h"
+
 #include "Shape.h"
 #include "Empty.h"
 #include "Wall.h"
@@ -14,6 +15,7 @@
 #include "BFSChaserAI.h"
 #include "Chased.h"
 #include "Mine.h"
+#include "BfsChaserShir.h"
 
 bool GameBoard::loadBoardFromFile(const std::string &filename) {
     int count_tanks_for_player1 = 0;
@@ -235,8 +237,8 @@ void GameBoard::moveShell(Shell *shell) {
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
-        BFSChaserShir getNextMove;
-        return ai.decideNextAction(*this, *tank1, *tank2);
+        BfsChaserShir chaser_algorithm;
+        return chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
     } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;
         return chasedAI.decideNextAction(*this, *tank2, *tank1);

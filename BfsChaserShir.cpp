@@ -273,9 +273,10 @@ std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::share
 }
 
 bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> board) {
-    int tx = tank.getX();
-    int ty = tank.getY();
-    auto dir = directionToVector(tank.getCanonDirection());
+    Tank* tank = board->getTank1().get();
+    int tx = tank->getX();
+    int ty = tank->getY();
+    auto dir = directionToVector(tank->getCanonDirection());
     int dx = dir.first;
     int dy = dir.second;
 
@@ -283,7 +284,7 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
     int fy = ty + dy;
 
     // Check each shell to see if it will pass through (fx, fy)
-    for (const Shell& shell : board.getShells()) {
+    for (const Shell& shell : board.get()->getShells()) {
         int sx = shell.getX();
         int sy = shell.getY();
         auto sdir = directionToVector(shell.getDirection());
@@ -297,7 +298,7 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
             sx += sdx;
             sy += sdy;
 
-            if (sx < 0 || sx >= board.getWidth() || sy < 0 || sy >= board.getHeight()) break;
+            if (sx < 0 || sx >= board.get()->getWidth() || sy < 0 || sy >= board.get()->getHeight()) break;
         }
     }
 

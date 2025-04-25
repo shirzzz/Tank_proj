@@ -114,7 +114,7 @@ void GameManager::resolveShellCollisions() {
         }
         // else if (
         //     shared_board->removeShellAt(pre_shell_x, pre_shell_y);
-        // }
+        //
     }
 
     // Remove all shells that should explode

@@ -15,7 +15,7 @@ public:
     ActionType getNextMove(std::shared_ptr<GameBoard> board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2);
     std::vector<std::vector<int>> getGraphOutOfBoard(const std::shared_ptr<GameBoard> board);
     bool isFacingOpponent(const Tank& self, const Tank& opponent);
-
+    bool isChased(const Tank& self, const std::shared_ptr<GameBoard> board);
 };
 
 
