@@ -284,6 +284,35 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             }
             break;
 
+
+            // case ActionType::SHOOT:
+            // if (waiting_to_shoot != -1) {
+            //     tank->addAction(ActionType::INVALID_ACTION);
+            //     tank->setWaitingToShootAgain(waiting_to_shoot - 1);
+            // } else if (tank->getNumBullets() == 0) {
+            //     tank->addAction(ActionType::INVALID_ACTION);
+            //     if (shared_board->getTank1()->getNumBullets() == 0 &&
+            //         shared_board->getTank2()->getNumBullets() == 0) {
+            //         if (moves_left > 40) moves_left = 40;
+            //     }
+            // } else {
+            //     tank->shoot();
+        
+            //     // === NEW: Calculate shell spawn position one step ahead ===
+            //     int dx = 0, dy = 0;
+            //     std::tie(dx, dy) = directionToVector(tank->getCanonDirection());
+        
+            //     int shell_x = (tank->getX() + dx + shared_board->getWidth()) % shared_board->getWidth();
+            //     int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
+        
+            //     // Place shell one step ahead
+            //     shared_board->addShell(Shell(shell_x, shell_y, tank->getCanonDirection()));
+        
+            //     tank->addAction(ActionType::SHOOT);
+            //     tank->setWaitingToShootAgain(4);
+            // }
+            // break;
+
         case ActionType::WIN:
             std::cout << "Game Over: " << name << " wins!" << std::endl;
             tank->addAction(ActionType::WIN);

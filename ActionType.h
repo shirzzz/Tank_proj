@@ -28,7 +28,7 @@ inline std::string toString(ActionType action) {
         case ActionType::ROTATE_QUARTER_LEFT: return "ROTATE_QUARTER_LEFT";
         case ActionType::ROTATE_QUARTER_RIGHT: return "ROTATE_QUARTER_RIGHT";
         case ActionType::SHOOT: return "SHOOT";
-        case ActionType::INVALID_ACTION: return "INVALID_ACTION";
+        case ActionType::INVALID_ACTION: return "BAD_STEP";
         case ActionType::WIN: return "WIN";
         case ActionType::LOSE: return "LOSE";
         case ActionType::DRAW: return "DRAW";

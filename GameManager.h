@@ -23,7 +23,7 @@ private:
     std::shared_ptr<Tank> lastKnownTank2 = nullptr;
 
 public:
-    GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
+        GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
         tank1 = shared_board->getTank1();
         tank2 = shared_board->getTank2();
     }

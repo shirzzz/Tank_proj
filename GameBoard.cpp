@@ -30,6 +30,7 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
         std::cerr << "Error opening file of the board: " << filename << std::endl;
         return false;
     }
+    std::cerr.rdbuf(file_errors.rdbuf());
 
     file_board >> width >> height;
     file_board.ignore(); // Ignore the newline after width and height
@@ -160,6 +161,27 @@ void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
         (*board)[newY][newX] = tank2.get();
     }
 }
+
+
+// void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
+//     if (tankIndex == '1' && tank1) {
+//         // Use previous position!
+//         (*board)[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = new Empty(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
+
+//         tank1->setX(newX);
+//         tank1->setY(newY);
+
+//         (*board)[newY][newX] = tank1.get();
+//     } else if (tankIndex == '2' && tank2) {
+//         (*board)[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = new Empty(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
+
+//         tank2->setX(newX);
+//         tank2->setY(newY);
+
+//         (*board)[newY][newX] = tank2.get();
+//     }
+// }
+
 
 bool GameBoard::isCellWalkable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
