@@ -348,6 +348,7 @@ void GameManager::updateGame() {
     tank2->setPreviousPosition();
     std::cout << "Tank 1 position: " << tank1->getPosition().first << ", " << tank1->getPosition().second << std::endl;
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
+    std::cout << "Finished step itai"  << std::endl;
     std::cout << "Tank 1 action: " << action1 << std::endl;
     processAction(tank1, action1, "Tank 1");
     

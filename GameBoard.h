@@ -34,7 +34,7 @@ public:
     // }
     bool loadBoardFromFile(const std::string& filename);
     void displayBoard() const;
-
+    ~GameBoard();
     // Placement and Movement
     void placeTank(int x, int y, char index_tank, CanonDirection cdir);
     void placeShell(int x, int y) const;

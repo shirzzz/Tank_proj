@@ -101,6 +101,17 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
     return true;
 }
 
+GameBoard::~GameBoard() {
+    if (board) {
+        for (auto& row : *board) {
+            for (Shape* shape : row) {
+                delete shape;
+            }
+        }
+        board->clear();
+    }
+}
+
 void  GameBoard::displayBoard() const {
     std::cout << "Game Board:" << std::endl;
     for (int y = 0; y < height; ++y) {
@@ -227,81 +238,79 @@ bool GameBoard::isCellPassable(int x, int y) const {
 }
 
 
-void GameBoard::moveShell(Shell *shell) {
+void GameBoard::moveShell(Shell* shell) {
+    if (!shell) return; // Always good to be defensive
+
+    int old_x = shell->getX();
+    int old_y = shell->getY();
+
     int dx = 0, dy = 0;
     CanonDirection direction = shell->getDirection();
-    (*board)[shell->getY()][shell->getX()] = new Empty(shell->getX(), shell->getY()); // Clear previous position
-    int speed = 1; // Speed of the shell
+
+    int speed = 1; // Shell speed
     switch (direction) {
-        case CanonDirection::U:
-            dy = -speed;
-            break;
-        case CanonDirection::UR:
-            dx = speed;
-            dy = -speed;
-            break;
-        case CanonDirection::R:
-            dx = speed;
-            break;
-        case CanonDirection::DR:
-            dx = speed;
-            dy = speed;
-            break;
-        case CanonDirection::D:
-            dy = speed;
-            break;
-        case CanonDirection::DL:
-            dx = -speed;
-            dy = speed;
-            break;
-        case CanonDirection::L:
-            dx = -speed;
-            break;
-        case CanonDirection::UL:
-            dx = -speed;
-            dy = -speed;
-            break;
+        case CanonDirection::U:  dy = -speed; break;
+        case CanonDirection::UR: dx = speed; dy = -speed; break;
+        case CanonDirection::R:  dx = speed; break;
+        case CanonDirection::DR: dx = speed; dy = speed; break;
+        case CanonDirection::D:  dy = speed; break;
+        case CanonDirection::DL: dx = -speed; dy = speed; break;
+        case CanonDirection::L:  dx = -speed; break;
+        case CanonDirection::UL: dx = -speed; dy = -speed; break;
     }
 
-    int x_moved = shell->getX() + dx;
-    int y_moved = shell->getY() + dy;
+    // Calculate new position
+    int x_moved = old_x + dx;
+    int y_moved = old_y + dy;
 
-    // Wrap around horizontally
+    // Wrap around the board
     if (x_moved < 0) x_moved += width;
     if (x_moved >= width) x_moved -= width;
-
-    // Wrap around vertically
     if (y_moved < 0) y_moved += height;
     if (y_moved >= height) y_moved -= height;
 
-    // Update position
+    // Before moving, set old cell to Empty
+    delete (*board)[old_y][old_x];
+    (*board)[old_y][old_x] = new Empty(old_x, old_y);
+
+    // Update shell's internal position
     shell->setX(x_moved);
     shell->setY(y_moved);
+
     std::cout << "Shell moved to (" << x_moved << ", " << y_moved << ")" << std::endl;
-    // Update the shell's position on the game board
-    updateShellPosition(shell, shell->getX(), shell->getY());
-    std::cout << "Shell moved to (" << shell->getX() << ", " << shell->getY() << ")" << std::endl;
-    // Check for collision with walls or tanks
+
+    // Check for collision at new position
     std::cout << "Checking for collisions..." << std::endl;
-    if (!isCellWalkable(shell->getX(), shell->getY())) {
-        std::cout << "Collision detected at (" << shell->getX() << ", " << shell->getY() << ")" << std::endl;
-        // Handle collision (e.g., remove shell)
-        (*board)[shell->getY()][shell->getX()] = new Empty(shell->getX(), shell->getY()); // Remove shell from board
-        std::cout << "Shell removed from board." << std::endl;
-        //delete shell; // Important to deallocate memory if shell is destroyed
-        //std::cout << "Shell deleted." << std::endl;
-        shell = nullptr; // Set pointer to null to avoid dangling pointer
-        std::cout << "Shell pointer set to null." << std::endl;
+    if (!isCellWalkable(x_moved, y_moved)) {
+        std::cout << "Collision detected at (" << x_moved << ", " << y_moved << ")" << std::endl;
+
+        // Delete the object the shell collided with
+        delete (*board)[y_moved][x_moved];
+
+        // Replace with Empty
+        (*board)[y_moved][x_moved] = new Empty(x_moved, y_moved);
+
+        std::cout << "Shell removed from board after collision." << std::endl;
+
+        // shell object should be removed from shells vector in GameManager after this (not here)
+
         return;
     }
-    (*board)[shell->getY()][shell->getX()] = new Shell(shell->getX(), shell->getY(), shell->getDirection()); // Update the board with the shell's new position
+
+    // Otherwise, place the moving shell itself into the new cell
+    delete (*board)[y_moved][x_moved];
+    (*board)[y_moved][x_moved] = shell;
+
+    std::cout << "Shell moved successfully without collision." << std::endl;
 }
+
 
 
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
         BfsChaserShir chaser_algorithm;
+        std::cout << "Finished step itai"  << std::endl;
         return chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
     } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;

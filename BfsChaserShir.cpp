@@ -62,223 +62,108 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(std::vector<std::vector<int>> 
     return moves;
 }
 std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
-    std::cout<<"get future moves"<<std::endl;
+    std::cout << "get future moves" << std::endl;
     std::vector<ActionType> moves;
+
+    // If path is empty, rotate left and return
     if (path.empty()) {
         moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
         return moves;
     }
-    std::cout<<"got here?"<<std::endl;
-    
+
+    std::cout << "got here?" << std::endl;
+
     CanonDirection canon_direction = tank1->getCanonDirection();
-    for (size_t i = 1; i < 6; ++i) {
-        //the name of each cell is x*10 + y
-        if(path == std::vector<int>()) {
-            break;
-        }
+    
+    for (size_t i = 1; i < path.size(); ++i) {
         int dx = path[i] / 10 - path[i - 1] / 10;
         int dy = path[i] % 10 - path[i - 1] % 10;
-        if(isFacingOpponent(*tank1.get(), *tank2.get())) {
+
+        // If we are facing the opponent, shoot
+        if (isFacingOpponent(*tank1.get(), *tank2.get())) {
             moves.push_back(ActionType::SHOOT);
             continue;
         }
+
+        // Based on canon direction, decide move
         switch (canon_direction) {
             case CanonDirection::U:
-               if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if(dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if(dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if(dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if(dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if(dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if(dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                }
+                if (dx == 0 && dy == 1) moves.push_back(ActionType::MOVE_BACKWARD);
+                else if (dx == 0 && dy == -1) moves.push_back(ActionType::MOVE_BACKWARD);
+                else if (dx == 1 && dy == 0) moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
+                else if (dx == 1 && dy == 1) moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
+                else if (dx == 1 && dy == -1) moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
+                else if (dx == -1 && dy == 0) moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
+                else if (dx == -1 && dy == 1) moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
+                else if (dx == -1 && dy == -1) moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
                 break;
+
             case CanonDirection::UR:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if(dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if(dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if(dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if(dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if(dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if(dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                }
+                if (dx == 1 && dy == 1) moves.push_back(ActionType::MOVE_FORWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_RIGHT); // Default rotate if not directly ahead
                 break;
+
             case CanonDirection::R:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                }
+                if (dx == 1 && dy == 0) moves.push_back(ActionType::MOVE_FORWARD);
+                else if (dx == -1 && dy == 0) moves.push_back(ActionType::MOVE_BACKWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
                 break;
 
             case CanonDirection::DR:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                }
+                if (dx == 1 && dy == -1) moves.push_back(ActionType::MOVE_FORWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
                 break;
 
             case CanonDirection::D:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                }
+                if (dx == 0 && dy == -1) moves.push_back(ActionType::MOVE_FORWARD);
+                else if (dx == 0 && dy == 1) moves.push_back(ActionType::MOVE_BACKWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
                 break;
 
             case CanonDirection::DL:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                }
+                if (dx == -1 && dy == -1) moves.push_back(ActionType::MOVE_FORWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
                 break;
 
             case CanonDirection::L:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                }
-            break;
+                if (dx == -1 && dy == 0) moves.push_back(ActionType::MOVE_FORWARD);
+                else if (dx == 1 && dy == 0) moves.push_back(ActionType::MOVE_BACKWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
+                break;
 
             case CanonDirection::UL:
-                if (dx == 0 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 0 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == 0 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
-                } else if (dx == 1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == 1 && dy == 1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
-                } else if (dx == 1 && dy == -1) {
-                    moves.push_back(ActionType::MOVE_BACKWARD);
-                } else if (dx == -1 && dy == 0) {
-                    moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
-                } else if (dx == -1 && dy == 1) {
-                    moves.push_back(ActionType::MOVE_FORWARD);
-                } else if (dx == -1 && dy == -1) {
-                    moves.push_back(ActionType::ROTATE_QUARTER_LEFT);
-                }
-            break;
+                if (dx == -1 && dy == 1) moves.push_back(ActionType::MOVE_FORWARD);
+                else moves.push_back(ActionType::ROTATE_QUARTER_RIGHT);
+                break;
         }
     }
     return moves;
 }
+
+
 ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
-   std::cout<<"here??3"<<std::endl;
-    if(!my_future_moves.empty()) {
-        std::cout<<"here??"<<std::endl;
+    std::cout << "here??3" << std::endl;
+    if (!my_future_moves.empty()) {
+        std::cout << "here??" << std::endl;
         ActionType next_move = my_future_moves[0];
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
-    }
-    else {
-        std::cout<<"here??2"<<std::endl;
+    } else {
+        std::cout << "here??2" << std::endl;
         std::vector<std::vector<int>> graph = getGraphOutOfBoard(shared_board);
-        std::cout<<"here??1"<<std::endl;
+        std::cout << "here??1" << std::endl;
         std::vector<int> path = getFutureMovesBfs(graph, tank1->getX() * 10 + tank1->getY(), tank2->getX() * 10 + tank2->getY());
-        std::cout<<"here??0"<<std::endl;
+        std::cout << "here??0" << std::endl;
         my_future_moves = getFutureMoves(path, tank1, tank2);
-    
     }
-    return my_future_moves[0];
-}
+
+    if (!my_future_moves.empty()) {
+        return my_future_moves[0];
+    } else {
+        return ActionType::INVALID_ACTION;
+    }
+}  
+
 
 std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::shared_ptr<GameBoard> board) {
     int width = board->getWidth();
@@ -294,13 +179,13 @@ std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard(const std::share
 
             int cell_index = 10 * x + y;
             // LEFT
-            if (x > 1 && board->isCellPassable(x-1, y)) {
+            if (x > 0 && board->isCellPassable(x-1, y)) {
                 int neighbor = 10 * (x - 1) + y;
                 graph[cell_index].push_back(neighbor);
             }
 
             // RIGHT
-            if (x < 1*width - 1 && board->isCellPassable(x + 1, y)) {
+            if (x < width - 1 && board->isCellPassable(x+1, y)) {
                
                 int neighbor = 10 * (x + 1) + y;
                 graph[cell_index].push_back(neighbor);
