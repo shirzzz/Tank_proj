@@ -2,7 +2,7 @@
 #define SHELLS_H
 #include <algorithm>
 #include <vector>
-
+#include <iostream>
 #include "Shell.h"
 
 static_assert(sizeof(Shell) > 0, "Shell is not being included!");
@@ -25,7 +25,10 @@ public:
 
     // Add a new shell to the list
     void addShell(const Shell& shell) {
+        std::cout << "Adding shell at (" << shell.getX() << ", " << shell.getY() << ")" << std::endl;
+
         shellsList.push_back(shell);
+        std::cout << "Shell added. Total shells: " << shellsList.size() << std::endl;
     }
 
     // Remove shell at specific coordinates

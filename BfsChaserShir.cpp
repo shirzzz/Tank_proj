@@ -62,7 +62,14 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(std::vector<std::vector<int>> 
     return moves;
 }
 std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
+    std::cout<<"get future moves"<<std::endl;
     std::vector<ActionType> moves;
+    if (path.empty()) {
+        moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
+        return moves;
+    }
+    std::cout<<"got here?"<<std::endl;
+    
     CanonDirection canon_direction = tank1->getCanonDirection();
     for (size_t i = 1; i < 6; ++i) {
         //the name of each cell is x*10 + y
@@ -254,15 +261,21 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
     return moves;
 }
 ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
+   std::cout<<"here??3"<<std::endl;
     if(!my_future_moves.empty()) {
+        std::cout<<"here??"<<std::endl;
         ActionType next_move = my_future_moves[0];
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
     }
     else {
+        std::cout<<"here??2"<<std::endl;
         std::vector<std::vector<int>> graph = getGraphOutOfBoard(shared_board);
+        std::cout<<"here??1"<<std::endl;
         std::vector<int> path = getFutureMovesBfs(graph, tank1->getX() * 10 + tank1->getY(), tank2->getX() * 10 + tank2->getY());
+        std::cout<<"here??0"<<std::endl;
         my_future_moves = getFutureMoves(path, tank1, tank2);
+    
     }
     return my_future_moves[0];
 }

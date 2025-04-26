@@ -3,7 +3,6 @@
 #include "Tank.h"
 #include "Shell.h"
 #include "DestructionCause.h"
-#include "BFSChaserAI.h"
 #include "Chased.h"
 #include "DirectionUtils.h"
 #include "ActionType.h"
@@ -20,8 +19,21 @@
 Tank* lastKnownTank1 = nullptr;
 Tank* lastKnownTank2 = nullptr;
 void GameManager::endGame() {
+    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionType::LOSE){
+        std::cout << "Game Over: Tank 1 loses!" << std::endl;
+        tank2.get()->addAction(ActionType::WIN);
+    }
+    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionType::LOSE){
+        std::cout << "Game Over: Tank 2 loses!" << std::endl;
+    }
+    else {
+        std::cout << "Game Over: It's a draw!" << std::endl;
+        tank1.get()->addAction(ActionType::DRAW);
+        tank2.get()->addAction(ActionType::DRAW);
+    }
     displayGame();
-    game_over = true;
+    setGameOver(true);
+    std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
 }
 
 void GameManager::displayGame() const {
@@ -51,13 +63,19 @@ void GameManager::displayGame() const {
 }
 
 void GameManager::updateShells() const {
+    std::cout << "Moving shells..." << std::endl;
     auto& shells = shared_board->getShells();
+    std::cout << "Shells size: " << shells.size() << std::endl;
     for (Shell& shell : shells) {
+        std::cout << "Moving shell at position: " << shell.getPosition().first << ", " << shell.getPosition().second << std::endl;
         shell.storePreviousPosition();
     }
     for (Shell& shell : shells) {
+        std::cout << "Moving shell from position: " << shell.getPreviousPosition().first << ", " << shell.getPreviousPosition().second << std::endl;
         shared_board->moveShell(&shell);
+        std::cout << "Shell moved to position: " << shell.getPosition().first << ", " << shell.getPosition().second << std::endl;
     }
+    std::cout << "Shells moved." << std::endl;
 }
 
 void GameManager::resolveShellCollisions() {
@@ -108,6 +126,7 @@ void GameManager::resolveShellCollisions() {
                 else {
                     lastKnownTank2 = target;
                 }
+
                 target->addAction(ActionType::LOSE);
             }
             toExplode.push_back({x, y});
@@ -266,7 +285,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             }
             break;
 
-        case ActionType::SHOOT:
+            case ActionType::SHOOT:
             if (waiting_to_shoot != -1) {
                 tank->addAction(ActionType::INVALID_ACTION);
                 tank->setWaitingToShootAgain(waiting_to_shoot - 1);
@@ -278,40 +297,21 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 }
             } else {
                 tank->shoot();
-                shared_board->addShell(Shell(tank->getX(), tank->getY(), tank->getCanonDirection()));
+        
+                // Calculate shell spawn position one step ahead
+                int dx = 0, dy = 0;
+                std::tie(dx, dy) = directionToVector(tank->getCanonDirection());
+        
+                int shell_x = (tank->getX() + dx + shared_board->getWidth()) % shared_board->getWidth();
+                int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
+        
+                // Place shell one step ahead
+                shared_board->addShell(Shell(shell_x, shell_y, tank->getCanonDirection()));
+                std::cout<<"Size of list: "<<shared_board->getShells().size()<<std::endl;
                 tank->addAction(ActionType::SHOOT);
                 tank->setWaitingToShootAgain(4);
             }
             break;
-
-
-            // case ActionType::SHOOT:
-            // if (waiting_to_shoot != -1) {
-            //     tank->addAction(ActionType::INVALID_ACTION);
-            //     tank->setWaitingToShootAgain(waiting_to_shoot - 1);
-            // } else if (tank->getNumBullets() == 0) {
-            //     tank->addAction(ActionType::INVALID_ACTION);
-            //     if (shared_board->getTank1()->getNumBullets() == 0 &&
-            //         shared_board->getTank2()->getNumBullets() == 0) {
-            //         if (moves_left > 40) moves_left = 40;
-            //     }
-            // } else {
-            //     tank->shoot();
-        
-            //     // === NEW: Calculate shell spawn position one step ahead ===
-            //     int dx = 0, dy = 0;
-            //     std::tie(dx, dy) = directionToVector(tank->getCanonDirection());
-        
-            //     int shell_x = (tank->getX() + dx + shared_board->getWidth()) % shared_board->getWidth();
-            //     int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
-        
-            //     // Place shell one step ahead
-            //     shared_board->addShell(Shell(shell_x, shell_y, tank->getCanonDirection()));
-        
-            //     tank->addAction(ActionType::SHOOT);
-            //     tank->setWaitingToShootAgain(4);
-            // }
-            // break;
 
         case ActionType::WIN:
             std::cout << "Game Over: " << name << " wins!" << std::endl;
@@ -346,12 +346,14 @@ void GameManager::updateGame() {
     if (!tank1 || !tank2) return;
     tank1->setPreviousPosition();
     tank2->setPreviousPosition();
-
+    std::cout << "Tank 1 position: " << tank1->getPosition().first << ", " << tank1->getPosition().second << std::endl;
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
+    std::cout << "Tank 1 action: " << action1 << std::endl;
     processAction(tank1, action1, "Tank 1");
     
-
+    std::cout << "Tank 2 position: " << tank2->getPosition().first << ", " << tank2->getPosition().second << std::endl;
     ActionType action2 = shared_board->movingAlgorithm(*tank2);
+    std::cout << "Tank 2 action: " << action2 << std::endl;
     processAction(tank2, action2, "Tank 2");
 
 }

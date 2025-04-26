@@ -12,6 +12,7 @@ public:
     Mine(int x, int y) : Shape(x, y) {
         this->cell_type = CellType::MINE;
     }
+    // ~Mine() override = default;
 
 
 };

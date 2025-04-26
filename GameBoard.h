@@ -22,7 +22,16 @@ class GameBoard {
     Shells shellsList;
 
 public:
-    // Initialization
+    // // Initialization
+    // ~GameBoard() {
+    //     if (board) {
+    //         for (int y = 0; y < height; ++y) {
+    //             for (int x = 0; x < width; ++x) {
+    //                 delete (*board)[y][x];
+    //             }
+    //         }
+    //     }
+    // }
     bool loadBoardFromFile(const std::string& filename);
     void displayBoard() const;
 
@@ -43,7 +52,7 @@ public:
 
     // Shells access
     const std::vector<Shell>& getShells() const {
-        return shellsList.getShellsList();
+        return shellsList.getShellsList(); // Const reference to shells
     }
 
     std::vector<Shell>& getShells() {

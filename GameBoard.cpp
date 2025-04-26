@@ -12,7 +12,6 @@
 #include <fstream>
 #include <vector>
 #include <memory>
-#include "BFSChaserAI.h"
 #include "Chased.h"
 #include "Mine.h"
 #include "BfsChaserShir.h"
@@ -148,39 +147,66 @@ void GameBoard::updateShellPosition(Shell *shell, int newX, int newY) {
     }
 }
 
-void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
-    if (tankIndex == '1' && tank1) {
-        (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
-        tank1->setX(newX);
-        tank1->setY(newY);
-        (*board)[newY][newX] = tank1.get();
-    } else if (tankIndex == '2' && tank2) {
-        (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
-        tank2->setX(newX);
-        tank2->setY(newY);
-        (*board)[newY][newX] = tank2.get();
-    }
-}
-
-
 // void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
 //     if (tankIndex == '1' && tank1) {
-//         // Use previous position!
-//         (*board)[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = new Empty(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
-
+//         (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
 //         tank1->setX(newX);
 //         tank1->setY(newY);
-
 //         (*board)[newY][newX] = tank1.get();
 //     } else if (tankIndex == '2' && tank2) {
-//         (*board)[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = new Empty(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
-
+//         (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
 //         tank2->setX(newX);
 //         tank2->setY(newY);
-
 //         (*board)[newY][newX] = tank2.get();
 //     }
 // }
+
+
+void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
+    //bool flag_broken_wall = false;
+    if (tank_index == '1' && tank1) {
+        // Use previous position!
+        // if((*board)[new_y][new_x]->getCellType() == CellType::WALL) {
+        //     (dynamic_cast<Wall*>((*board)[new_y][new_x]))->setLives((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() - 1);
+        //     if ((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() <= 0) {
+        //         (*board)[new_y][new_x] = new Empty(new_x, new_y);
+        //         flag_broken_wall = true;
+        //         std::cout << "Wall destroyed at (" << new_x << ", " << new_y << ")" << std::endl;
+        //     }
+        // }
+        // else if(flag_broken_wall == true || (*board)[new_y][new_x]->getCellType() != CellType::WALL) {
+            (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
+            (*board)[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = new Empty(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
+    
+            tank1->setX(new_x);
+            tank1->setY(new_y);
+    
+            (*board)[new_y][new_x] = tank1.get();
+       
+     //}
+
+    } else if (tank_index == '2' && tank2) {
+        
+        // if((*board)[new_y][new_x]->getCellType() == CellType::WALL) {
+        //     (dynamic_cast<Wall*>((*board)[new_y][new_x]))->setLives((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() - 1);
+        //     if ((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() <= 0) {
+        //         (*board)[new_y][new_x] = new Empty(new_x, new_y);
+        //         flag_broken_wall = true;
+        //         std::cout << "Wall destroyed at (" << new_x << ", " << new_y << ")" << std::endl;
+        //     }
+        // }
+        // else if(flag_broken_wall == true || (*board)[new_y][new_x]->getCellType() != CellType::WALL) {
+            (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
+            (*board)[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = new Empty(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
+    
+            tank2->setX(new_x);
+            tank2->setY(new_y);
+    
+            (*board)[new_y][new_x] = tank2.get();
+        //}
+
+    }
+}
 
 
 bool GameBoard::isCellWalkable(int x, int y) const {
@@ -251,16 +277,21 @@ void GameBoard::moveShell(Shell *shell) {
     // Update position
     shell->setX(x_moved);
     shell->setY(y_moved);
-
+    std::cout << "Shell moved to (" << x_moved << ", " << y_moved << ")" << std::endl;
     // Update the shell's position on the game board
     updateShellPosition(shell, shell->getX(), shell->getY());
-
+    std::cout << "Shell moved to (" << shell->getX() << ", " << shell->getY() << ")" << std::endl;
     // Check for collision with walls or tanks
+    std::cout << "Checking for collisions..." << std::endl;
     if (!isCellWalkable(shell->getX(), shell->getY())) {
+        std::cout << "Collision detected at (" << shell->getX() << ", " << shell->getY() << ")" << std::endl;
         // Handle collision (e.g., remove shell)
         (*board)[shell->getY()][shell->getX()] = new Empty(shell->getX(), shell->getY()); // Remove shell from board
-        delete shell; // Important to deallocate memory if shell is destroyed
+        std::cout << "Shell removed from board." << std::endl;
+        //delete shell; // Important to deallocate memory if shell is destroyed
+        //std::cout << "Shell deleted." << std::endl;
         shell = nullptr; // Set pointer to null to avoid dangling pointer
+        std::cout << "Shell pointer set to null." << std::endl;
         return;
     }
     (*board)[shell->getY()][shell->getX()] = new Shell(shell->getX(), shell->getY(), shell->getDirection()); // Update the board with the shell's new position

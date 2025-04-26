@@ -27,6 +27,7 @@ public:
         tank1 = shared_board->getTank1();
         tank2 = shared_board->getTank2();
     }
+    // ~GameManager() = default;
 
     // Core game progression
     void updateGame();             // Advance tank logic
@@ -52,6 +53,9 @@ public:
     // Modifiers
     void setMovesLeft(int moves) { moves_left = moves; }
     void removeTank(char index);   // Remove a tank from the game board
+    void setGameOver(bool game_over) { this->game_over = game_over; }
+    bool getGameOver() const { return game_over; }
+    std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
 };
 
 #endif // GAMEMANAGER_H

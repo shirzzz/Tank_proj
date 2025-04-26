@@ -1,6 +1,5 @@
 #include "Tank.h"
 #include "CanonDirection.h"
-#include "BFSChaserAI.h"
 #include "Chased.h"
 #include "Shape.h"
 #include "DestructionCause.h"
@@ -18,6 +17,7 @@ Tank::Tank(int x, int y, char index_tank)
     }
 }
 
+
 void Tank::shoot() {
     if (num_bullets > 0) {
         num_bullets--;
@@ -32,14 +32,14 @@ void Tank::moveForward(int board_width, int board_height) {
     int x_moved = x, y_moved = y;
 
     switch (canon_dir) {
-        case CanonDirection::U:  y_moved++; break;
-        case CanonDirection::D:  y_moved--; break;
+        case CanonDirection::U:  y_moved--; break;
+        case CanonDirection::D:  y_moved++; break;
         case CanonDirection::L:  x_moved--; break;
         case CanonDirection::R:  x_moved++; break;
-        case CanonDirection::UR: x_moved++; y_moved++; break;
-        case CanonDirection::UL: x_moved--; y_moved++; break;
-        case CanonDirection::DR: x_moved++; y_moved--; break;
-        case CanonDirection::DL: x_moved--; y_moved--; break;
+        case CanonDirection::UR: x_moved++; y_moved--; break;
+        case CanonDirection::UL: x_moved--; y_moved--; break;
+        case CanonDirection::DR: x_moved++; y_moved++; break;
+        case CanonDirection::DL: x_moved--; y_moved++; break;
     }
 
     if (x_moved < 0) x_moved += board_width;
@@ -55,14 +55,14 @@ void Tank::moveBackward(int board_width, int board_height) {
     int x_moved = x, y_moved = y;
 
     switch (canon_dir) {
-        case CanonDirection::U:  y_moved--; break;
-        case CanonDirection::D:  y_moved++; break;
+        case CanonDirection::U:  y_moved++; break;
+        case CanonDirection::D:  y_moved--; break;
         case CanonDirection::L:  x_moved++; break;
         case CanonDirection::R:  x_moved--; break;
-        case CanonDirection::UR: x_moved--; y_moved--; break;
-        case CanonDirection::UL: x_moved++; y_moved--; break;
-        case CanonDirection::DR: x_moved--; y_moved++; break;
-        case CanonDirection::DL: x_moved++; y_moved++; break;
+        case CanonDirection::UR: x_moved--; y_moved++; break;
+        case CanonDirection::UL: x_moved++; y_moved++; break;
+        case CanonDirection::DR: x_moved--; y_moved--; break;
+        case CanonDirection::DL: x_moved++; y_moved--; break;
     }
 
     if (x_moved < 0) x_moved += board_width;
