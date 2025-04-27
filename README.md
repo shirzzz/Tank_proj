@@ -1,166 +1,187 @@
-Tanks Game Simulator
-"Advanced Topics in Programming" — TAU Semester B 2025 — Assignment 1
+# Tanks Game Simulator
+**Advanced Topics in Programming — TAU Semester B 2025 — Assignment 1**
 
->>Name and Ids:
-*Itai Lifshitz, 211466123
-*Shir Zadok, 212399455
+## 👩🏻‍💻👨🏼‍💻 Authors
+- **Itai Lifshitz** — 211466123  
+- **Shir Zadok** — 212399455
 
->>Overview
-An implementation of a deterministic program that simulates a tank battle game on a 2D board for "Advanced Topics in Programming" at TAU. 
-Each player controls one tank, aiming to destroy the opponent while avoiding walls, mines, and incoming artillery shells. Player 1 tries to chase player 2 using the BFS algorithm, and tank2 does everything it can to survive. 
-The simulation reads a board configuration from an input file, runs the game based on pre-programmed tank algorithms, and outputs the results.
+---
 
->>Input File Format
-The input file is divided into two sections:
-The first one includes the Board dimensions (width and height), and the second one includes the "Shapes", of the game which are in other words: the game objects.
+## 📄 Overview
+This project implements a deterministic simulation of a tank battle game on a 2D board for the "Advanced Topics in Programming" course at TAU.  
+Each player controls a single tank, aiming to destroy the opponent while navigating walls, mines, and incoming artillery shells.
 
-## Text file format:
-1. The first line of the input file defines the width and height of the board which are the board dimensions. 
+- **Player 1**: Actively chases Player 2 using a **BFS (Breadth-First Search)** algorithm.
+- **Player 2**: Focuses on survival, evading shells and mines.
 
-The dimensions should be in the following order, seperated by a space:
+The game reads the board configuration from an input file, runs the battle based on predefined algorithms, and outputs the results into text files.
 
-```
-width height
-```
+---
 
-Where as:
--`width` = The number of columns (horizontal size) of the game board.
+## 🔣 Input File Format
 
--`height` = The number of rows (vertical size) of the game board.
+The input file is divided into two parts:
+1. **Board Dimensions**:  
+   - First line specifies the board size:
+   ```
+   width height
+   ```
+   - `width`: Number of columns (horizontal size).
+   - `height`: Number of rows (vertical size).
 
-2. Game Objects ("Shapes") (Subsequent Lines):
-
-Each subsequent line describes the differnts game objects (tanks, walls, mines and empty objects) and their position on the game board.
-Within the format: 
-```
-c1 c2 c3 c4 c5 ... cwidth
-```
-
-Where as:
--`ci` = A character which represent a type of game object on the board.
--`1` = Player 1's tank
--`2` = Player 2's tank
--`#` = A wall
--`@` = A mine
-
-# Important Notes:
-1. If there are more objects in one line than expected they are being ignored and not joined to the built game board.
-2. The game will not start if one of the players has a number of tanks which differ than 1.
-3. If there are not enough lines or one or more of the lines are too short the game will not start.
+2. **Board Layout**:  
+   - Each subsequent line represents a row of the board, with each character corresponding to a specific object:
+     - `1` → Player 1's Tank
+     - `2` → Player 2's Tank
+     - `#` → Wall
+     - `@` → Mine
+     - ` ` (space) → Empty space
 
 ### Example Input File:
- 10 8
+```
+10 8
 ##########
-#         #
-# 2        #
-#         #
-#    1    #
-#      @ #
+#        #
+# 2      #
+#        #
+#    1   #
+#     @  #
 #   #    #
-########## 
+##########
+```
+This defines a 10x8 board with walls around the edges, tanks positioned, and a mine on the field.
 
-Tank cannons start by default:
+---
 
-Player 1: Left (L)
+## ⚡ Important Notes:
+- Extra characters beyond the declared width per line are ignored.
+- If fewer lines or characters than expected are provided, the game will not start.
+- Exactly **one** tank per player must exist; otherwise, the game will not run.
 
-Player 2: Right (R)
+---
 
+## 🖨️ Output Files
 
-How to Run
-bash
-Copy
-Edit
-tanks_game <game_board_input_file>
-<game_board_input_file> — Path to a text file describing the initial board layout.
+1. **output.txt**
+   - Logs every action performed by both tanks, including invalid ("bad") moves.
+   - At the end, states the game outcome (win/tie) and the destruction reason.
 
+   ### Example:
+   ```
+   Tank 1 Actions:
+   1. MOVE_FORWARD
+   2. MOVE_FORWARD
+   3. BAD_STEP
+   4. BAD_STEP
+   5. LOSE
+   Reason: SHELL HIT ME
 
-Game Mechanics
-Movement: Forward, backward (delayed), and rotate (1/8 or 1/4 turn).
+   Tank 2 Actions:
+   1. ROTATE_EIGHTH_RIGHT
+   2. MOVE_FORWARD
+   3. ROTATE_EIGHTH_RIGHT
+   4. SHOOT
+   5. WIN
+   Reason: I HIT OPPONENT WITH A SHELL
+   ```
 
-Shooting:
+2. **input_errors.txt**
+   - If any recoverable issues are found in the input file (e.g., multiple tanks for one player, wrong dimensions), they are recorded here.
 
-Each tank starts with 16 shells.
+   ### Example:
+   ```
+   Error: More than one tank for player 1
+   Error: Line length shorter than expected
+   ```
 
-Shells move twice as fast as tanks.
+---
 
-After shooting, a 4-step cooldown is enforced.
+## 🎮 Game Mechanics
 
-Boundaries: Toroidal (wrap-around edges).
+- **Action Types**: Move forward, move backward (delayed), rotate (1/8 or 1/4), shoot.
+- **Shooting**:
+  - Each tank starts with 16 shells.
+  - Shells move twice as fast as tanks.
+  - A 4-turn cooldown applies after shooting.
+- **Boundaries**: Toroidal world — tanks and shells wrap around board edges.
+- **Collisions**:
+  - Shell hits wall → Wall weakens; collapses after two hits.
+  - Shell hits tank → Tank destroyed.
+  - Shell hits shell → Both destroyed.
+  - Tank steps on mine → Tank destroyed.
+  - Tanks collide → Both destroyed.
 
-Collisions:
+---
 
-Shell hits wall → wall weakens and collapses after two hits.
+## 🏆 Win & Draw Conditions
 
-Shell hits tank → tank destroyed.
+- **Victory by Elimination**: A player wins instantly when the opponent has no tanks remaining.
+- **Mutual Destruction**: If both tanks are destroyed during the same turn, the game ends in a draw.
+- **Ammunition Exhaustion**: If both tanks run out of shells, gameplay continues for 40 more turns (movement only). If neither tank is destroyed during this period, the game ends in a draw.
+- **Turn-Based Resolution**: Win/loss conditions are evaluated after a full turn completes.
+  - Example: If Player 1 is destroyed in the first half of a turn and Player 2 in the second half, the game results in a draw.
 
-Tank on mine → both tank and mine destroyed.
+---
 
-Tank collides with tank → both destroyed.
+## 🧠 Algorithms
 
-Algorithms
 Each player is controlled by a deterministic algorithm:
+- Full read access to the game board.
+- Cannot modify the game state directly — they suggest actions to the `GameManager`.
+- Player 1's tank chases Player 2 using BFS.
+- Player 2's tank evades mines and shells to survive.
 
-Algorithms have full visibility of the board.
+---
 
-Algorithms cannot modify the game state directly — they suggest actions, which are validated by the GameManager.
+## 👾 Game Manager Responsibilities
 
-At least one algorithm must attempt to chase the opponent using a search strategy (DFS or BFS).
+- Orchestrates the game's progression by requesting moves from each player.
+- Enforces game rules and turn order.
+- Applies player actions (tank movement, shell firing).
+- Manages collisions between tanks, shells, mines, and walls.
+- Logs all actions and any invalid moves to the output file.
 
-Output
-Output file:
+---
 
-Records every action and any "bad steps" (invalid moves).
+## 🏛️ Hierarchy Structure
 
-Final game result (win/tie) and reason.
+```
+GameManager
+│
+├── Player (x2)
+│   ├── Strategy 1 (Chasing Opponent - BFS)
+│   ├── Strategy 2 (Survival - Evading Shells & Mines)
+│   └── Access to read-only game board
+│
+├── CollisionHandler
+│   └── Handles object collisions (shells, tanks, mines, walls)
+│
+└── Game Board
+    ├── Walls
+    ├── Mines
+    ├── Shells
+    ├── Tanks
+    └── Empty spaces
+```
 
-Input Errors:
+---
 
-If recoverable issues are found in the input file, they're reported in input_errors.txt.
+## 🛠️ Building the Project
 
-Project Structure
-GameManager: Controls the game flow, validates actions.
+A standard **Makefile** is included.  
+To compile the project, simply run:
+```
+make
+```
 
-TankAlgorithm: Abstracts the decision-making for each tank.
+---
 
-Board: Represents the game board and entities on it.
+## 🏃🏻‍♀️🏃🏼 Running the Simulation
 
-Shells: Handle artillery shots and collisions.
+After a successful build, run the program using:
+```
+./tanks_game <game_board_input_file>
+```
+Replace `<game_board_input_file>` with the path to your input text file.
 
-Additional Requirements
-Error Handling:
-
-Never crash unexpectedly.
-
-Attempt to recover from input issues.
-
-No exit() calls; the program must exit naturally.
-
-Documentation:
-
-Provide a High-Level Design Document (HLD) including:
-
-UML Class Diagram
-
-UML Sequence Diagram
-
-Design considerations
-
-Testing strategy
-
-Bonus Opportunities
-Optional additions that may earn bonus points:
-
-Logging system.
-
-Configuration file support.
-
-Automated testing (e.g., Google Test framework).
-
-Visual simulation (optional and external to the main gameplay).
-
-Important: To qualify for a bonus, describe the features clearly in a bonus.txt file.
-
-License
-This project is for academic use as part of Tel Aviv University's Advanced Topics in Programming course.
-
-
+---

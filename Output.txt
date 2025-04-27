@@ -1,3 +1,4 @@
+And the winner is:  Player 2 :(  
 Tank 1 Actions:
 1. MOVE_FORWARD
 2. MOVE_FORWARD
@@ -11,4 +12,4 @@ Tank 2 Actions:
 3. ROTATE_EIGHTH_RIGHT
 4. SHOOT
 5. WIN
-Reason of destruction: NONE
+Reason of destruction: I HIT OPPONENT WITH A SHELL

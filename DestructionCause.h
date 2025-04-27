@@ -7,6 +7,7 @@ enum class DestructionCause {
     SHELL,
     MINE,
     TANK,
+    SHELLOPPONENT,
     MULTIPLE
 };
 
@@ -16,6 +17,7 @@ inline std::string toString(DestructionCause cause) {
         case DestructionCause::SHELL: return "SHELL HIT ME";
         case DestructionCause::MINE: return "I GOT ONTO A MINE";
         case DestructionCause::TANK: return "TANK COLLISION";
+        case DestructionCause::SHELLOPPONENT: return "I HIT OPPONENT WITH A SHELL";
         case DestructionCause::MULTIPLE: return "MULTIPLE";
         default: return "UNKNOWN";
     }

@@ -23,7 +23,7 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
     std::ofstream file_errors("input_errors.txt");
     std::cout << "Opening file for writing input errors." << std::endl;
     if (!file_errors) {
-        file_errors << "Failed to open file for writing input errors.\n" << std::endl;
+        file_errors << "Error: Failed to open file for writing input errors.\n" << std::endl;
         file_errors.close();
         std::cerr << "Failed to open file for writing input errors." << std::endl;
         return false;
@@ -68,8 +68,10 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
                     tank1 = std::make_shared<Tank>(x, count_lines, '1');
                     (*board)[count_lines][x] = tank1.get();
                     count_tanks_for_player1++;
+                    std::cout<<"Tank1 position "<<"("<< tank1.get()->getX()<<","<<tank1.get()->getY()<<")"<<std::endl;
                     break;
                 case '2':
+                    
                     if (count_tanks_for_player2 >= 1) {
                         file_errors << "Error: More than one tank for player 2." << std::endl;
                         file_errors.close();
@@ -79,6 +81,7 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
                     tank2 = std::make_shared<Tank>(x, count_lines, '2');
                     (*board)[count_lines][x] = tank2.get();
                     count_tanks_for_player2++;
+                    std::cout<<"Tank2 position "<<"("<< tank2.get()->getX()<<","<<tank2.get()->getY()<<")"<<std::endl;
                     break;
                 case '#':
                     (*board)[count_lines][x] = new Wall(x, count_lines);
@@ -115,13 +118,13 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
 
     file_board.close();
     displayBoard(); // Display the loaded board
-    file_errors << "There were no errors in the input file." << std::endl;
+    
     if(count_tanks_for_player1 ==0){
-        file_errors << "Not enough tanks for player1"<<std::endl;
+        file_errors << "Error: Not enough tanks for player1"<<std::endl;
         return false;
     }
     else if(count_tanks_for_player2 == 0){
-        file_errors << "Not enough tanks for player2"<<std::endl;
+        file_errors << "Error: Not enough tanks for player2"<<std::endl;
     }
     file_errors.close();
     std::cout << "Board loaded successfully." << std::endl;

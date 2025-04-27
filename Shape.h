@@ -16,7 +16,6 @@ protected:
 public:
 
     virtual ~Shape() = default; // Virtual destructor for proper cleanup
-    // virtual Shape* clone() const = 0; // ADD THIS
     Shape(int x, int y, CellType cell_type = CellType::EMPTY) : x(x), y(y), prev_x(x), prev_y(y), cell_type(cell_type) {};
     void move();
     void updatePosition(int new_x, int new_y);

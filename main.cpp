@@ -33,8 +33,7 @@ int main() {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
-    std::cout<<"Tank1 position "<<"("<< game_board.getTank1().get()->getX()<<","<< game_board.getTank1().get()->getY()<<")"<<std::endl;
-    std::cout<<"Tank2 position "<<"("<< game_board.getTank2().get()->getX()<<","<<game_board.getTank2().get()->getY()<<")"<<std::endl;
+
     GameManager game_manager(std::make_shared<GameBoard>(game_board));
     int step = 0;
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) { 
@@ -77,7 +76,14 @@ int main() {
         std::cerr << "Failed to open Output.txt for writing." << std::endl;
         return 1;
     }
-
+    file <<"And the winner is:  ";
+    if(game_manager.getTank1()->getActions()[game_manager.getTank1()->getActions().size() - 1] == ActionType::WIN){
+        file<<"Player 1  :) "<<std::endl;
+    } else if(game_manager.getTank2()->getActions()[game_manager.getTank2()->getActions().size() - 1] == ActionType::WIN){
+        file<<"Player 2 :)  "<<std::endl;
+    }else{
+        file<<"they both won because it is a draw!!"<<std::endl;
+    }
     // Tank 1
     std::shared_ptr<Tank> tank1 = game_manager.getTank1();
     file << "Tank 1 Actions:\n";

@@ -105,10 +105,13 @@ void GameManager::resolveShellCollisions() {
             std::shared_ptr<Tank> target = (cell == CellType::TANK1) ? shared_board->getTank1() : shared_board->getTank2();
             if (target) {
                 target->setDestructionCause(DestructionCause::SHELL);
+
                 if (target->getIndexTank() == '1') {
+                    tank2->setDestructionCause(DestructionCause::SHELLOPPONENT);
                     lastKnownTank1 = target;
                 }
                 else {
+                    tank1->setDestructionCause(DestructionCause::SHELLOPPONENT);
                     lastKnownTank2 = target;
                 }
 
@@ -193,8 +196,10 @@ void GameManager::resolveTankCollisions() {
                 tank->setDestructionCause(DestructionCause::SHELL);
 
             if (tank->getIndexTank() == '1') {
+                tank2->setDestructionCause(DestructionCause::SHELLOPPONENT);
                 lastKnownTank1 = tank;
             } else {
+                tank1->setDestructionCause(DestructionCause::SHELLOPPONENT);
                 lastKnownTank2 = tank;
             }
 
