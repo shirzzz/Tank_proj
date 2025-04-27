@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build", // This is the task name that matches preLaunchTask in launch.json
+            "type": "shell", // Use a shell command
+            "command": "g++", // Your compiler command (e.g., g++, clang++)
+            "args": [
+                "-g", // Include debug symbols
+                "${workspaceFolder}/*.cpp", // Compile all .cpp files in the workspace folder
+                "-o", // Output flag
+                "${workspaceFolder}/main" // Output executable name (should match program in launch.json)
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true // Set as the default build task
+            },
+            "presentation": {
+                "reveal": "always" // Show the terminal when the task runs
+            },
+            "problemMatcher": [
+                "$gcc" // Problem matcher for GCC/Clang output
+            ]
+        }
+    ]
+}

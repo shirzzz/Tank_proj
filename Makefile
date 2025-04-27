@@ -58,6 +58,7 @@ clean:
 		rm -f $(OBJECTS) $(TARGET)
 		rm -rf log_file.txt
 		rm -rf input_errors.txt
+		rm -rf output.txt
 
 # Phony targets
 .PHONY: all clean
