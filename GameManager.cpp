@@ -219,10 +219,14 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
     int waiting_to_shoot = tank->getWaitingToShootAgain();
 
     if (waiting_to_go_back == 0) {
-        tank->setWaitingToGoBack(-1);
-        tank->addAction(ActionType::MOVE_BACKWARD);
-        tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
-        shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
+
+        std::pair<int, int> new_position = tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
+        if(shared_board->isCellWalkable(new_position.first, new_position.second)){
+            tank->setWaitingToGoBack(-1);
+            tank->addAction(ActionType::MOVE_BACKWARD);
+            shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+        }
+        
         return;
     }
 
@@ -230,9 +234,16 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
         case ActionType::MOVE_FORWARD:
             if (waiting_to_go_back >= 1) tank->setWaitingToGoBack(-1);
             else {
-                tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
-                shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
-                tank->addAction(ActionType::MOVE_FORWARD);
+                std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
+                if(shared_board->isCellWalkable(new_position.first, new_position.second)){
+                    shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
+                    tank->addAction(ActionType::MOVE_FORWARD);
+                }
+                else{
+                    tank->addAction(ActionType::INVALID_ACTION);
+                }
+                
+                
             }
             break;
 

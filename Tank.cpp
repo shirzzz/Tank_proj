@@ -28,7 +28,7 @@ void Tank::shoot() {
 }
 
 // Movement
-void Tank::moveForward(int board_width, int board_height) {
+std::pair<int, int> Tank::moveForward(int board_width, int board_height) {
     int x_moved = x, y_moved = y;
 
     switch (canon_dir) {
@@ -46,12 +46,14 @@ void Tank::moveForward(int board_width, int board_height) {
     if (x_moved >= board_width) x_moved -= board_width;
     if (y_moved < 0) y_moved += board_height;
     if (y_moved >= board_height) y_moved -= board_height;
-    previousPosition = {x, y}; // Store previous position before moving
-    x = x_moved;
-    y = y_moved;
+    
+    return {x_moved, y_moved}
+    // previousPosition = {x, y}; // Store previous position before moving
+    // x = x_moved;
+    // y = y_moved;
 }
 
-void Tank::moveBackward(int board_width, int board_height) {
+std::pair<int, int> Tank::moveBackward(int board_width, int board_height) {
     int x_moved = x, y_moved = y;
 
     switch (canon_dir) {
@@ -69,9 +71,10 @@ void Tank::moveBackward(int board_width, int board_height) {
     if (x_moved >= board_width) x_moved -= board_width;
     if (y_moved < 0) y_moved += board_height;
     if (y_moved >= board_height) y_moved -= board_height;
-    previousPosition = {x, y}; // Store previous position before moving
-    x = x_moved;
-    y = y_moved;
+    return({x_moved, y_moved})
+    // previousPosition = {x, y}; // Store previous position before moving
+    // x = x_moved;
+    // y = y_moved;
 }
 
 // Rotations

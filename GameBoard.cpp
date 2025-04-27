@@ -216,10 +216,26 @@ bool GameBoard::isCellPassable(int x, int y) const {
         CellType c = (*board)[y][x]->getCellType();
         return c == CellType::EMPTY|| c == CellType::TANK1 ||c == CellType::TANK2;
     }
-    return false; // Consider null pointers as not walkable
+    return false; // Consider null pointers as not passable
 }
 
+bool GameBoard::isCellLegal(int x, int y) const{
+    if (x < 0 || y < 0 || x >= width || y >= height) return false;
+    if ((*board)[y][x]) {
+        CellType c = (*board)[y][x]->getCellType();
+        return c != CellType::WALL|| c != CellType::MINE;
+    }
+    return false; 
+}
 
+bool GameBoard::isSteppingWall(int x, int y) const{
+    if (x < 0 || y < 0 || x >= width || y >= height) return false;
+    if ((*board)[y][x]) {
+        CellType c = (*board)[y][x]->getCellType();
+        return c == CellType::WALL;
+    }
+    return false; 
+}
 void GameBoard::moveShell(Shell* shell) {
     if (!shell) return; // Always be defensive
     std::cout << "I am in moveShell" << std::endl;
