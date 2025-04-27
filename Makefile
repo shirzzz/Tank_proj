@@ -6,7 +6,7 @@ TARGET = main
 
 # Source files
 SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp
-HEADERS = ActionType.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Shells.h Tank.h TankAI.h Wall.h
+HEADERS = ActionType.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h TankAI.h Wall.h
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -29,10 +29,10 @@ Chased.o: Chased.cpp Chased.h DirectionUtils.h ActionType.h GameBoard.h Tank.h S
 DirectionUtils.o: DirectionUtils.cpp DirectionUtils.h CanonDirection.h
 	$(CPP) $(CPP_FLAGS) -c DirectionUtils.cpp -o DirectionUtils.o
 
-GameBoard.o: GameBoard.cpp GameBoard.h CellType.h Tank.h Shell.h Shape.h Empty.h Wall.h Shells.h Mine.h Chased.h  BfsChaserShir.h
+GameBoard.o: GameBoard.cpp GameBoard.h CellType.h Tank.h Shell.h Shape.h Empty.h Wall.h Mine.h Chased.h  BfsChaserShir.h
 	$(CPP) $(CPP_FLAGS) -c GameBoard.cpp -o GameBoard.o
 
-GameManager.o: GameManager.cpp GameManager.h GameBoard.h Tank.h Shell.h DestructionCause.h Chased.h ActionType.h CanonDirection.h CellType.h Shells.h Empty.h
+GameManager.o: GameManager.cpp GameManager.h GameBoard.h Tank.h Shell.h DestructionCause.h Chased.h ActionType.h CanonDirection.h CellType.h Empty.h
 	$(CPP) $(CPP_FLAGS) -c GameManager.cpp -o GameManager.o
 
 OurTester.o: OurTester.cpp OurTester.h GameBoard.h

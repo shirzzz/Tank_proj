@@ -11,9 +11,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "Shells.h"
-
-
 
 // Track tanks after removal for reporting
 Tank* lastKnownTank1 = nullptr;

@@ -1,53 +1,166 @@
-# Tank_proj
-דברים שצריך לעשות:
-Game steps מערך של צעדים לכל שחקן:
-2. להבין את איך לעשות את הgamesteps
-3. לסדר את הצעד אחורה
-4. אחרי שהוא צעד אחורה כל צעד אחורה מיידית אחרי זה יהיה בעלות של צעד אחד,
-5. A backward move action that was not performed yet,
-can be canceled by a forward move action request, in which case the tank will stay(!) in place
-6. אולי להוסיף שדה שבודק מתי הפעם האחרונה שהייתה צעד אחורה ולנהל את הצעדים לפי זה
-7. after shooting, the tank cannot shoot again for 4 game steps.
+Tanks Game Simulator
+"Advanced Topics in Programming" — TAU Semester B 2025 — Assignment 1
 
-8. לסדר יציאה מהמגרש של הshell
-9. רוצים שהshell יעשה פעמיים צעד אחד
-10. אם נגמרו לשניהם הכדורים המשחק אמור להגמר אחרי 40 צעדים 
-11. אפשר להוסיף לכל טנק שדה של כמה כדורים יש לו
-12. צריך להגיד שמישהו ניצח או שזה תיקו
-13. אם משהו יוצא מהמגרש הוא נכנס בחזרה מהצד השני  -
-לשנות את הפונקציות של תזוזה קדימה ואחורה שיתייחסו לזה ( להוסיף if)
-14. אם הכדורים מתנגשים שניהם מתפוצצים
-15. להוסיף שאם טנק דורך על מוכש שני הטנק והמוכש מתפוצצים
-16. אם 2 הטנקים מתנגשים שניהם מתפוצצים
+>>Name and Ids:
+*Itai Lifshitz, 211466123
+*Shir Zadok, 212399455
 
-17.אפשר למשל להריץ את לולאת המשחק בקצב של הקליע ורק בסיבובים זוגיים לבצע תנועות של הטנקים.
-או כל פתרון אחר שתבחרו
-18. ההצעה שלי היא להניע את כל הקליעים קודם.
-ואז לבדוק אם יש פגיעה בטנקים (או עבור כל קליע בנפרד). 
-ואז להזיז את הטנקים. ואז לבדוק שוב אם טנק נע לתוך קליע (או מוקש). 
-כלומר - לבצע את הבדיקה גם לאחר תנועת קליע וגם לאחר תנועת טנק ולהתחיל קודם בתנועת הקליע.
-19. אם הטנקים/הכדורים חולפים זה על פני זה - מחליפים מקומות זה אומר שהם התנגשו
-20. לעשות שבלוח יהיה vector של מי שנמצא באותה משבצת
-21. The “GameManager” should also handle cases in which the algorithm requests an illegal move
-(e.g. stepping into a wall, or requesting an invalid move such as reshooting without waiting 4 game steps), 
-it should ignore it but write it to the output file as a “bad step”.
-22. At least one of the two different algorithms that you are required to submit should 
-try to chase the opponent’s tank 
-(using DFS or BFS algorithm, try not to calculate the entire path for each step!). 
-You can decide that the other algorithm is only triggered for moving a tank if being chased by a shell.
-23. צריך שהצעדים ישמרו לכל טנק את הצעדים שלו ולא לשניהם ביחד
-24. מחלקה לכל הshells
+>>Overview
+An implementation of a deterministic program that simulates a tank battle game on a 2D board for "Advanced Topics in Programming" at TAU. 
+Each player controls one tank, aiming to destroy the opponent while avoiding walls, mines, and incoming artillery shells. Player 1 tries to chase player 2 using the BFS algorithm, and tank2 does everything it can to survive. 
+The simulation reads a board configuration from an input file, runs the game based on pre-programmed tank algorithms, and outputs the results.
 
-in the end:
-Output File - TEXT file
-The output file should include:
-all the steps performed by each player, including “bad steps”
-the result - win (who) or tie, and the reason
+>>Input File Format
+The input file is divided into two sections:
+The first one includes the Board dimensions (width and height), and the second one includes the "Shapes", of the game which are in other words: the game objects.
 
-Error Handling
-You should reasonably handle any error:
-Program shall not crash, never.
-You should better recover from input file errors (e.g. if a player has more than 1 tank, take the 1st, ignore the rest; if dimensions of the board do not fit the declared dimensions in file: ignore rows and columns beyond the declared dimensions,
-fill in spaces for missing chars and lines; treat unspecified chars as space). You should write a short description of all recovered errors found in the input file, into input_errors.txt file. Create this file only if there are errors.
-In case there is an unrecoverable error, a message should be printed to screen before the program finishes. No need for input_errors.txt file in this case.
-You should not end the program using the “exit” function or similar functions, even in error cases. Program shall end by finishing main, in all scenarios.
+## Text file format:
+1. The first line of the input file defines the width and height of the board which are the board dimensions. 
+
+The dimensions should be in the following order, seperated by a space:
+
+```
+width height
+```
+
+Where as:
+-`width` = The number of columns (horizontal size) of the game board.
+
+-`height` = The number of rows (vertical size) of the game board.
+
+2. Game Objects ("Shapes") (Subsequent Lines):
+
+Each subsequent line describes the differnts game objects (tanks, walls, mines and empty objects) and their position on the game board.
+Within the format: 
+```
+c1 c2 c3 c4 c5 ... cwidth
+```
+
+Where as:
+-`ci` = A character which represent a type of game object on the board.
+-`1` = Player 1's tank
+-`2` = Player 2's tank
+-`#` = A wall
+-`@` = A mine
+
+# Important Notes:
+1. If there are more objects in one line than expected they are being ignored and not joined to the built game board.
+2. The game will not start if one of the players has a number of tanks which differ than 1.
+3. If there are not enough lines or one or more of the lines are too short the game will not start.
+
+### Example Input File:
+ 10 8
+##########
+#         #
+# 2        #
+#         #
+#    1    #
+#      @ #
+#   #    #
+########## 
+
+Tank cannons start by default:
+
+Player 1: Left (L)
+
+Player 2: Right (R)
+
+
+How to Run
+bash
+Copy
+Edit
+tanks_game <game_board_input_file>
+<game_board_input_file> — Path to a text file describing the initial board layout.
+
+
+Game Mechanics
+Movement: Forward, backward (delayed), and rotate (1/8 or 1/4 turn).
+
+Shooting:
+
+Each tank starts with 16 shells.
+
+Shells move twice as fast as tanks.
+
+After shooting, a 4-step cooldown is enforced.
+
+Boundaries: Toroidal (wrap-around edges).
+
+Collisions:
+
+Shell hits wall → wall weakens and collapses after two hits.
+
+Shell hits tank → tank destroyed.
+
+Tank on mine → both tank and mine destroyed.
+
+Tank collides with tank → both destroyed.
+
+Algorithms
+Each player is controlled by a deterministic algorithm:
+
+Algorithms have full visibility of the board.
+
+Algorithms cannot modify the game state directly — they suggest actions, which are validated by the GameManager.
+
+At least one algorithm must attempt to chase the opponent using a search strategy (DFS or BFS).
+
+Output
+Output file:
+
+Records every action and any "bad steps" (invalid moves).
+
+Final game result (win/tie) and reason.
+
+Input Errors:
+
+If recoverable issues are found in the input file, they're reported in input_errors.txt.
+
+Project Structure
+GameManager: Controls the game flow, validates actions.
+
+TankAlgorithm: Abstracts the decision-making for each tank.
+
+Board: Represents the game board and entities on it.
+
+Shells: Handle artillery shots and collisions.
+
+Additional Requirements
+Error Handling:
+
+Never crash unexpectedly.
+
+Attempt to recover from input issues.
+
+No exit() calls; the program must exit naturally.
+
+Documentation:
+
+Provide a High-Level Design Document (HLD) including:
+
+UML Class Diagram
+
+UML Sequence Diagram
+
+Design considerations
+
+Testing strategy
+
+Bonus Opportunities
+Optional additions that may earn bonus points:
+
+Logging system.
+
+Configuration file support.
+
+Automated testing (e.g., Google Test framework).
+
+Visual simulation (optional and external to the main gameplay).
+
+Important: To qualify for a bonus, describe the features clearly in a bonus.txt file.
+
+License
+This project is for academic use as part of Tel Aviv University's Advanced Topics in Programming course.
+
+

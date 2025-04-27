@@ -7,7 +7,6 @@
 #include "Shape.h"
 #include "Empty.h"
 #include "Wall.h"
-#include "Shells.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -117,6 +116,13 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
     file_board.close();
     displayBoard(); // Display the loaded board
     file_errors << "There were no errors in the input file." << std::endl;
+    if(count_tanks_for_player1 ==0){
+        file_errors << "Not enough tanks for player1"<<std::endl;
+        return false;
+    }
+    else if(count_tanks_for_player2 == 0){
+        file_errors << "Not enough tanks for player2"<<std::endl;
+    }
     file_errors.close();
     std::cout << "Board loaded successfully." << std::endl;
     return true;
@@ -245,7 +251,7 @@ void GameBoard::moveShell(Shell* shell) {
     if (new_y < 0) new_y += height;
     if (new_y >= height) new_y -= height;
     std::cout <<"I am in moveShell after calculating new position" << std::endl;
-    //Step 1: clear old position
+    //Step 1: clear old
     (*board)[old_y][old_x] = new Empty(old_x, old_y); // Mark as empty
 
     // Step 2: Move the shell's internal coordinates

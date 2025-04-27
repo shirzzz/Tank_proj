@@ -33,6 +33,8 @@ int main() {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
+    std::cout<<"Tank1 position "<<"("<< game_board.getTank1().get()->getX()<<","<< game_board.getTank1().get()->getY()<<")"<<std::endl;
+    std::cout<<"Tank2 position "<<"("<< game_board.getTank2().get()->getX()<<","<<game_board.getTank2().get()->getY()<<")"<<std::endl;
     GameManager game_manager(std::make_shared<GameBoard>(game_board));
     int step = 0;
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) { 
