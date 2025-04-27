@@ -80,8 +80,8 @@ void GameManager::updateShells() const {
 
 void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
-    std::vector<std::pair<int, int>> toExplode;
-
+    std::vector<Shape*> toExplode;
+    std::cout << "Resolving shell collisions..." << std::endl;
     // Check for shell-to-shell collisions
     for (size_t i = 0; i < shells.size(); ++i) {
         for (size_t j = i + 1; j < shells.size(); ++j) {
@@ -91,8 +91,10 @@ void GameManager::resolveShellCollisions() {
             auto oj = shells[j].getPreviousPosition();
 
             if (pi == pj || (pi == oj && pj == oi)) {
-                toExplode.push_back(pi);
-                toExplode.push_back(pj);
+                std::cout << "Shell collision detected at: " << pi.first << ", " << pi.second << std::endl;
+                toExplode.push_back(&shells[i]);
+                toExplode.push_back(&shells[j]);
+                std::cout<<"I am exploding!: "<<toExplode.size()<<std::endl;
             }
         }
     }
@@ -111,11 +113,12 @@ void GameManager::resolveShellCollisions() {
             if (wall) {
                 wall->setLives(wall->getLives() - 1);
                 if (wall->getLives() <= 0) {
-                    shared_board->removeWall(wall);;
-                    toExplode.push_back({x, y});
+                    shared_board->removeWall(wall);
+
+                    toExplode.push_back(wall);
                 }
             }
-            shared_board->removeShellAt(x, y);
+            toExplode.push_back(&shell);
         } else if (cell == CellType::TANK1 || cell == CellType::TANK2) {
             std::shared_ptr<Tank> target = (cell == CellType::TANK1) ? shared_board->getTank1() : shared_board->getTank2();
             if (target) {
@@ -129,18 +132,32 @@ void GameManager::resolveShellCollisions() {
 
                 target->addAction(ActionType::LOSE);
             }
-            toExplode.push_back({x, y});
+            toExplode.push_back(&shell);
+            shared_board->removeTank(target);
+            toExplode.push_back(target.get());
         }
-        // else if (
-        //     shared_board->removeShellAt(pre_shell_x, pre_shell_y);
-        //
     }
 
     // Remove all shells that should explode
-    for (const auto& pos : toExplode) {
-        int x = pos.first;
-        int y = pos.second;
-        shared_board->removeShellAt(x, y);
+    for (const auto& shape : toExplode) {
+        CellType cell = shape->getCellType();
+        switch(cell) {
+            case CellType::TANK1:
+                shared_board->removeTank(std::shared_ptr<Tank>(static_cast<Tank*>(shape)));
+                break;
+            case CellType::TANK2:
+                shared_board->removeTank(std::shared_ptr<Tank>(static_cast<Tank*>(shape)));
+                break;
+            case CellType::WALL:
+                shared_board->removeWall(static_cast<Wall*>(shape));
+                break;
+            case CellType::SHELL:
+                shared_board->removeShell(*static_cast<Shell*>(shape));
+                break;
+            default:
+                std::cout << "Cant be explode!!" << std::endl;
+                break;
+        }
     }
 }
 
@@ -201,7 +218,7 @@ void GameManager::resolveTankCollisions() {
 
             tank->addAction(ActionType::LOSE);
             shared_board->removeTank(tank);
-            shared_board->removeShellAt(shellPos.first, shellPos.second);
+            shared_board->removeShellAtfromBoard(shellPos.first, shellPos.second);
 
             endGame();
             return;
@@ -211,6 +228,7 @@ void GameManager::resolveTankCollisions() {
 }
 
 void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {
+    std::cout << "Processing action: " << action << std::endl;
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
 
@@ -286,16 +304,20 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             break;
 
             case ActionType::SHOOT:
+            std::cout << "Tank " << name << " is shooting!" << std::endl;
             if (waiting_to_shoot != -1) {
+                std::cout << "Tank " << name << " is waiting to shoot again!" << std::endl;
                 tank->addAction(ActionType::INVALID_ACTION);
                 tank->setWaitingToShootAgain(waiting_to_shoot - 1);
             } else if (tank->getNumBullets() == 0) {
+                std::cout << "Tank " << name << " has no bullets left!" << std::endl;
                 tank->addAction(ActionType::INVALID_ACTION);
                 if (shared_board->getTank1()->getNumBullets() == 0 &&
                     shared_board->getTank2()->getNumBullets() == 0) {
                     if (moves_left > 40) moves_left = 40;
                 }
             } else {
+                std::cout << "Tank " << name << " is shooting!" << std::endl;
                 tank->shoot();
         
                 // Calculate shell spawn position one step ahead
@@ -306,7 +328,9 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
         
                 // Place shell one step ahead
-                shared_board->addShell(Shell(shell_x, shell_y, tank->getCanonDirection()));
+                std::cout << "Shell spawn position: " << shell_x << ", " << shell_y << std::endl;
+                std::cout<<"try to add shell"<<std::endl;
+                shared_board->addShell(*(new Shell(shell_x, shell_y, tank->getCanonDirection())));
                 std::cout<<"Size of list: "<<shared_board->getShells().size()<<std::endl;
                 tank->addAction(ActionType::SHOOT);
                 tank->setWaitingToShootAgain(4);
@@ -348,8 +372,9 @@ void GameManager::updateGame() {
     tank2->setPreviousPosition();
     std::cout << "Tank 1 position: " << tank1->getPosition().first << ", " << tank1->getPosition().second << std::endl;
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
-    std::cout << "Finished step itai"  << std::endl;
-    std::cout << "Tank 1 action: " << action1 << std::endl;
+    std::cout << "Tank 1 action: " << std::endl;
+    // std::cout << "Finished step itai"  << std::endl;
+     std::cout << "Tank 1 action: " << action1 << std::endl;
     processAction(tank1, action1, "Tank 1");
     
     std::cout << "Tank 2 position: " << tank2->getPosition().first << ", " << tank2->getPosition().second << std::endl;

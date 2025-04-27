@@ -56,6 +56,7 @@ public:
     void setGameOver(bool game_over) { this->game_over = game_over; }
     bool getGameOver() const { return game_over; }
     std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
+    std::shared_ptr<GameBoard> getBoard() { return shared_board; }
 };
 
 #endif // GAMEMANAGER_H

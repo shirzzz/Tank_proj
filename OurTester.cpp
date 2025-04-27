@@ -5,14 +5,16 @@
 #include "OurTester.h"
 #include "iostream"
 #include "GameBoard.h"
-FILE* buildRandomBoardFile() {
+std::ifstream& buildRandomBoardFile() {
     bool placed_tank1 = false;
     bool placed_tank2 = false;
-    FILE *file = fopen("random_board.txt", "w");
-    if (file == NULL) {
+    std::ofstream file("random_board.txt");
+    if (file.fail()) {
         std::cout << "Error opening file for writing.\n";
         return file;
     }
+    std::cout << "Opening file for writing random board." << std::endl;
+
     std::uniform_int_distribution<> distrib(1,20); // Range: 1 to 20
     std::random_device rd;                         // Random number from hardware
     std::mt19937 gen(rd());
@@ -36,13 +38,14 @@ FILE* buildRandomBoardFile() {
                 c = '2'; // Randomly place tank 2
                 placed_tank2 = true;
             }
-            fprintf(file, "%c", c);
+            file << c;
         }
-        fprintf(file, "\n");
+        file <<"\n";
     }
 
-    fclose(file);
-    return nullptr;
+    //file.close();
+    std::cout << "Random board file created successfully.\n";
+    return file;
 }
 
 bool testLoadingBoardFromFile() {
@@ -51,7 +54,9 @@ bool testLoadingBoardFromFile() {
         std::cout << "Error opening file for reading.\n";
         return false;
     }
+}
     GameBoard board;
+
     if (!board.loadBoardFromFile("random_board.txt")) {
         std::cout << "Failed to load board from file.\n";
         return false;

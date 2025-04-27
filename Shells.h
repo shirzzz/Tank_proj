@@ -20,15 +20,24 @@ public:
 
     // Const access for read-only use
     const std::vector<Shell>& getShellsList() const {
+        if (shellsList.empty()) {
+            std::cout << "Shells list is null!" << std::endl;
+        }
+        std::cout << "Shells size: " << shellsList.size() << std::endl;
         return shellsList;
     }
 
     // Add a new shell to the list
-    void addShell(const Shell& shell) {
+    void addShelltoList(const Shell& shell) {
         std::cout << "Adding shell at (" << shell.getX() << ", " << shell.getY() << ")" << std::endl;
-
+        if(shellsList.empty()) {
+            std::cout << "Shells list is null!" << std::endl;
+            return;
+        }
         shellsList.push_back(shell);
-        std::cout << "Shell added. Total shells: " << shellsList.size() << std::endl;
+        std::cout << "Shells size: " << shellsList.size() << std::endl;
+        std::cout << "Shell added." << std::endl;
+
     }
 
     // Remove shell at specific coordinates

@@ -8,35 +8,51 @@
 #include "ActionType.h"
 
 int main() {
-    GameBoard game_board;
+    std::cout << "Welcome to the Tank Game!" << std::endl;
+    std::cout << "Please enter the filename of the game board: ";
     std::string filename;
 
     std::cin >> filename;
+    std::cout << "Filename: " << filename << std::endl;
+    std::ifstream file_board(filename);
+    std::ofstream file_errors("input_errors.txt");
+    if (!file_board.is_open()) {
+        file_errors << "Error opening file of the board: " << filename << std::endl;
+        file_errors.close();
+        std::cerr << "Error opening file of the board: " << filename << std::endl;
+        return false;
+    }
+    //std::cerr.rdbuf(file_errors.rdbuf());
+    std::cout << "Opening file: " << filename << std::endl;
+    int width, height;
+    file_board >> width >> height;
+    GameBoard game_board(width, height);
+    std::cout << "Game board loaded from file: " << filename << std::endl;
 
-    if (!game_board.loadBoardFromFile(filename)) {
+    if (!game_board.loadBoardFromFile(file_board, filename)) {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
-  
+    std::cout << "number of walls: " << game_board.getNumWalls() << std::endl;
     GameManager game_manager(std::make_shared<GameBoard>(game_board));
-
+    std::cout << "GameManager initialized." << std::endl;
     int step = 0;
-
-    while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
+    std::cout <<"number of walls in manager: "<< game_manager.getBoard()->getNumWalls() << std::endl;
+    while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) { 
         std::cout << game_manager.getGameOver() << std::endl;
 
         // Step 1: Move all shells
         std::cout << "Moving shells." << std::endl;
-        std::cout << "Shells size: " << game_manager.getmyShells().size() << std::endl;
-        if (game_manager.getmyShells().empty()) {
-            std::cout << "No shells to move." << std::endl;
-        } else {
+        std::cout << "Shells size: " << game_board.getShells().size() << std::endl;
+        // if (game_board.getShells().empty()) {
+        //     std::cout << "No shells to move." << std::endl;
+        //} else {
             game_manager.updateShells();
 
             // Step 2: Resolve shell collisions
             std::cout << "Resolving shell collisions." << std::endl;
             game_manager.resolveShellCollisions();
-        }
+        //}
 
         // Step 3: On even steps, update tanks and resolve tank collisions
         if (step % 2 == 0) {
@@ -53,6 +69,10 @@ int main() {
         step++;
         if (game_manager.getMovesLeft() <= 40) {
             game_manager.setMovesLeft(game_manager.getMovesLeft() - 1);
+            if(game_manager.getMovesLeft() == 0) {
+                game_manager.endGame();
+                std::cout << "Game Over: No moves left!" << std::endl;
+            }
         }
 
         std::cout << "Finished step " << step << std::endl;

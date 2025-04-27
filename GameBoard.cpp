@@ -16,31 +16,33 @@
 #include "Mine.h"
 #include "BfsChaserShir.h"
 
-bool GameBoard::loadBoardFromFile(const std::string &filename) {
+bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filename) {
+    // std::cout << "Loading board from file: " << filename << std::endl;
     int count_tanks_for_player1 = 0;
+    //int count_walls = 0;
     int count_tanks_for_player2 = 0;
     std::ofstream file_errors("input_errors.txt");
+    std::cout << "Opening file for writing input errors." << std::endl;
     if (!file_errors) {
+        file_errors << "Failed to open file for writing input errors.\n" << std::endl;
+        file_errors.close();
         std::cerr << "Failed to open file for writing input errors." << std::endl;
         return false;
     }
-    std::ifstream file_board(filename);
-    if (!file_board.is_open()) {
-        std::cerr << "Error opening file of the board: " << filename << std::endl;
+    file_board.ignore(); // Ignore the newline after width and height
+    if (width <= 0 || height <= 0) {
+        file_errors << "Error: Invalid board dimensions." << std::endl;
+        file_errors.close();
+        std::cerr << "Error: Invalid board dimensions." << std::endl;
         return false;
     }
-    std::cerr.rdbuf(file_errors.rdbuf());
-
-    file_board >> width >> height;
-    file_board.ignore(); // Ignore the newline after width and height
-
-    board = std::make_shared<std::vector<std::vector<Shape*>>>(height, std::vector<Shape*>(width, new Empty(-1, -1)));
-
     std::string line;
     int count_lines = 0;
 
     while (std::getline(file_board, line)) {
         if (line.empty()) {
+            file_errors << "Error: Empty line in file." << filename<<std::endl;
+            file_errors.close();
             std::cerr << "Error: Empty line in file." << std::endl;
             return false;
         }
@@ -48,6 +50,8 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
         if (count_lines >= height) break;
 
         if (line.length() < static_cast<size_t>(width)) {
+            file_errors << "Error: Line length is less than expected width." << std::endl;
+            file_errors.close();
             std::cerr << "Error: Line length is less than expected width." << std::endl;
             return false;
         }
@@ -57,6 +61,8 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
             switch (c) {
                 case '1':
                     if (count_tanks_for_player1 >= 1) {
+                        file_errors << "Error: More than one tank for player 1." << std::endl;
+                        file_errors.close();
                         std::cerr << "Error: More than one tank for player 1." << std::endl;
                         return false;
                     }
@@ -66,6 +72,8 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
                     break;
                 case '2':
                     if (count_tanks_for_player2 >= 1) {
+                        file_errors << "Error: More than one tank for player 2." << std::endl;
+                        file_errors.close();
                         std::cerr << "Error: More than one tank for player 2." << std::endl;
                         return false;
                     }
@@ -75,6 +83,13 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
                     break;
                 case '#':
                     (*board)[count_lines][x] = new Wall(x, count_lines);
+                   // std::cout << "Wall created at (" << x << ", " << count_lines << ")" << std::endl;
+                    //std::cout << "Number of walls: " << this->getNumWalls() << std::endl;
+                   // std::cout << "Number of walls before increment: " << num_walls<< std::endl;
+                    //std::cout << "Number of walls after increment: " << this->getNumWalls() + 1 << std::endl;
+                    //this->setNumWalls(this->getNumWalls() + 1);
+                    num_walls++;
+                    // std::cout << "Number of walls after increment: " << num_walls<< std::endl;
                     break;
                 case '@':
                     (*board)[count_lines][x] = new Mine(x, count_lines);
@@ -83,6 +98,14 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
                     (*board)[count_lines][x] = new Empty(x, count_lines);
                     break;
                 default:
+                    if (isdigit(c)) {
+                        file_errors << "Error: Invalid tank index in file: " << c << std::endl;
+                    } else if (isalpha(c)) {
+                        file_errors << "Error: Invalid character in file: " << c << std::endl;
+                    } else {
+                        file_errors << "Error: Unknown character in file: " << c << std::endl;
+                    }
+                    file_errors.close();
                     std::cerr << "Error: Invalid character in file: " << c << std::endl;
                     return false;
             }
@@ -91,26 +114,30 @@ bool GameBoard::loadBoardFromFile(const std::string &filename) {
     }
 
     if (count_lines < height) {
+        file_errors << "Error: Not enough lines in file." << std::endl;
+        file_errors.close();
         std::cerr << "Error: Not enough lines in file." << std::endl;
         return false;
     }
 
     file_board.close();
     displayBoard(); // Display the loaded board
+    file_errors << "There were no errors in the input file." << std::endl;
+    file_errors.close();
     std::cout << "Board loaded successfully." << std::endl;
     return true;
 }
 
-GameBoard::~GameBoard() {
-    if (board) {
-        for (auto& row : *board) {
-            for (Shape* shape : row) {
-                delete shape;
-            }
-        }
-        board->clear();
-    }
-}
+// GameBoard::~GameBoard() {
+//     if (board) {
+//         for (auto& row : *board) {
+//             for (Shape* shape : row) {
+//                 delete shape;
+//             }
+//         }
+//         board->clear();
+//     }
+// }
 
 void  GameBoard::displayBoard() const {
     std::cout << "Game Board:" << std::endl;
@@ -239,15 +266,16 @@ bool GameBoard::isCellPassable(int x, int y) const {
 
 
 void GameBoard::moveShell(Shell* shell) {
-    if (!shell) return; // Always good to be defensive
-
+    if (!shell) return; // Always be defensive
+    std::cout << "I am in moveShell" << std::endl;
     int old_x = shell->getX();
     int old_y = shell->getY();
 
     int dx = 0, dy = 0;
     CanonDirection direction = shell->getDirection();
 
-    int speed = 1; // Shell speed
+    int speed = 1; // How far a shell moves each time
+    std::cout << "Shell speed: " << speed << std::endl;
     switch (direction) {
         case CanonDirection::U:  dy = -speed; break;
         case CanonDirection::UR: dx = speed; dy = -speed; break;
@@ -260,49 +288,60 @@ void GameBoard::moveShell(Shell* shell) {
     }
 
     // Calculate new position
-    int x_moved = old_x + dx;
-    int y_moved = old_y + dy;
+    int new_x = old_x + dx;
+    int new_y = old_y + dy;
 
-    // Wrap around the board
-    if (x_moved < 0) x_moved += width;
-    if (x_moved >= width) x_moved -= width;
-    if (y_moved < 0) y_moved += height;
-    if (y_moved >= height) y_moved -= height;
+    // Wrap around horizontally
+    if (new_x < 0) new_x += width;
+    if (new_x >= width) new_x -= width;
 
-    // Before moving, set old cell to Empty
-    delete (*board)[old_y][old_x];
-    (*board)[old_y][old_x] = new Empty(old_x, old_y);
+    // Wrap around vertically
+    if (new_y < 0) new_y += height;
+    if (new_y >= height) new_y -= height;
+    std::cout <<"I am in moveShell after calculating new position" << std::endl;
+    // Step 1: Clear the old location
+    // if ((*board)[old_y][old_x]) {
+    //     //delete (*board)[old_y][old_x];
+    //     (*board)[old_y][old_x] = nullptr; // temporary safety
+    // }
+    (*board)[old_y][old_x] = new Empty(old_x, old_y); // Mark as empty
 
-    // Update shell's internal position
-    shell->setX(x_moved);
-    shell->setY(y_moved);
+    // Step 2: Move the shell's internal coordinates
+    shell->setX(new_x);
+    shell->setY(new_y);
 
-    std::cout << "Shell moved to (" << x_moved << ", " << y_moved << ")" << std::endl;
+    std::cout << "Shell moved to (" << new_x << ", " << new_y << ")" << std::endl;
 
-    // Check for collision at new position
-    std::cout << "Checking for collisions..." << std::endl;
-    if (!isCellWalkable(x_moved, y_moved)) {
-        std::cout << "Collision detected at (" << x_moved << ", " << y_moved << ")" << std::endl;
+    // Step 3: Check for collision at new location
+    if (!isCellWalkable(new_x, new_y)) {
+        std::cout << "Collision detected at (" << new_x << ", " << new_y << ")" << std::endl;
+        
+        // Clear what's already there
+        if ((*board)[new_y][new_x]) {
+            std::cout << "Collision with: " << (*board)[new_y][new_x]->getCellType() << std::endl;
+            //delete (*board)[new_y][new_x];
+            std::cout << "Deleting object at (" << new_x << ", " << new_y << ")" << std::endl;
+            (*board)[new_y][new_x] = nullptr; // temporary safety
+            std::cout << "Marking as empty." << std::endl;
+            //(*board)[new_y][new_x] = nullptr;
+            (*board)[new_y][new_x] = new Empty(new_x, new_y); // Mark as empty
+        }
+        
 
-        // Delete the object the shell collided with
-        delete (*board)[y_moved][x_moved];
-
-        // Replace with Empty
-        (*board)[y_moved][x_moved] = new Empty(x_moved, y_moved);
-
-        std::cout << "Shell removed from board after collision." << std::endl;
-
-        // shell object should be removed from shells vector in GameManager after this (not here)
-
-        return;
+        std::cout << "Shell destroyed due to collision." << std::endl;
+        return; // The shell is considered destroyed - do not reinsert it
     }
 
-    // Otherwise, place the moving shell itself into the new cell
-    delete (*board)[y_moved][x_moved];
-    (*board)[y_moved][x_moved] = shell;
+    // Step 4: Place the shell in the new location
+    if ((*board)[new_y][new_x]) {
+        delete (*board)[new_y][new_x];
+        (*board)[new_y][new_x] = nullptr;
+    }
+    (*board)[new_y][new_x] = shell;
 
-    std::cout << "Shell moved successfully without collision." << std::endl;
+    std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
+
 
 
 
@@ -310,11 +349,17 @@ void GameBoard::moveShell(Shell* shell) {
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
         BfsChaserShir chaser_algorithm;
-        std::cout << "Finished step itai"  << std::endl;
-        return chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
+        //std::cout << "Finished step itai"  << std::endl;
+         
+        ActionType action =  chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
+        std::cout<<"Finished step itai"  << std::endl;
+        std::cout << "Tank 1 action: " << action << std::endl;
+        std::cout << "Finished step for tank1"  << std::endl;
+        return action;
     } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;
         return chasedAI.decideNextAction(*this, *tank2, *tank1);
+        std::cout << "Finished step for tank2"  << std::endl;
     }
     return ActionType::INVALID_ACTION; // Default action if tank is not found
 }
