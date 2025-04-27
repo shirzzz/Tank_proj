@@ -38,8 +38,7 @@ inline std::string toString(ActionType action) {
 
 inline std::ostream& operator<<(std::ostream& os, ActionType action) {
     return os << toString(action);
-}
-;
+};
 
 
 

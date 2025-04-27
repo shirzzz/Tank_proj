@@ -33,7 +33,6 @@ void GameManager::endGame() {
     }
     displayGame();
     setGameOver(true);
-    std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
 }
 
 void GameManager::displayGame() const {
@@ -51,8 +50,6 @@ void GameManager::displayGame() const {
         }
     }
 
-    std::cout << "Game Over: " << (game_over ? "Yes" : "No") << std::endl;
-
     if (!shared_board->getTank1() && lastKnownTank1) {
         std::cout << "Tank 1 was destroyed. Cause: " << lastKnownTank1->getDestructionCauseStr() << std::endl;
     }
@@ -63,25 +60,18 @@ void GameManager::displayGame() const {
 }
 
 void GameManager::updateShells() const {
-    std::cout << "Moving shells..." << std::endl;
     auto& shells = shared_board->getShells();
-    std::cout << "Shells size: " << shells.size() << std::endl;
     for (Shell& shell : shells) {
-        std::cout << "Moving shell at position: " << shell.getPosition().first << ", " << shell.getPosition().second << std::endl;
         shell.storePreviousPosition();
     }
     for (Shell& shell : shells) {
-        std::cout << "Moving shell from position: " << shell.getPreviousPosition().first << ", " << shell.getPreviousPosition().second << std::endl;
         shared_board->moveShell(&shell);
-        std::cout << "Shell moved to position: " << shell.getPosition().first << ", " << shell.getPosition().second << std::endl;
     }
-    std::cout << "Shells moved." << std::endl;
 }
 
 void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
     std::vector<Shape*> toExplode;
-    std::cout << "Resolving shell collisions..." << std::endl;
     // Check for shell-to-shell collisions
     for (size_t i = 0; i < shells.size(); ++i) {
         for (size_t j = i + 1; j < shells.size(); ++j) {
@@ -91,10 +81,8 @@ void GameManager::resolveShellCollisions() {
             auto oj = shells[j].getPreviousPosition();
 
             if (pi == pj || (pi == oj && pj == oi)) {
-                std::cout << "Shell collision detected at: " << pi.first << ", " << pi.second << std::endl;
                 toExplode.push_back(&shells[i]);
                 toExplode.push_back(&shells[j]);
-                std::cout<<"I am exploding!: "<<toExplode.size()<<std::endl;
             }
         }
     }
@@ -104,10 +92,7 @@ void GameManager::resolveShellCollisions() {
         auto pos = shell.getPosition();
         int x = pos.first;
         int y = pos.second;
-        //int pre_shell_x = shell.getPreviousPosition().first;
-       // int pre_shell_y = shell.getPreviousPosition().second;
         CellType cell = shared_board->getCell(x, y)->getCellType();
-       // CellType pre_cell = shared_board->getCell(pre_shell_x, pre_shell_y)->getCellType();
         if (cell == CellType::WALL) {
            Wall* wall = static_cast<Wall*>(shared_board->getCell(x, y));
             if (wall) {
@@ -228,7 +213,6 @@ void GameManager::resolveTankCollisions() {
 }
 
 void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {
-    std::cout << "Processing action: " << action << std::endl;
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
 
@@ -304,20 +288,16 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             break;
 
             case ActionType::SHOOT:
-            std::cout << "Tank " << name << " is shooting!" << std::endl;
             if (waiting_to_shoot != -1) {
-                std::cout << "Tank " << name << " is waiting to shoot again!" << std::endl;
                 tank->addAction(ActionType::INVALID_ACTION);
                 tank->setWaitingToShootAgain(waiting_to_shoot - 1);
             } else if (tank->getNumBullets() == 0) {
-                std::cout << "Tank " << name << " has no bullets left!" << std::endl;
                 tank->addAction(ActionType::INVALID_ACTION);
                 if (shared_board->getTank1()->getNumBullets() == 0 &&
                     shared_board->getTank2()->getNumBullets() == 0) {
                     if (moves_left > 40) moves_left = 40;
                 }
             } else {
-                std::cout << "Tank " << name << " is shooting!" << std::endl;
                 tank->shoot();
         
                 // Calculate shell spawn position one step ahead
@@ -328,10 +308,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
         
                 // Place shell one step ahead
-                std::cout << "Shell spawn position: " << shell_x << ", " << shell_y << std::endl;
-                std::cout<<"try to add shell"<<std::endl;
                 shared_board->addShell(*(new Shell(shell_x, shell_y, tank->getCanonDirection())));
-                std::cout<<"Size of list: "<<shared_board->getShells().size()<<std::endl;
                 tank->addAction(ActionType::SHOOT);
                 tank->setWaitingToShootAgain(4);
             }
@@ -364,22 +341,15 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
 
 void GameManager::updateGame() {
     if (game_over) return;
-    std::cout << "Updating game..." << std::endl;
     std::shared_ptr<Tank> tank1 = shared_board->getTank1();
     std::shared_ptr<Tank> tank2 = shared_board->getTank2();
     if (!tank1 || !tank2) return;
     tank1->setPreviousPosition();
     tank2->setPreviousPosition();
-    std::cout << "Tank 1 position: " << tank1->getPosition().first << ", " << tank1->getPosition().second << std::endl;
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
-    std::cout << "Tank 1 action: " << std::endl;
-    // std::cout << "Finished step itai"  << std::endl;
-     std::cout << "Tank 1 action: " << action1 << std::endl;
     processAction(tank1, action1, "Tank 1");
-    
-    std::cout << "Tank 2 position: " << tank2->getPosition().first << ", " << tank2->getPosition().second << std::endl;
+
     ActionType action2 = shared_board->movingAlgorithm(*tank2);
-    std::cout << "Tank 2 action: " << action2 << std::endl;
     processAction(tank2, action2, "Tank 2");
 
 }

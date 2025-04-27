@@ -83,13 +83,7 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
                     break;
                 case '#':
                     (*board)[count_lines][x] = new Wall(x, count_lines);
-                   // std::cout << "Wall created at (" << x << ", " << count_lines << ")" << std::endl;
-                    //std::cout << "Number of walls: " << this->getNumWalls() << std::endl;
-                   // std::cout << "Number of walls before increment: " << num_walls<< std::endl;
-                    //std::cout << "Number of walls after increment: " << this->getNumWalls() + 1 << std::endl;
-                    //this->setNumWalls(this->getNumWalls() + 1);
                     num_walls++;
-                    // std::cout << "Number of walls after increment: " << num_walls<< std::endl;
                     break;
                 case '@':
                     (*board)[count_lines][x] = new Mine(x, count_lines);
@@ -128,17 +122,6 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
     return true;
 }
 
-// GameBoard::~GameBoard() {
-//     if (board) {
-//         for (auto& row : *board) {
-//             for (Shape* shape : row) {
-//                 delete shape;
-//             }
-//         }
-//         board->clear();
-//     }
-// }
-
 void  GameBoard::displayBoard() const {
     std::cout << "Game Board:" << std::endl;
     for (int y = 0; y < height; ++y) {
@@ -175,9 +158,6 @@ void  GameBoard::displayBoard() const {
     }
 }
 
-// void GameBoard::placeShell(int x, int y) const {
-//     (*board)[y][x] = new Shell(x, y, CanonDirection::U); // Default direction, might need to be updated
-// }
 void GameBoard::updateShellPosition(Shell *shell, int newX, int newY) {
     if (shell) {
         shell->setX(newX);
@@ -185,34 +165,10 @@ void GameBoard::updateShellPosition(Shell *shell, int newX, int newY) {
     }
 }
 
-// void GameBoard::moveTank(char tankIndex, int newX, int newY) const {
-//     if (tankIndex == '1' && tank1) {
-//         (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
-//         tank1->setX(newX);
-//         tank1->setY(newY);
-//         (*board)[newY][newX] = tank1.get();
-//     } else if (tankIndex == '2' && tank2) {
-//         (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
-//         tank2->setX(newX);
-//         tank2->setY(newY);
-//         (*board)[newY][newX] = tank2.get();
-//     }
-// }
 
 
 void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
-    //bool flag_broken_wall = false;
     if (tank_index == '1' && tank1) {
-        // Use previous position!
-        // if((*board)[new_y][new_x]->getCellType() == CellType::WALL) {
-        //     (dynamic_cast<Wall*>((*board)[new_y][new_x]))->setLives((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() - 1);
-        //     if ((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() <= 0) {
-        //         (*board)[new_y][new_x] = new Empty(new_x, new_y);
-        //         flag_broken_wall = true;
-        //         std::cout << "Wall destroyed at (" << new_x << ", " << new_y << ")" << std::endl;
-        //     }
-        // }
-        // else if(flag_broken_wall == true || (*board)[new_y][new_x]->getCellType() != CellType::WALL) {
             (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
             (*board)[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = new Empty(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
     
@@ -224,16 +180,6 @@ void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
      //}
 
     } else if (tank_index == '2' && tank2) {
-        
-        // if((*board)[new_y][new_x]->getCellType() == CellType::WALL) {
-        //     (dynamic_cast<Wall*>((*board)[new_y][new_x]))->setLives((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() - 1);
-        //     if ((dynamic_cast<Wall*>((*board)[new_y][new_x]))->getLives() <= 0) {
-        //         (*board)[new_y][new_x] = new Empty(new_x, new_y);
-        //         flag_broken_wall = true;
-        //         std::cout << "Wall destroyed at (" << new_x << ", " << new_y << ")" << std::endl;
-        //     }
-        // }
-        // else if(flag_broken_wall == true || (*board)[new_y][new_x]->getCellType() != CellType::WALL) {
             (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
             (*board)[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = new Empty(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
     
@@ -299,11 +245,7 @@ void GameBoard::moveShell(Shell* shell) {
     if (new_y < 0) new_y += height;
     if (new_y >= height) new_y -= height;
     std::cout <<"I am in moveShell after calculating new position" << std::endl;
-    // Step 1: Clear the old location
-    // if ((*board)[old_y][old_x]) {
-    //     //delete (*board)[old_y][old_x];
-    //     (*board)[old_y][old_x] = nullptr; // temporary safety
-    // }
+    //Step 1: clear old position
     (*board)[old_y][old_x] = new Empty(old_x, old_y); // Mark as empty
 
     // Step 2: Move the shell's internal coordinates

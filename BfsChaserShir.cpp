@@ -66,7 +66,7 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
     std::vector<ActionType> moves;
 
     if (path.empty()) {
-        moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
+        moves.push_back(ActionType::SHOOT);
         return moves;
     }
 

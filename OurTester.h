@@ -1,17 +1,13 @@
-
-
+// OurTester.h
 #ifndef OURTESTER_H
 #define OURTESTER_H
-#include <wchar.h>
 
+#include <string>
+#include <fstream>
 
 class OurTester {
 public:
-    FILE buildRandomBoardFile();
-    bool testLoadingBoardFromFile();
-    bool testLoadingBoardFromFileWithErrors();
+    static std::string buildRandomBoardFile();
 };
 
-
-
-#endif //OURTESTER_H
+#endif // OURTESTER_H

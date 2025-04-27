@@ -33,26 +33,18 @@ int main() {
         std::cerr << "Failed to load the game board from file." << std::endl;
         return 1;
     }
-    std::cout << "number of walls: " << game_board.getNumWalls() << std::endl;
     GameManager game_manager(std::make_shared<GameBoard>(game_board));
-    std::cout << "GameManager initialized." << std::endl;
     int step = 0;
-    std::cout <<"number of walls in manager: "<< game_manager.getBoard()->getNumWalls() << std::endl;
     while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) { 
         std::cout << game_manager.getGameOver() << std::endl;
 
         // Step 1: Move all shells
-        std::cout << "Moving shells." << std::endl;
-        std::cout << "Shells size: " << game_board.getShells().size() << std::endl;
-        // if (game_board.getShells().empty()) {
-        //     std::cout << "No shells to move." << std::endl;
-        //} else {
             game_manager.updateShells();
 
             // Step 2: Resolve shell collisions
             std::cout << "Resolving shell collisions." << std::endl;
             game_manager.resolveShellCollisions();
-        //}
+        //
 
         // Step 3: On even steps, update tanks and resolve tank collisions
         if (step % 2 == 0) {
@@ -77,11 +69,6 @@ int main() {
 
         std::cout << "Finished step " << step << std::endl;
     }
-
-    std::cout << "Game Over: " << (game_manager.isGameOver() ? "Yes" : "No") << std::endl;
-
-    // 🔵 [CHANGE] Added print before opening Output.txt
-    std::cout << "Opening Output.txt for writing..." << std::endl;
 
     std::ofstream file("Output.txt");
     if (!file) {
@@ -110,16 +97,12 @@ int main() {
         std::cout << "Finished step itai" << step << std::endl;
         for (const auto& action : tank2->getActions()) {
             file << count_actions2 << ". " << action << std::endl;
-            count_actions2++; // 🔵 [FIX] Correct counter for Tank 2
+            count_actions2++; 
         }
         file << "Reason of destruction: " << tank2->getDestructionCause() << std::endl;
     }
 
-    file.close(); // 🔵 [NO CHANGE] - good, closing properly
-
-    // 🔵 [CHANGE] Added print after writing
+    file.close(); 
     std::cout << "Finished writing to Output.txt successfully." << std::endl;
-
-    std::cout << "Game Over: " << (game_manager.isGameOver() ? "Yes" : "No") << std::endl;
     return 0;
 }
