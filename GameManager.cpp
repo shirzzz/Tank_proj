@@ -22,6 +22,7 @@ void GameManager::endGame() {
     }
     else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionType::LOSE){
         std::cout << "Game Over: Tank 2 loses!" << std::endl;
+        tank1.get()->addAction(ActionType::WIN);
     }
     else {
         std::cout << "Game Over: It's a draw!" << std::endl;
@@ -226,9 +227,22 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             tank->addAction(ActionType::MOVE_BACKWARD);
             shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
         }
-        
-        return;
-    }
+        else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
+            tank->addAction(ActionType::INVALID_ACTION);
+        }
+        else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
+            shared_board->removeTank(tank);
+            tank->addAction(ActionType::LOSE);
+            tank->setDestructionCause(DestructionCause::MINE);
+            if(tank->getIndexTank() == '1'){
+                tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
+            } else if(tank->getIndexTank() == '2'){
+                tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
+            }
+            endGame();
+            return;
+        }
+        }
 
     switch (action) {
         case ActionType::MOVE_FORWARD:
@@ -236,31 +250,30 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             else {
                 std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
                 if(shared_board->isCellWalkable(new_position.first, new_position.second)){
-                    shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
                     tank->addAction(ActionType::MOVE_FORWARD);
+                    shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
                 }
-                else{
+                else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
                     tank->addAction(ActionType::INVALID_ACTION);
                 }
-                
-                
+                else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
+                    shared_board->removeTank(tank);
+                    tank->addAction(ActionType::LOSE);
+                    tank->setDestructionCause(DestructionCause::MINE);
+                    if(tank->getIndexTank() == '1'){
+                        tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
+                    } else if(tank->getIndexTank() == '2'){
+                        tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
+                    }
+                    endGame();
+                } 
             }
             break;
 
         case ActionType::MOVE_BACKWARD:
             if (waiting_to_go_back >= 1) {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
-            } else {
-                if (!tank->getActions().empty() && 
-                    tank->getActions().back() == ActionType::MOVE_BACKWARD) {
-                    tank->setWaitingToGoBack(-1);
-                    tank->addAction(ActionType::MOVE_BACKWARD);
-                    tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
-                    shared_board->moveTank(tank->getIndexTank(), tank->getX(), tank->getY());
-                } else {
-                    tank->setWaitingToGoBack(4);
-                }
-            }
+            } 
             break;
 
         case ActionType::ROTATE_EIGHTH_LEFT:
@@ -361,10 +374,8 @@ void GameManager::updateGame() {
     tank2->setPreviousPosition();
     ActionType action1 = shared_board->movingAlgorithm(*tank1);
     processAction(tank1, action1, "Tank 1");
-
     ActionType action2 = shared_board->movingAlgorithm(*tank2);
     processAction(tank2, action2, "Tank 2");
-
 }
 
 void GameManager::removeTank(char index) {

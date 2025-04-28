@@ -180,8 +180,8 @@ make
 
 After a successful build, run the program using:
 ```
-./tanks_game <game_board_input_file>
+./tanks_game<game_board_input_file
 ```
-Replace `<game_board_input_file>` with the path to your input text file.
+Replace `game_board_input_file` with the path to your input text file.
 
 ---

@@ -15,7 +15,7 @@
 #include "Mine.h"
 #include "BfsChaserShir.h"
 
-bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filename) {
+bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename) {
     // std::cout << "Loading board from file: " << filename << std::endl;
     int count_tanks_for_player1 = 0;
     //int count_walls = 0;
@@ -115,8 +115,6 @@ bool GameBoard::loadBoardFromFile(std::ifstream& file_board, std::string filenam
         std::cerr << "Error: Not enough lines in file." << std::endl;
         return false;
     }
-
-    file_board.close();
     displayBoard(); // Display the loaded board
     
     if(count_tanks_for_player1 ==0){
@@ -236,6 +234,15 @@ bool GameBoard::isSteppingWall(int x, int y) const{
     }
     return false; 
 }
+
+bool GameBoard::isSteppingMine(int x, int y) const{
+    if (x < 0 || y < 0 || x >= width || y >= height) return false;
+    if ((*board)[y][x]) {
+        CellType c = (*board)[y][x]->getCellType();
+        return c == CellType::MINE;
+    }
+    return false; 
+}
 void GameBoard::moveShell(Shell* shell) {
     if (!shell) return; // Always be defensive
     std::cout << "I am in moveShell" << std::endl;
@@ -316,17 +323,12 @@ void GameBoard::moveShell(Shell* shell) {
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
         BfsChaserShir chaser_algorithm;
-        //std::cout << "Finished step itai"  << std::endl;
          
         ActionType action =  chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
-        std::cout<<"Finished step itai"  << std::endl;
-        std::cout << "Tank 1 action: " << action << std::endl;
-        std::cout << "Finished step for tank1"  << std::endl;
         return action;
     } else if (tank.getIndexTank() == '2' && tank2) {
         Chased chasedAI;
         return chasedAI.decideNextAction(*this, *tank2, *tank1);
-        std::cout << "Finished step for tank2"  << std::endl;
     }
     return ActionType::INVALID_ACTION; // Default action if tank is not found
 }

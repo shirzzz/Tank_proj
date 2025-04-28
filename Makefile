@@ -1,8 +1,8 @@
 CPP = g++
-CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic -fsanitize=address
+CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic
 
 # Target executable
-TARGET = main
+TARGET = tanks_game
 
 # Source files
 SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp
@@ -58,7 +58,8 @@ clean:
 		rm -f $(OBJECTS) $(TARGET)
 		rm -rf log_file.txt
 		rm -rf input_errors.txt
-		rm -rf output.txt
-
+		rm -rf output_input_a.txt
+		rm -rf output_input_b.txt
+		rm -rf output_input_c.txt
 # Phony targets
 .PHONY: all clean

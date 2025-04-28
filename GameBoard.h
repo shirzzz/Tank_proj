@@ -27,7 +27,7 @@ public:
         board = std::make_shared<std::vector<std::vector<Shape*>>>(height, std::vector<Shape*>(width, new Empty(-1, -1)));
     }
     ~GameBoard() = default;
-    bool loadBoardFromFile(std::ifstream& file_board, std::string filename);
+    bool loadBoardFromFile(std::istream& file_board, std::string filename);
     void displayBoard() const;
     // Placement and Movement
     void placeTank(int x, int y, char index_tank, CanonDirection cdir);
@@ -144,7 +144,9 @@ public:
     bool isCellPassable(int x, int y) const;
     int getNumWalls() const { return num_walls; }
     void setNumWalls(int num) { num_walls = num; }
-
+    bool isCellLegal(int x, int y) const;
+    bool isSteppingWall(int x, int y) const;
+    bool isSteppingMine(int x, int y) const;
 };
 
 #endif // GAMEBOARD_H

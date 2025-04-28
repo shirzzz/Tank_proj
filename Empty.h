@@ -12,6 +12,7 @@ public:
     Empty(int x, int y) : Shape(x, y) {
         this->cell_type = CellType::EMPTY;
     }
+    ~Empty() override = default;
     // Additional methods or properties can be added here
     // For example, if you want to add a method to check if the cell is empty
     bool isEmpty() const { return true; } // Always returns true for Empty cells

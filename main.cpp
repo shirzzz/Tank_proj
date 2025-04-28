@@ -1,95 +1,85 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <vector>
+#include <string>
 
 #include "GameBoard.h"
 #include "GameManager.h"
 #include "ActionType.h"
 
-int main() {
-    std::cout << "Welcome to the Tank Game!" << std::endl;
-    std::cout << "Please enter the filename of the game board: ";
-    std::string filename;
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <game_board_input_file>" << std::endl;
+        return 1;
+    }
 
-    std::cin >> filename;
-    std::cout << "Filename: " << filename << std::endl;
+    std::string filename = argv[1];
+
     std::ifstream file_board(filename);
     std::ofstream file_errors("input_errors.txt");
+
     if (!file_board.is_open()) {
         file_errors << "Error opening file of the board: " << filename << std::endl;
         file_errors.close();
         std::cerr << "Error opening file of the board: " << filename << std::endl;
-        return false;
+        return 1;
     }
-    //std::cerr.rdbuf(file_errors.rdbuf());
-    std::cout << "Opening file: " << filename << std::endl;
-    int width, height;
-    file_board >> width >> height;
-    GameBoard game_board(width, height);
-    std::cout << "Game board loaded from file: " << filename << std::endl;
 
+    int width, height;
+    if (!(file_board >> width >> height)) {
+        file_errors << "Error reading width and height from input." << std::endl;
+        return 1;
+    }
+
+    GameBoard game_board(width, height);
     if (!game_board.loadBoardFromFile(file_board, filename)) {
-        std::cerr << "Failed to load the game board from file." << std::endl;
+        file_errors << "Failed to load the game board from input." << std::endl;
         return 1;
     }
 
     GameManager game_manager(std::make_shared<GameBoard>(game_board));
     int step = 0;
-    while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) { 
-        std::cout << game_manager.getGameOver() << std::endl;
+    while (!game_manager.isGameOver() && game_manager.getMovesLeft() > 0) {
+        game_manager.updateShells();
+        game_manager.resolveShellCollisions();
 
-        // Step 1: Move all shells
-            game_manager.updateShells();
-
-            // Step 2: Resolve shell collisions
-            std::cout << "Resolving shell collisions." << std::endl;
-            game_manager.resolveShellCollisions();
-        //
-
-        // Step 3: On even steps, update tanks and resolve tank collisions
         if (step % 2 == 0) {
-            std::cout << "Updating tanks." << std::endl;
             game_manager.updateGame();
-            std::cout << "Resolving tank collisions." << std::endl;
             game_manager.resolveTankCollisions();
         }
 
-        // Step 4: Display the current game board
         game_board.displayBoard();
-
-        // Step 5: Decrement moves left if in the final 40-move phase
         step++;
         if (game_manager.getMovesLeft() <= 40) {
             game_manager.setMovesLeft(game_manager.getMovesLeft() - 1);
-            if(game_manager.getMovesLeft() == 0) {
+            if (game_manager.getMovesLeft() == 0) {
                 game_manager.endGame();
                 std::cout << "Game Over: No moves left!" << std::endl;
+                game_manager.getTank1()->setDestructionCause(DestructionCause::OUTOFAMMO);
+                game_manager.getTank2()->setDestructionCause(DestructionCause::OUTOFAMMO);
             }
         }
-
-        std::cout << "Finished step " << step << std::endl;
     }
 
-    std::ofstream file("Output.txt");
+    std::ofstream file("Output_" + filename + ".txt");
     if (!file) {
-        std::cerr << "Failed to open Output.txt for writing." << std::endl;
+        std::cerr << "Failed to open Output file for writing." << std::endl;
         return 1;
     }
-    file <<"And the winner is:  ";
-    if(game_manager.getTank1()->getActions()[game_manager.getTank1()->getActions().size() - 1] == ActionType::WIN){
-        file<<"Player 1  :) "<<std::endl;
-    } else if(game_manager.getTank2()->getActions()[game_manager.getTank2()->getActions().size() - 1] == ActionType::WIN){
-        file<<"Player 2 :)  "<<std::endl;
-    }else{
-        file<<"they both won because it is a draw!!"<<std::endl;
+
+    file << "And the winner is: ";
+    if (game_manager.getTank1()->getActions().back() == ActionType::WIN) {
+        file << "Player 1 :) " << std::endl;
+    } else if (game_manager.getTank2()->getActions().back() == ActionType::WIN) {
+        file << "Player 2 :) " << std::endl;
+    } else {
+        file << "they both won because it is a draw!!" << std::endl;
     }
+
     // Tank 1
     std::shared_ptr<Tank> tank1 = game_manager.getTank1();
     file << "Tank 1 Actions:\n";
     int count_actions1 = 1;
-    int count_actions2 = 1;
-
     if (tank1) {
         for (const auto& action : tank1->getActions()) {
             file << count_actions1 << ". " << action << std::endl;
@@ -101,16 +91,16 @@ int main() {
     // Tank 2
     std::shared_ptr<Tank> tank2 = game_manager.getTank2();
     file << "Tank 2 Actions:\n";
+    int count_actions2 = 1;
     if (tank2) {
-        std::cout << "Finished step itai" << step << std::endl;
         for (const auto& action : tank2->getActions()) {
             file << count_actions2 << ". " << action << std::endl;
-            count_actions2++; 
+            count_actions2++;
         }
         file << "Reason of destruction: " << tank2->getDestructionCause() << std::endl;
     }
 
-    file.close(); 
-    std::cout << "Finished writing to Output.txt successfully." << std::endl;
+    file.close();
+    std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
     return 0;
 }

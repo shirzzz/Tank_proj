@@ -13,7 +13,6 @@ private:
 
 public:
     Wall(int x, int y);
-    // ~Wall() override = default;
     std::pair<int, int> getPosition(){return {x, y};}
     int getLives() const { return lives; }
     void setLives(int newLives) { lives = newLives; }

@@ -37,8 +37,8 @@ public:
     void rotateEighthRight();
     void rotateQuarterLeft();
     void rotateQuarterRight();
-    void moveForward(int board_width, int board_height);
-    void moveBackward(int board_width, int board_height);
+    std::pair<int, int> moveForward(int board_width, int board_height);
+    std::pair<int,int> moveBackward(int board_width, int board_height);
 
     // Accessors
     int getX() const;
