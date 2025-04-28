@@ -171,24 +171,6 @@ void GameBoard::updateShellPosition(Shell *shell, int new_x, int new_y) {
     }
 }
 
-
-
-// void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
-//     if (tank_index == '1' && tank1) {
-//             board[tank1->getY()][tank1->getX()] = std::make_unique<Empty>(tank1->getX(), tank1->getY());
-//             board[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = std::make_unique<Empty>(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
-//             tank1->setX(new_x);
-//             tank1->setY(new_y);
-//             board[new_y][new_x] = tank1.get();
-//     } else if (tank_index == '2' && tank2) {
-//             board[tank2->getY()][tank2->getX()] = std::make_uniqueEmpty>(tank2->getX(), tank2->getY());
-//             board[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = std::make_unique<Empty>(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
-//             tank2->setX(new_x);
-//             tank2->setY(new_y);  
-//             board[new_y][new_x] = tank2.get();
-//     }
-// }
-
 void GameBoard::moveTank(char tank_index, int new_x, int new_y){
     std::shared_ptr<Tank>& current_tank = (tank_index =='1') ? tank1 : tank2;
     if(current_tank){
