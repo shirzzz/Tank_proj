@@ -16,10 +16,9 @@
 #include "BfsChaserShir.h"
 
 bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename) {
-    // std::cout << "Loading board from file: " << filename << std::endl;
-    int count_tanks_for_player1 = 0;
-    //int count_walls = 0;
-    int count_tanks_for_player2 = 0;
+    
+    int count_tanks_for_player1 = 0; //counts how many tanks player1 has
+    int count_tanks_for_player2 = 0; //counts how many tanks player2 has
     std::ofstream file_errors("input_errors.txt");
     std::cout << "Opening file for writing input errors." << std::endl;
     if (!file_errors) {
@@ -66,7 +65,7 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
                         return false;
                     }
                     tank1 = std::make_shared<Tank>(x, count_lines, '1');
-                    (*board)[count_lines][x] = tank1.get();
+                    board[count_lines][x] = std::make_shared<Tank>(x, count_lines, '1');
                     count_tanks_for_player1++;
                     std::cout<<"Tank1 position "<<"("<< tank1.get()->getX()<<","<<tank1.get()->getY()<<")"<<std::endl;
                     break;
@@ -79,19 +78,19 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
                         return false;
                     }
                     tank2 = std::make_shared<Tank>(x, count_lines, '2');
-                    (*board)[count_lines][x] = tank2.get();
+                    board[count_lines][x] = std::make_shared<Tank>(x, count_lines, '2');
                     count_tanks_for_player2++;
                     std::cout<<"Tank2 position "<<"("<< tank2.get()->getX()<<","<<tank2.get()->getY()<<")"<<std::endl;
                     break;
                 case '#':
-                    (*board)[count_lines][x] = new Wall(x, count_lines);
+                    board[count_lines][x] = std::make_shared<Wall>(x, count_lines);
                     num_walls++;
                     break;
                 case '@':
-                    (*board)[count_lines][x] = new Mine(x, count_lines);
+                    board[count_lines][x] = std::make_shared<Mine>(x, count_lines);
                     break;
                 case ' ':
-                    (*board)[count_lines][x] = new Empty(x, count_lines);
+                    board[count_lines][x] = std::make_shared<Empty>(x, count_lines);
                     break;
                 default:
                     if (isdigit(c)) {
@@ -133,8 +132,8 @@ void  GameBoard::displayBoard() const {
     std::cout << "Game Board:" << std::endl;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            if ((*board)[y][x]) {
-                switch ((*board)[y][x]->getCellType()) {
+            if (board[y][x]) {
+                switch (board[y][x]->getCellType()) {
                     case CellType::EMPTY:
                         std::cout << " ";
                         break;
@@ -165,53 +164,62 @@ void  GameBoard::displayBoard() const {
     }
 }
 
-void GameBoard::updateShellPosition(Shell *shell, int newX, int newY) {
+void GameBoard::updateShellPosition(Shell *shell, int new_x, int new_y) {
     if (shell) {
-        shell->setX(newX);
-        shell->setY(newY);
+        shell->setX(new_x);
+        shell->setY(new_y);
     }
 }
 
 
 
-void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
-    if (tank_index == '1' && tank1) {
-            (*board)[tank1->getY()][tank1->getX()] = new Empty(tank1->getX(), tank1->getY());
-            (*board)[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = new Empty(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
-    
-            tank1->setX(new_x);
-            tank1->setY(new_y);
-    
-            (*board)[new_y][new_x] = tank1.get();
-       
-     //}
+// void GameBoard::moveTank(char tank_index, int new_x, int new_y) const {
+//     if (tank_index == '1' && tank1) {
+//             board[tank1->getY()][tank1->getX()] = std::make_unique<Empty>(tank1->getX(), tank1->getY());
+//             board[tank1->getPreviousPosition().second][tank1->getPreviousPosition().first] = std::make_unique<Empty>(tank1->getPreviousPosition().first, tank1->getPreviousPosition().second);
+//             tank1->setX(new_x);
+//             tank1->setY(new_y);
+//             board[new_y][new_x] = tank1.get();
+//     } else if (tank_index == '2' && tank2) {
+//             board[tank2->getY()][tank2->getX()] = std::make_uniqueEmpty>(tank2->getX(), tank2->getY());
+//             board[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = std::make_unique<Empty>(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
+//             tank2->setX(new_x);
+//             tank2->setY(new_y);  
+//             board[new_y][new_x] = tank2.get();
+//     }
+// }
 
-    } else if (tank_index == '2' && tank2) {
-            (*board)[tank2->getY()][tank2->getX()] = new Empty(tank2->getX(), tank2->getY());
-            (*board)[tank2->getPreviousPosition().second][tank2->getPreviousPosition().first] = new Empty(tank2->getPreviousPosition().first, tank2->getPreviousPosition().second);
-    
-            tank2->setX(new_x);
-            tank2->setY(new_y);
-    
-            (*board)[new_y][new_x] = tank2.get();
-        //}
-
+void GameBoard::moveTank(char tank_index, int new_x, int new_y){
+    std::shared_ptr<Tank>& current_tank = (tank_index =='1') ? tank1 : tank2;
+    if(current_tank){
+        int old_x = current_tank->getX();
+        int old_y = current_tank->getY();
+        int prev_x = current_tank->getPreviousPosition().first;
+        int prev_y = current_tank->getPreviousPosition().second;
+        board[old_y][old_x] = std::make_shared<Empty>(old_x, old_y);
+        if(old_x != prev_x || old_y != prev_y){
+            board[prev_y][prev_x] = std::make_shared<Empty>(prev_x, prev_y);
+        }
+        current_tank->setX(new_x);
+        current_tank->setY(new_y);
+        board[new_y][new_x] = std::make_shared<Tank>(new_x, new_y, current_tank->getIndexTank());
+    } else{
+        std::cerr << "Error:Attempted to move a tank that does not exist (index: "<< tank_index<<")" <<std::endl;
     }
 }
-
 
 bool GameBoard::isCellWalkable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if ((*board)[y][x]) {
-        CellType c = (*board)[y][x]->getCellType();
+    if (board[y][x]) {
+        CellType c = board[y][x]->getCellType();
         return c != CellType::MINE && c != CellType::WALL && c != CellType::TANK1 && c != CellType::TANK2 && c != CellType::SHELL;
     }
     return false; // Consider null pointers as not walkable
 }
 bool GameBoard::isCellPassable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if ((*board)[y][x]) {
-        CellType c = (*board)[y][x]->getCellType();
+    if (board[y][x]) {
+        CellType c = board[y][x]->getCellType();
         return c == CellType::EMPTY|| c == CellType::TANK1 ||c == CellType::TANK2;
     }
     return false; // Consider null pointers as not passable
@@ -219,8 +227,8 @@ bool GameBoard::isCellPassable(int x, int y) const {
 
 bool GameBoard::isCellLegal(int x, int y) const{
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if ((*board)[y][x]) {
-        CellType c = (*board)[y][x]->getCellType();
+    if (board[y][x]) {
+        CellType c = board[y][x]->getCellType();
         return c != CellType::WALL|| c != CellType::MINE;
     }
     return false; 
@@ -228,8 +236,8 @@ bool GameBoard::isCellLegal(int x, int y) const{
 
 bool GameBoard::isSteppingWall(int x, int y) const{
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if ((*board)[y][x]) {
-        CellType c = (*board)[y][x]->getCellType();
+    if (board[y][x]) {
+        CellType c = board[y][x]->getCellType();
         return c == CellType::WALL;
     }
     return false; 
@@ -237,8 +245,8 @@ bool GameBoard::isSteppingWall(int x, int y) const{
 
 bool GameBoard::isSteppingMine(int x, int y) const{
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if ((*board)[y][x]) {
-        CellType c = (*board)[y][x]->getCellType();
+    if (board[y][x]) {
+        CellType c = board[y][x]->getCellType();
         return c == CellType::MINE;
     }
     return false; 
@@ -248,7 +256,6 @@ void GameBoard::moveShell(Shell* shell) {
     std::cout << "I am in moveShell" << std::endl;
     int old_x = shell->getX();
     int old_y = shell->getY();
-
     int dx = 0, dy = 0;
     CanonDirection direction = shell->getDirection();
 
@@ -278,7 +285,7 @@ void GameBoard::moveShell(Shell* shell) {
     if (new_y >= height) new_y -= height;
     std::cout <<"I am in moveShell after calculating new position" << std::endl;
     //Step 1: clear old
-    (*board)[old_y][old_x] = new Empty(old_x, old_y); // Mark as empty
+    board[old_y][old_x] = std::make_shared<Empty>(old_x, old_y); // Mark as empty
 
     // Step 2: Move the shell's internal coordinates
     shell->setX(new_x);
@@ -291,34 +298,18 @@ void GameBoard::moveShell(Shell* shell) {
         std::cout << "Collision detected at (" << new_x << ", " << new_y << ")" << std::endl;
         
         // Clear what's already there
-        if ((*board)[new_y][new_x]) {
-            std::cout << "Collision with: " << (*board)[new_y][new_x]->getCellType() << std::endl;
-            //delete (*board)[new_y][new_x];
-            std::cout << "Deleting object at (" << new_x << ", " << new_y << ")" << std::endl;
-            (*board)[new_y][new_x] = nullptr; // temporary safety
-            std::cout << "Marking as empty." << std::endl;
-            //(*board)[new_y][new_x] = nullptr;
-            (*board)[new_y][new_x] = new Empty(new_x, new_y); // Mark as empty
+        if (board[new_y][new_x]) {
+            std::cout << "Collision with: " << board[new_y][new_x]->getCellType() << std::endl;
+            board[new_y][new_x] = std::make_shared<Empty>(new_x, new_y); // Mark as empty
         }
-        
-
         std::cout << "Shell destroyed due to collision." << std::endl;
         return; // The shell is considered destroyed - do not reinsert it
     }
 
     // Step 4: Place the shell in the new location
-    if ((*board)[new_y][new_x]) {
-        delete (*board)[new_y][new_x];
-        (*board)[new_y][new_x] = nullptr;
-    }
-    (*board)[new_y][new_x] = shell;
-
+    board[new_y][new_x] = std::make_shared<Shell>(*shell);
     std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
-
-
-
-
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1' && tank1) {
@@ -339,4 +330,73 @@ int GameBoard::getWidth() const {
 
 int GameBoard::getHeight() const {
     return height;
+}
+
+bool GameBoard::removeShellAt(int x, int y) {
+    // Find the element that matches the given coordinates
+    auto it = std::remove_if(shells.begin(), shells.end(), [&](Shell& s) {
+        int shell_x = s.getX();
+        int shell_y = s.getY();
+        return (shell_x == x && shell_y == y);
+    });
+
+    // Check if the element was found
+    if (it != shells.end()) {
+        std::cout << "Found matching shell. Erasing...\n";
+        // Now erase the element from the vector
+        shells.erase(it, shells.end());
+        return true;  // Indicate successful removal
+    } else {
+        std::cout << "No matching shell found.\n";
+    }
+
+    return false;  // No matching element found
+}
+
+void GameBoard::removeShell(Shell& shell) {
+    int x = shell.getX();
+    int y = shell.getY();
+
+    if (x >= 0 && y >= 0 && y < height && x < width)
+        board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
+
+    removeShellAt(x, y);
+    removeShellAtfromBoard(x, y);
+}
+
+void GameBoard::addShell(const Shell& shell) {
+    shells.push_back(shell);
+    int x = shell.getX();
+    int y = shell.getY();
+
+    board[y][x] = std::make_shared<Shell>(x, y, shell.getDirection());
+}
+
+void GameBoard::removeWall(Wall* wall) {
+    int x = wall->getX();
+    int y = wall->getY();
+    if (x >= 0 && y >= 0 && y < height && x < width) {
+        board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
+    }
+}
+void GameBoard::removeTank(std::shared_ptr<Tank>tank) {
+    int x = tank->getX();
+    int y = tank->getY();
+    if (x >= 0 && y >= 0 && y < height && x < width) {
+        board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
+    }
+}
+
+void GameBoard::removeShellAtfromBoard(int x, int y) {
+    for(Shell shell : shells) {
+        if(shell.getX() == x && shell.getY() == y) {
+            board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
+            break;
+        }
+    }
+}
+void GameBoard::setCell(int x, int y, std::shared_ptr<Shape> shape) {
+    if (x >= 0 && y >= 0 && y < height && x < width) {
+        board[y][x] = std::make_shared<Shape>(*shape);
+    }
 }

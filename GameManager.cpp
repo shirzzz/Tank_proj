@@ -92,7 +92,7 @@ void GameManager::resolveShellCollisions() {
         int y = pos.second;
         CellType cell = shared_board->getCell(x, y)->getCellType();
         if (cell == CellType::WALL) {
-           Wall* wall = static_cast<Wall*>(shared_board->getCell(x, y));
+           Wall* wall = static_cast<Wall*>(const_cast<Shape*>(shared_board->getCell(x, y)));
             if (wall) {
                 wall->setLives(wall->getLives() - 1);
                 if (wall->getLives() <= 0) {
@@ -179,7 +179,7 @@ void GameManager::resolveTankCollisions() {
                 }
             else lastKnownTank2 = tank;
            tank->addAction(ActionType::LOSE);
-            (shared_board->setCell(x, y, new Empty(x, y)));
+            (shared_board->setCell(x, y, std::make_shared<Empty>(x, y)));
             shared_board->removeTank(tank);
             tank->addAction(ActionType::LOSE);
             endGame();
@@ -334,7 +334,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
         
                 // Place shell one step ahead
-                shared_board->addShell(*(new Shell(shell_x, shell_y, tank->getCanonDirection())));
+                shared_board->addShell(*(std::make_shared<Shell>(shell_x, shell_y, tank->getCanonDirection())));
                 tank->addAction(ActionType::SHOOT);
                 tank->setWaitingToShootAgain(4);
             }
