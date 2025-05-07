@@ -15,6 +15,21 @@
 // Track tanks after removal for reporting
 Tank* lastKnownTank1 = nullptr;
 Tank* lastKnownTank2 = nullptr;
+
+void GameManager::readBoard(std::istream& file_board, std::string filename) {
+    if (!shared_board->loadBoardFromFile(file_board, filename)) {
+        std::cerr << "Error loading board from file." << std::endl;
+        return;
+    }
+    shared_board->displayBoard();
+    if (tank1 == nullptr) {
+        tank1 = shared_board->getTank1();
+    }
+    if (tank2 == nullptr) {
+        tank2 = shared_board->getTank2();
+    }
+}
+
 void GameManager::endGame() {
     if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionType::LOSE){
         std::cout << "Game Over: Tank 1 loses!" << std::endl;
@@ -387,3 +402,85 @@ void GameManager::removeTank(char index) {
         lastKnownTank2 = nullptr;
     }
 }
+
+void GameManager::run() {
+    int step = 0;
+    if(shared_board->getPlayer1()->getTanks().size() == 0 && shared_board->getPlayer2()->getTanks().size() == 0){
+        std::cout << "Game Over: Both players have no tanks left!" << std::endl;
+        endGame();
+        // *** how to handle win/lose/draw? ***
+        return;
+    }
+    else if(shared_board->getPlayer1()->getTanks().size() == 0){
+        std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
+        endGame();
+        // *** how to handle win/lose/draw? ***
+        return;
+    }
+    else if(shared_board->getPlayer2()->getTanks().size() == 0){
+        std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
+        endGame();
+        // *** how to handle win/lose/draw? ***
+        return;
+    }
+    while (!isGameOver() && moves_left > 0) {
+        updateShells();
+        resolveShellCollisions();
+
+        if (step % 2 == 0) {
+            updateGame();
+            resolveTankCollisions();
+        }
+        //game_board.displayBoard(); 
+        step++;
+        moves_left = game_manager.getMovesLeft() - 1;
+        if (moves_left == 0) {
+            endGame();
+            std::cout << "Game Over: No moves left!" << std::endl;
+            // *** need to change this part ***
+            getTank1()->setDestructionCause(DestructionCause::OUTOFAMMO);
+            getTank2()->setDestructionCause(DestructionCause::OUTOFAMMO);
+            }
+        }
+    std::ofstream file("Output_" + filename + ".txt");
+    if (!file) {
+        std::cerr << "Failed to open Output file for writing." << std::endl;
+        return 1;
+    }
+
+    file << "And the winner is: ";
+    if (getTank1()->getActions().back() == ActionType::WIN) {
+        file << "Player 1 :) " << std::endl;
+    } else if (getTank2()->getActions().back() == ActionType::WIN) {
+        file << "Player 2 :) " << std::endl;
+    } else {
+        file << "they both won because it is a draw!!" << std::endl;
+    }
+
+    // Tank 1
+    std::shared_ptr<Tank> tank1 = getTank1();
+    file << "Tank 1 Actions:\n";
+    int count_actions1 = 1;
+    if (tank1) {
+        for (const auto& action : tank1->getActions()) {
+            file << count_actions1 << ". " << action << std::endl;
+            count_actions1++;
+        }
+        file << "Reason of destruction: " << tank1->getDestructionCause() << std::endl;
+    }
+
+    // Tank 2
+    std::shared_ptr<Tank> tank2 = game_manager.getTank2();
+    file << "Tank 2 Actions:\n";
+    int count_actions2 = 1;
+    if (tank2) {
+        for (const auto& action : tank2->getActions()) {
+            file << count_actions2 << ". " << action << std::endl;
+            count_actions2++;
+        }
+        file << "Reason of destruction: " << tank2->getDestructionCause() << std::endl;
+    }
+    file.close();
+    std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
+}
+

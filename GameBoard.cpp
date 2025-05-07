@@ -3,7 +3,7 @@
 #include "Tank.h"
 #include "Shell.h"
 #include "CanonDirection.h"
-
+#include "regex"
 #include "Shape.h"
 #include "Empty.h"
 #include "Wall.h"
@@ -27,102 +27,94 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
         std::cerr << "Failed to open file for writing input errors." << std::endl;
         return false;
     }
-    file_board.ignore(); // Ignore the newline after width and height
+    std::regex pattern_max_steps(R"(MaxSteps\s*:\s*(\d+))");
+    std::regex pattern_num_shells(R"(NumShells\s*:\s*(\d+))");
+    std::regex pattern_rows(R"(Rows\s*:\s*(\d+))");
+    std::regex pattern_cols(R"(Cols\s*:\s*(\d+))");
+    // **I think we need to change this part ***
+    player1 =  player1(1, 0, 0, 0, 0);
+    player2 = player2(2, 0, 0, 0, 0);
+    for(int i = 0; i < 4; i++){
+        std::string line;
+        std::getline(file_board, line);
+        if (line.empty()) {
+            continue; // Skip empty lines
+        }
+        std::smatch match;
+        if (std::regex_search(line, match, pattern_max_steps)) {
+            max_steps = std::stoi(match[1]);
+            std::cout << "MaxSteps: " << max_steps << std::endl;
+        } else if (std::regex_search(line, match, pattern_num_shells)) {
+            num_shells = std::stoi(match[1]);
+            std::cout << "NumShells: " << num_shells << std::endl;
+        } else if (std::regex_search(line, match, pattern_rows)) {
+            height = std::stoi(match[1]);
+            std::cout << "Rows: " << height << std::endl;
+        } else if (std::regex_search(line, match, pattern_cols)) {
+            width = std::stoi(match[1]);
+            std::cout << "Cols: " << width << std::endl;
+        }
+        else {
+            file_errors << "Error: Invalid line format in input file: " << line << std::endl;
+            std::cerr << "Invalid line format in input file: " << line << std::endl;
+            return false;
+        }
+    }
     if (width <= 0 || height <= 0) {
         file_errors << "Error: Invalid board dimensions." << std::endl;
-        file_errors.close();
-        std::cerr << "Error: Invalid board dimensions." << std::endl;
+        std::cerr << "Invalid board dimensions." << std::endl;
         return false;
     }
-    std::string line;
-    int count_lines = 0;
-
-    while (std::getline(file_board, line)) {
+    for(int i = 0; i < height; i++){
+        std::string line;
+        if()
+        std::getline(file_board, line);
+        if(file_board.eof()){
+            line = " "*width; // Fill the rest of the board with empty spaces
+        }
         if (line.empty()) {
-            file_errors << "Error: Empty line in file." << filename<<std::endl;
-            file_errors.close();
-            std::cerr << "Error: Empty line in file." << std::endl;
-            return false;
+            continue; // Skip empty lines
         }
-
-        if (count_lines >= height) break;
-
-        if (line.length() < static_cast<size_t>(width)) {
-            file_errors << "Error: Line length is less than expected width." << std::endl;
-            file_errors.close();
-            std::cerr << "Error: Line length is less than expected width." << std::endl;
-            return false;
-        }
-
-        for (int x = 0; x < width; ++x) {
-            char c = line[x];
-            switch (c) {
-                case '1':
-                    if (count_tanks_for_player1 >= 1) {
-                        file_errors << "Error: More than one tank for player 1." << std::endl;
-                        file_errors.close();
-                        std::cerr << "Error: More than one tank for player 1." << std::endl;
-                        return false;
-                    }
-                    tank1 = std::make_shared<Tank>(x, count_lines, '1');
-                    board[count_lines][x] = std::make_shared<Tank>(x, count_lines, '1');
-                    count_tanks_for_player1++;
-                    std::cout<<"Tank1 position "<<"("<< tank1.get()->getX()<<","<<tank1.get()->getY()<<")"<<std::endl;
-                    break;
-                case '2':
-                    
-                    if (count_tanks_for_player2 >= 1) {
-                        file_errors << "Error: More than one tank for player 2." << std::endl;
-                        file_errors.close();
-                        std::cerr << "Error: More than one tank for player 2." << std::endl;
-                        return false;
-                    }
-                    tank2 = std::make_shared<Tank>(x, count_lines, '2');
-                    board[count_lines][x] = std::make_shared<Tank>(x, count_lines, '2');
-                    count_tanks_for_player2++;
-                    std::cout<<"Tank2 position "<<"("<< tank2.get()->getX()<<","<<tank2.get()->getY()<<")"<<std::endl;
-                    break;
-                case '#':
-                    board[count_lines][x] = std::make_shared<Wall>(x, count_lines);
-                    num_walls++;
-                    break;
-                case '@':
-                    board[count_lines][x] = std::make_shared<Mine>(x, count_lines);
-                    break;
-                case ' ':
-                    board[count_lines][x] = std::make_shared<Empty>(x, count_lines);
-                    break;
-                default:
-                    if (isdigit(c)) {
-                        file_errors << "Error: Invalid tank index in file: " << c << std::endl;
-                    } else if (isalpha(c)) {
-                        file_errors << "Error: Invalid character in file: " << c << std::endl;
-                    } else {
-                        file_errors << "Error: Unknown character in file: " << c << std::endl;
-                    }
-                    file_errors.close();
-                    std::cerr << "Error: Invalid character in file: " << c << std::endl;
-                    return false;
+        for(int j = 0; j < width; j++){
+            char c = ' ';
+        
+            if(j < line.size()){
+                c = line[j];
+            }
+            if (c == '1') {
+                count_tanks_for_player1++;
+                std::shared_ptr<Tank>& current_tank = std::make_shared<Tank>(j, i, '1');
+                board[i][j] = current_tank;
+                player1.addTank(current_tank);
+            }
+            else if( c== '2') {
+                count_tanks_for_player2++;
+                std::shared_ptr<Tank>& current_tank = std::make_shared<Tank>(j, i, '2');
+                board[i][j] = current_tank;
+                player2.addTank(current_tank);
+            }
+            else if (c == ' ') {
+                board[i][j] = std::make_shared<Empty>(j, i);
+            }
+            else if (c == '#') {
+                board[i][j] = std::make_shared<Wall>(j, i);
+            }
+            else if (c == '@') {
+                board[i][j] = std::make_shared<Mine>(j, i);
+            }
+            else if (c == 'o') {
+                board[i][j] = std::make_shared<Shell>(j, i);
+            }
+            else {
+                file_errors << "Error: Invalid character in input file: " << c << std::endl;
+                std::cerr << "Invalid character in input file: " << c << std::endl;
+                return false;
             }
         }
-        ++count_lines;
-    }
+    }    
 
-    if (count_lines < height) {
-        file_errors << "Error: Not enough lines in file." << std::endl;
-        file_errors.close();
-        std::cerr << "Error: Not enough lines in file." << std::endl;
-        return false;
-    }
     displayBoard(); // Display the loaded board
-    
-    if(count_tanks_for_player1 ==0){
-        file_errors << "Error: Not enough tanks for player1"<<std::endl;
-        return false;
-    }
-    else if(count_tanks_for_player2 == 0){
-        file_errors << "Error: Not enough tanks for player2"<<std::endl;
-    }
+
     file_errors.close();
     std::cout << "Board loaded successfully." << std::endl;
     return true;

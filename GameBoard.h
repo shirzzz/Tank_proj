@@ -21,6 +21,10 @@ class GameBoard {
     std::shared_ptr<Tank>tank2;
     int num_walls = 0;
     std::vector<Shell> shells;
+    int max_steps = 0;
+    int num_shells = 0;
+    Player1 player1;
+    Player2 player2;
 
 public:
 GameBoard(int width, int height) : width(width), height(height){
@@ -91,6 +95,8 @@ GameBoard(int width, int height) : width(width), height(height){
     bool isCellLegal(int x, int y) const;
     bool isSteppingWall(int x, int y) const;
     bool isSteppingMine(int x, int y) const;
+    Player1 getPlayer1() const { return player1; }
+    Player2 getPlayer2() const { return player2; }
 };
 
 #endif // GAMEBOARD_H
