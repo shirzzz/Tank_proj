@@ -16,6 +16,7 @@ private:
 
     std::shared_ptr<Tank> tank1 = nullptr;
     std::shared_ptr<Tank> tank2 = nullptr;
+    char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
     int moves_left = INT_MAX;
 
     // Stores last known tanks for final action logging or destruction cause

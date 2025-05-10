@@ -407,20 +407,21 @@ void GameManager::run() {
     int step = 0;
     if(shared_board->getPlayer1()->getTanks().size() == 0 && shared_board->getPlayer2()->getTanks().size() == 0){
         std::cout << "Game Over: Both players have no tanks left!" << std::endl;
+        wining_tank = '0';
         endGame();
-        // *** how to handle win/lose/draw? ***
+        
         return;
     }
     else if(shared_board->getPlayer1()->getTanks().size() == 0){
+        wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
         endGame();
-        // *** how to handle win/lose/draw? ***
         return;
     }
     else if(shared_board->getPlayer2()->getTanks().size() == 0){
+        wining_tank = '1';
         std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
         endGame();
-        // *** how to handle win/lose/draw? ***
         return;
     }
     while (!isGameOver() && moves_left > 0) {
@@ -483,4 +484,28 @@ void GameManager::run() {
     file.close();
     std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
 }
+
+bool GameManager::isGameEnded() const {
+        if(player1.getTanks().size() == 0 && player2.getTanks().size() == 0){
+            std::cout << "Game Over: Both players have no tanks left!" << std::endl;
+            wining_tank = '0';
+            return true;
+        }
+        else if(player1.getTanks().size() == 0){
+            std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
+            wining_tank = '2';
+            return true;
+        }
+        else if(player2.getTanks().size() == 0){
+            std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
+            wining_tank = '1';
+            return true;
+        }
+        else if(moves_left == 0){
+            std::cout << "Game Over: No moves left!" << std::endl;
+            wining_tank = '0';
+            return true;
+        }
+        return false;
+    }
 
