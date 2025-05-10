@@ -62,11 +62,11 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(std::vector<std::vector<int>> 
     return moves;
 }
 
-std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2, int height) {
-    std::vector<ActionType> moves;
+std::vector<ActionRequest> BfsChaserShir::getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2, int height) {
+    std::vector<ActionRequest> moves;
 
     if (path.empty()) {
-        moves.push_back(ActionType::SHOOT);
+        moves.push_back(ActionRequest::SHOOT);
         return moves;
     }
 
@@ -81,7 +81,7 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
         int dy = y2 - y1;
 
         if (isFacingOpponent(*tank1, *tank2)) {
-            moves.push_back(ActionType::SHOOT);
+            moves.push_back(ActionRequest::SHOOT);
             continue;
         }
 
@@ -94,25 +94,25 @@ std::vector<ActionType> BfsChaserShir::getFutureMoves(std::vector<int> path, std
 
         if (left_steps <= right_steps) {
             for (int j = 0; j < left_steps; ++j) {
-                moves.push_back(ActionType::ROTATE_EIGHTH_LEFT);
+                moves.push_back(ActionRequest::ROTATE_EIGHTH_LEFT);
                 canon_direction = rotateDirectionLeft(canon_direction);
             }
         } else {
             for (int j = 0; j < right_steps; ++j) {
-                moves.push_back(ActionType::ROTATE_EIGHTH_RIGHT);
+                moves.push_back(ActionRequest::ROTATE_EIGHTH_RIGHT);
                 canon_direction = rotateDirectionRight(canon_direction);
             }
         }
 
-        moves.push_back(ActionType::MOVE_FORWARD);
+        moves.push_back(ActionRequest::MOVE_FORWARD);
     }
 
     return moves;
 }
 
-ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
+ActionRequest BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2) {
     if (!my_future_moves.empty()) {
-        ActionType next_move = my_future_moves.front();
+        ActionRequest next_move = my_future_moves.front();
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
     } else {
@@ -125,10 +125,10 @@ ActionType BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board, s
         my_future_moves = getFutureMoves(path, tank1, tank2, shared_board->getHeight());
 
         if (my_future_moves.empty()) {
-            return ActionType::INVALID_ACTION;
+            return ActionRequest::INVALID_ACTION;
         }
 
-        ActionType next_move = my_future_moves.front();
+        ActionRequest next_move = my_future_moves.front();
         my_future_moves.erase(my_future_moves.begin());
 
         std::cout << "Next move: " << static_cast<int>(next_move) << std::endl;

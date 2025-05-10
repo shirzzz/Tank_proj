@@ -3,8 +3,8 @@
 #include "Tank.h"
 #include "GameBoard.h"
 #include "DirectionUtils.h"
-#include "ActionType.h"
-class Chased {
+#include "ActionRequest.h"
+class Chased : public TankAlgorithm {
 public:
     Chased() = default;
     ~Chased() = default;
@@ -14,7 +14,7 @@ public:
     // Function to check if the tank is in danger
     bool isInDanger(const Tank& tank, const GameBoard& board);
     // Main decision function of the Chased tank
-    ActionType decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent);
+    ActionRequest decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent);
 
 };
 

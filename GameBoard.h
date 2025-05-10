@@ -97,6 +97,8 @@ GameBoard(int width, int height) : width(width), height(height){
     bool isSteppingMine(int x, int y) const;
     Player1 getPlayer1() const { return player1; }
     Player2 getPlayer2() const { return player2; }
+    void setPlayer1(const Player1& player) { player1 = player; }
+    void setPlayer2(const Player2& player) { player2 = player; }
 };
 
 #endif // GAMEBOARD_H

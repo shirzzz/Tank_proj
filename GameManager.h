@@ -57,6 +57,8 @@ public:
     bool getGameOver() const { return game_over; }
     std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
     std::shared_ptr<GameBoard> getBoard() { return shared_board; }
+    void readBoard(std::istream& file_board, std::string filename);
+    void run();
 };
 
 #endif // GAMEMANAGER_H
