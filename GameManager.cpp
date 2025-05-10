@@ -30,23 +30,6 @@ void GameManager::readBoard(std::istream& file_board, std::string filename) {
     }
 }
 
-void GameManager::endGame() {
-    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionType::LOSE){
-        std::cout << "Game Over: Tank 1 loses!" << std::endl;
-        tank2.get()->addAction(ActionType::WIN);
-    }
-    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionType::LOSE){
-        std::cout << "Game Over: Tank 2 loses!" << std::endl;
-        tank1.get()->addAction(ActionType::WIN);
-    }
-    else {
-        std::cout << "Game Over: It's a draw!" << std::endl;
-        tank1.get()->addAction(ActionType::DRAW);
-        tank2.get()->addAction(ActionType::DRAW);
-    }
-    displayGame();
-    setGameOver(true);
-}
 
 void GameManager::displayGame() const {
     std::cout << "Tank 1 Actions:\n";
@@ -85,7 +68,8 @@ void GameManager::updateShells() const {
 void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
     std::vector<Shape*> toExplode;
-    // Check for shell-to-shell collisions
+
+    // התנגשויות בין קליעים
     for (size_t i = 0; i < shells.size(); ++i) {
         for (size_t j = i + 1; j < shells.size(); ++j) {
             auto pi = shells[i].getPosition();
@@ -100,52 +84,38 @@ void GameManager::resolveShellCollisions() {
         }
     }
 
-    // Check shell interactions with walls and tanks
+    // פגיעות בקירות ובטנקים
     for (Shell& shell : shells) {
-        auto pos = shell.getPosition();
-        int x = pos.first;
-        int y = pos.second;
-        CellType cell = shared_board->getCell(x, y)->getCellType();
-        if (cell == CellType::WALL) {
-           Wall* wall = static_cast<Wall*>(const_cast<Shape*>(shared_board->getCell(x, y)));
-            if (wall) {
-                wall->setLives(wall->getLives() - 1);
-                if (wall->getLives() <= 0) {
-                    shared_board->removeWall(wall);
+        auto [x, y] = shell.getPosition();
+        auto cell = shared_board->getCell(x, y);
+        CellType cellType = cell->getCellType();
 
-                    toExplode.push_back(wall);
-                }
+        if (cellType == CellType::WALL) {
+            Wall* wall = static_cast<Wall*>(cell.get());
+            wall->setLives(wall->getLives() - 1);
+            if (wall->getLives() <= 0) {
+                shared_board->removeWall(wall);
+                toExplode.push_back(wall);
             }
             toExplode.push_back(&shell);
-        } else if (cell == CellType::TANK1 || cell == CellType::TANK2) {
-            std::shared_ptr<Tank> target = (cell == CellType::TANK1) ? shared_board->getTank1() : shared_board->getTank2();
-            if (target) {
-                target->setDestructionCause(DestructionCause::SHELL);
-
-                if (target->getIndexTank() == '1') {
-                    tank2->setDestructionCause(DestructionCause::SHELLOPPONENT);
-                    lastKnownTank1 = target;
-                }
-                else {
-                    tank1->setDestructionCause(DestructionCause::SHELLOPPONENT);
-                    lastKnownTank2 = target;
-                }
-
-                target->addAction(ActionType::LOSE);
+        } else if (cellType == CellType::TANK1 || cellType == CellType::TANK2) {
+            std::shared_ptr<Tank> hitTank = shared_board->getTankAtPosition(x, y);
+            if (hitTank) {
+                //hitTank->setDestructionCause(DestructionCause::SHELL);
+                //hitTank->addAction(ActionType::LOSE);
+               // shared_board->removeTank(hitTank);
+                shared_board->getPlayerByTank(hitTank)->removeTank(hitTank);
+                toExplode.push_back(&shell);
+                toExplode.push_back(hitTank.get());
             }
-            toExplode.push_back(&shell);
-            shared_board->removeTank(target);
-            toExplode.push_back(target.get());
         }
     }
 
-    // Remove all shells that should explode
+    // פינוי כל מי שהתפוצץ
     for (const auto& shape : toExplode) {
         CellType cell = shape->getCellType();
         switch(cell) {
             case CellType::TANK1:
-                shared_board->removeTank(std::shared_ptr<Tank>(static_cast<Tank*>(shape)));
-                break;
             case CellType::TANK2:
                 shared_board->removeTank(std::shared_ptr<Tank>(static_cast<Tank*>(shape)));
                 break;
@@ -156,79 +126,79 @@ void GameManager::resolveShellCollisions() {
                 shared_board->removeShell(*static_cast<Shell*>(shape));
                 break;
             default:
-                std::cout << "Cant be explode!!" << std::endl;
+                std::cout << "Unknown object in toExplode!" << std::endl;
                 break;
         }
     }
+
+    isGameEnded();
 }
 
 void GameManager::resolveTankCollisions() {
-    if (!tank1 || !tank2) return;
+    auto player1Tanks = shared_board->getPlayer1()->getTanks();
+    auto player2Tanks = shared_board->getPlayer2()->getTanks();
 
-    auto p1 = tank1->getPosition();
-    auto p2 = tank2->getPosition();
-    auto o1 = tank1->getPreviousPosition();
-    auto o2 = tank2->getPreviousPosition();
+    // התנגשויות בין טנקים משני שחקנים
+    for (auto& tank1 : player1Tanks) {
+        for (auto& tank2 : player2Tanks) {
+            if (!tank1 || !tank2) continue;
 
-    if (p1 == p2 || (p1 == o2 && p2 == o1)) {
-        tank1->setDestructionCause(DestructionCause::TANK);
-        tank2->setDestructionCause(DestructionCause::TANK);
-        lastKnownTank1 = tank1;
-        lastKnownTank2 = tank2;
-        shared_board->removeTank(tank1);
-        shared_board->removeTank(tank2);
-        tank1->addAction(ActionType::DRAW);
-        tank2->addAction(ActionType::DRAW);
-        endGame();
-        return;
-    }
+            auto p1 = tank1->getPosition();
+            auto p2 = tank2->getPosition();
+            auto o1 = tank1->getPreviousPosition();
+            auto o2 = tank2->getPreviousPosition();
 
-    for (std::shared_ptr<Tank> tank : {tank1, tank2}) {
-        auto pos = tank->getPosition();
-        int x = pos.first;
-        int y = pos.second;
-        if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
-            tank->setDestructionCause(DestructionCause::MINE);
-            if(tank->getIndexTank() == '1'){
-                lastKnownTank1 = tank;
-                }
-            else lastKnownTank2 = tank;
-           tank->addAction(ActionType::LOSE);
-            (shared_board->setCell(x, y, std::make_shared<Empty>(x, y)));
-            shared_board->removeTank(tank);
-            tank->addAction(ActionType::LOSE);
-            endGame();
-            return;
+            if (p1 == p2 || (p1 == o2 && p2 == o1)) {
+                //tank1->setDestructionCause(DestructionCause::TANK);
+                //tank2->setDestructionCause(DestructionCause::TANK);
+                //tank1->addAction(ActionType::DRAW);
+                //tank2->addAction(ActionType::DRAW);
+
+                shared_board->removeTank(tank1);
+                shared_board->getPlayerByTank(tank1)->removeTank(tank1);
+
+                shared_board->removeTank(tank2);
+                shared_board->getPlayerByTank(tank2)->removeTank(tank2);
+            }
         }
     }
 
-    // Check if a tank moved into a shell's position
+    // התנגשויות עם מוקשים
+    auto allTanks = shared_board->getAllTanks();
+    for (auto& tank : allTanks) {
+        if (!tank) continue;
+        auto [x, y] = tank->getPosition();
+        if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
+            //tank->setDestructionCause(DestructionCause::MINE);
+            //tank->addAction(ActionType::LOSE);
+            shared_board->removeTank(tank);
+            shared_board->getPlayerByTank(tank)->removeTank(tank);
+            shared_board->setCell(x, y, std::make_shared<Empty>(x, y));
+        }
+    }
+
+    // התנגשויות עם קליעים
     auto& shells = shared_board->getShells();
     for (const Shell& shell : shells) {
-        auto shellPos = shell.getPosition();
+        auto [sx, sy] = shell.getPosition();
 
-        for (std::shared_ptr<Tank> tank : {tank1, tank2}) {
-            if (tank && tank->getPosition() == shellPos) {
-                tank->setDestructionCause(DestructionCause::SHELL);
+        for (auto& tank : allTanks) {
+            if (tank && tank->getPosition() == std::make_pair(sx, sy)) {
+                //tank->setDestructionCause(DestructionCause::SHELL);
+               // tank->addAction(ActionType::LOSE);
 
-            if (tank->getIndexTank() == '1') {
-                tank2->setDestructionCause(DestructionCause::SHELLOPPONENT);
-                lastKnownTank1 = tank;
-            } else {
-                tank1->setDestructionCause(DestructionCause::SHELLOPPONENT);
-                lastKnownTank2 = tank;
+                shared_board->removeTank(tank);
+                shared_board->getPlayerByTank(tank)->removeTank(tank);
+                shared_board->removeShellAtfromBoard(sx, sy);
+                break;
             }
-
-            tank->addAction(ActionType::LOSE);
-            shared_board->removeTank(tank);
-            shared_board->removeShellAtfromBoard(shellPos.first, shellPos.second);
-
-            endGame();
-            return;
         }
     }
+
+    isGameEnded();
 }
-}
+
+
 
 void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {
     int waiting_to_go_back = tank->getWaitingToGoBack();
@@ -485,7 +455,7 @@ void GameManager::run() {
     std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
 }
 
-bool GameManager::isGameEnded() const {
+    bool GameManager::isGameEnded() const {
         if(player1.getTanks().size() == 0 && player2.getTanks().size() == 0){
             std::cout << "Game Over: Both players have no tanks left!" << std::endl;
             wining_tank = '0';
@@ -508,4 +478,42 @@ bool GameManager::isGameEnded() const {
         }
         return false;
     }
+
+    void GameManager::endGame() {
+    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionType::LOSE){
+        std::cout << "Game Over: Tank 1 loses!" << std::endl;
+        tank2.get()->addAction(ActionType::WIN);
+    }
+    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionType::LOSE){
+        std::cout << "Game Over: Tank 2 loses!" << std::endl;
+        tank1.get()->addAction(ActionType::WIN);
+    }
+    else {
+        std::cout << "Game Over: It's a draw!" << std::endl;
+        tank1.get()->addAction(ActionType::DRAW);
+        tank2.get()->addAction(ActionType::DRAW);
+    }
+    displayGame();
+    setGameOver(true);
+}
+//need to delete
+void GameManager::checkWinCondition() {
+    auto p1Tanks = shared_board->getPlayer1()->getTanks();
+    auto p2Tanks = shared_board->getPlayer2()->getTanks();
+
+    if (p1Tanks.empty() && p2Tanks.empty()) {
+        wining_tank = '0';
+        std::cout << "Game Over: Both players eliminated." << std::endl;
+        setGameOver(true);
+    } else if (p1Tanks.empty()) {
+        wining_tank = '2';
+        std::cout << "Game Over: Player 2 wins with " << p2Tanks.size() << " tank(s) remaining." << std::endl;
+        setGameOver(true);
+    } else if (p2Tanks.empty()) {
+        wining_tank = '1';
+        std::cout << "Game Over: Player 1 wins with " << p1Tanks.size() << " tank(s) remaining." << std::endl;
+        setGameOver(true);
+    }
+}
+
 

@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
     //GameManager game_manager(std::make_shared<GameBoard>(game_board));
     GameManager game(MyPlayerFactory(), MyTankFactory());
     game.readBoard(file_board, filename);
+    game.getBoard.get()->displayBoard();
     game.setMovesLeft(game.getBoard()->getMaxSteps());
     game.run();
     return 0;
