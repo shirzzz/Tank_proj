@@ -389,6 +389,8 @@ void GameManager::run() {
         
         return;
     }
+
+    //לסדר את הoutpul file למקרה הזה
     else if(shared_board->getPlayer1()->getTanks().size() == 0){
         wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;

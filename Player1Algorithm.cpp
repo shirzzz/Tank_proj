@@ -146,10 +146,11 @@ ActionRequest Player1Algorithm::getAction() {
         return next_move;
         } else {
             return ActionRequest::GetBattleInfo;
+        }
 }
 
 void Player1Algorithm::updateBattleInfo(BattleInfo& info) {
-    auto& myInfo = dynamic_cast<Player1BattleInfo&>(info);  // You define this below
+    auto& myInfo = dynamic_cast<Player1BattleInfo&>(info);  
     opponent_tanks = myInfo.opponents;
     shared_board = myInfo.board;
     
