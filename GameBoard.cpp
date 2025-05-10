@@ -32,8 +32,8 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
     std::regex pattern_rows(R"(Rows\s*:\s*(\d+))");
     std::regex pattern_cols(R"(Cols\s*:\s*(\d+))");
     // **I think we need to change this part ***
-    player1 =  player1(1, 0, 0, 0, 0);
-    player2 = player2(2, 0, 0, 0, 0);
+    player1 =  player1(1, 0, 0, 0, 0, 0);
+    player2 = player2(2, 0, 0, 0, 0, 0);
     for(int i = 0; i < 4; i++){
         std::string line;
         std::getline(file_board, line);
@@ -114,7 +114,8 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
     }    
 
     displayBoard(); // Display the loaded board
-
+    player1.setNumTanks(count_tanks_for_player1);
+    player2.setNumTanks(count_tanks_for_player2);
     file_errors.close();
     std::cout << "Board loaded successfully." << std::endl;
     return true;
@@ -286,14 +287,13 @@ void GameBoard::moveShell(Shell* shell) {
 }
 
 ActionType GameBoard::movingAlgorithm(Tank &tank) {
-    if (tank.getIndexTank() == '1' && tank1) {
-        BfsChaserShir chaser_algorithm;
-         
-        ActionType action =  chaser_algorithm.getNextMove((*this).getGameBoard(), getTank1(), getTank2());
+    if (tank.getIndexTank() == '1') {
+        Player1Algorithm chaser_algorithm;
+        ActionType action =  chaser_algorithm.getAction();
         return action;
-    } else if (tank.getIndexTank() == '2' && tank2) {
-        Chased chasedAI;
-        return chasedAI.decideNextAction(*this, *tank2, *tank1);
+    } else if (tank.getIndexTank() == '2') {
+        Player1Algorithm chasedAI;
+        return chasedAI.getAction();
     }
     return ActionType::INVALID_ACTION; // Default action if tank is not found
 }

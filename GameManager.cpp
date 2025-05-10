@@ -352,15 +352,22 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
 
 void GameManager::updateGame() {
     if (game_over) return;
-    std::shared_ptr<Tank> tank1 = shared_board->getTank1();
-    std::shared_ptr<Tank> tank2 = shared_board->getTank2();
-    if (!tank1 || !tank2) return;
-    tank1->setPreviousPosition();
-    tank2->setPreviousPosition();
-    ActionType action1 = shared_board->movingAlgorithm(*tank1);
-    processAction(tank1, action1, "Tank 1");
-    ActionType action2 = shared_board->movingAlgorithm(*tank2);
-    processAction(tank2, action2, "Tank 2");
+    Player1 player1 = shared_board->getPlayer1();
+    Player2 player2 = shared_board->getPlayer2();
+    for(auto& tank : player1.getTanks()) {
+        if (tank) {
+            tank->setPreviousPosition();
+            ActionType action1 = shared_board->movingAlgorithm(*tank1);
+            processAction(tank1, action1, "Tank 1");
+        }
+    }
+    for(auto& tank : player2.getTanks()) {
+        if (tank) {
+            tank->setPreviousPosition();
+            ActionType action2 = shared_board->movingAlgorithm(*tank2);
+            processAction(tank2, action2, "Tank 2");
+        }
+    }
 }
 
 void GameManager::removeTank(char index) {
@@ -418,39 +425,46 @@ void GameManager::run() {
         std::cerr << "Failed to open Output file for writing." << std::endl;
         return 1;
     }
-
-    file << "And the winner is: ";
-    if (getTank1()->getActions().back() == ActionType::WIN) {
-        file << "Player 1 :) " << std::endl;
-    } else if (getTank2()->getActions().back() == ActionType::WIN) {
-        file << "Player 2 :) " << std::endl;
-    } else {
-        file << "they both won because it is a draw!!" << std::endl;
-    }
-
-    // Tank 1
-    std::shared_ptr<Tank> tank1 = getTank1();
-    file << "Tank 1 Actions:\n";
-    int count_actions1 = 1;
-    if (tank1) {
-        for (const auto& action : tank1->getActions()) {
-            file << count_actions1 << ". " << action << std::endl;
-            count_actions1++;
+    for(int i=0; i<step; i++){
+        for(auto& tank : player1.getTanks()) {
+        if (tank) {
+            if(player1.isTankAlive(tank.get()->getIndexTank())){
+                file << tank.get()->getActions()[0]<< ",";
+                tank.get()->deleteFirstAction();
+            }
+            else{
+                file<<"killed, ";
+            }
         }
-        file << "Reason of destruction: " << tank1->getDestructionCause() << std::endl;
+    }
+    for(auto& tank : player2.getTanks()) {
+        if (tank) {
+            if(player2.isTankAlive(tank.get()->getIndexTank())){
+                file << tank.get()->getActions()[0]<< ",";
+                tank.get()->deleteFirstAction();
+            }
+            else{
+                file<<"killed, ";
+            }
+        }
+    }
+        file << std::endl;
     }
 
-    // Tank 2
-    std::shared_ptr<Tank> tank2 = game_manager.getTank2();
-    file << "Tank 2 Actions:\n";
-    int count_actions2 = 1;
-    if (tank2) {
-        for (const auto& action : tank2->getActions()) {
-            file << count_actions2 << ". " << action << std::endl;
-            count_actions2++;
-        }
-        file << "Reason of destruction: " << tank2->getDestructionCause() << std::endl;
+    if(wining_tank == '1'){
+        file << "Player 1 won with " <<player1.getNumTanks() - player1.getNumKilledTanks()<< "still alive"<< std::endl;
     }
+    else if(wining_tank == '2'){
+        file << "Player 2 won with " <<player2.getNumTanks() - player2.getNumKilledTanks()<< "still alive"<< std::endl;
+    }
+    else if(wining_tank == '0'){
+        file << "Tie, reached max steps = " << max_steps<<", player 1 has "<<player1.getNumTanks() - player1.getNumKilledTanks()<<
+        ", player2 has "<<player2.getNumTanks() - player2.getNumKilledTanks()<< std::endl;
+    }
+    else{
+        file << "Game Over: No moves left!" << std::endl;
+    }
+
     file.close();
     std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
 }

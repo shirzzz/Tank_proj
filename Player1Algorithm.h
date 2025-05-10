@@ -19,14 +19,14 @@ public:
     CanonDirection rotateDirectionLeft(CanonDirection dir);
     CanonDirection rotateDirectionRight(CanonDirection dir);
     std::vector<std::vector<int>> getGraphOutOfBoard(const std::shared_ptr<GameBoard> board);
-    std::unordered_map<int, std::vector<int>> getFutureMovesMultiSourcesBFS(std::vector<std::vector<int>> graph, Player2& opponent);
-    std::vector<std::vector<ActionRequest>> getFutureMoves(std::unordered_map<int, std::vector<int>> path, Player1& player1, Player2& player2, int height);
-    std::vector<ActionRequest> getNextMove(std::shared_ptr<GameBoard> shared_board, std::shared_ptr<Tank> tank1, Player2& player2);
+    std::unordered_map<int, std::vector<int>> getFutureMovesMultiSourcesBFS(std::vector<std::vector<int>> graph, std::vector<Tank> opponent_tanks);
+    std::vector<std::vector<ActionRequest>> getFutureMoves(std::unordered_map<int, std::vector<int>> path, Player1& player1, std::vector<Tank> opponent_tanks, int height);
+    std::vector<ActionRequest> getAction() override;
     int isChased(const Player1& self, const std::shared_ptr<GameBoard> board);
     bool isFacingOpponent(const Tank& self, const Tank& opponent);
-    bool isFacingAnyOpponent(Player1 &player1, Player2 & player2);
-    int canKillOpponent(int current_tank, Player2 & player2);
-    bool isTankFacingAnyOpponent(const Tank& self, Player2 & opponent);
+    bool isFacingAnyOpponent(Player1 &player1, std::vector<Tank> opponent_tanks);
+    int canKillOpponent(int current_tank, std::vector<Tank> opponent_tanks);
+    bool isTankFacingAnyOpponent(const Tank& self, std::vector<Tank>& opponent_tanks);
 };
 
 

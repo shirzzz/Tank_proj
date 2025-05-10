@@ -14,8 +14,8 @@ private:
     std::shared_ptr<GameBoard> shared_board; // Shared pointer to the game board
     bool game_over = false;
 
-    std::shared_ptr<Tank> tank1 = nullptr;
-    std::shared_ptr<Tank> tank2 = nullptr;
+    Player1 player1;
+    Player2 player2;
     char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
     int moves_left = INT_MAX;
 
@@ -59,6 +59,7 @@ public:
     std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
     std::shared_ptr<GameBoard> getBoard() { return shared_board; }
     void readBoard(std::istream& file_board, std::string filename);
+    bool isGameEnded() const ();
     void run();
 };
 

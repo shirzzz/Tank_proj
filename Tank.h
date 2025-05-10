@@ -70,6 +70,7 @@ public:
     void setDestructionCause(DestructionCause cause);
     DestructionCause getDestructionCause() const;
     std::string getDestructionCauseStr() const;
+    void deleteFirstAction() { my_actions.erase(my_actions.begin()); } // Remove the first action
 };
 
 #endif // TANK_H
