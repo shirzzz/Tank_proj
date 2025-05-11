@@ -1,6 +1,6 @@
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "ActionType.h"
+#include "ActionRequest.h"
 #include "GameBoard.h"
 #include "Tank.h"
 #include "Shell.h"
@@ -55,25 +55,25 @@ bool isFacingOpponent(const Tank& self, const Tank& opponent) {
 }
 
 // Compute best rotation toward the opponent's position
-ActionType rotateToward(const Tank& self, const Tank& opponent) {
+ActionRequest rotateToward(const Tank& self, const Tank& opponent) {
     int dx = opponent.getX() - self.getX();
     int dy = opponent.getY() - self.getY();
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
     CanonDirection currentDir = self.getCanonDirection();
 
-    if (currentDir == desiredDir) return ActionType::SHOOT;
+    if (currentDir == desiredDir) return ActionRequest::Shoot;
 
     int curIdx = static_cast<int>(currentDir);
     int desIdx = static_cast<int>(desiredDir);
     int diff = (desIdx - curIdx + 8) % 8;
 
-    if (diff == 1 || diff == 2) return ActionType::ROTATE_EIGHTH_RIGHT;
-    if (diff == 6 || diff == 7) return ActionType::ROTATE_EIGHTH_LEFT;
-    if (diff == 3 || diff == 4) return ActionType::ROTATE_QUARTER_RIGHT;
-    return ActionType::ROTATE_QUARTER_LEFT;
+    if (diff == 1 || diff == 2) return ActionRequest::RotateRight45;
+    if (diff == 6 || diff == 7) return ActionRequest::RotateLeft45;
+    if (diff == 3 || diff == 4) return ActionRequest::RotateRight90;
+    return ActionRequest::RotateLeft90;
 }
 
-ActionType Chased::decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent) {
+ActionRequest Chased::decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent) {
     // 1. Avoid danger if necessary
     if (isDangerAhead(self, board)) {
         return rotateToward(self, opponent);  // Or choose another evasive action
@@ -82,7 +82,7 @@ ActionType Chased::decideNextAction(GameBoard& board, const Tank& self, const Ta
     // 2. If facing opponent and aligned, shoot!
     if ((isAlignedHorizontally(self, opponent) || isAlignedVertically(self, opponent)) &&
         isFacingOpponent(self, opponent)) {
-        return ActionType::SHOOT;
+        return ActionRequest::Shoot;
     }
 
     // 3. Not facing opponent? Rotate toward them
@@ -94,10 +94,10 @@ ActionType Chased::decideNextAction(GameBoard& board, const Tank& self, const Ta
     std::pair<int, int> next_cell = {(directionToVector(self.getCanonDirection())).first + self.getX(),
                                 (directionToVector(self.getCanonDirection())).second + self.getY()};
     if(board.getCell(next_cell.first,next_cell.second)->getCellType() == CellType::WALL) {
-        return ActionType::ROTATE_EIGHTH_LEFT; // Or some other action
+        return ActionRequest::RotateLeft45; // Or some other action
     }
     if (board.getCell(next_cell.first, next_cell.second)->getCellType() == CellType::MINE) {
-        return ActionType::ROTATE_EIGHTH_LEFT; // Or some other action
+        return ActionRequest::RotateLeft45; // Or some other action
     }
-    return ActionType::MOVE_FORWARD;
+    return ActionRequest::MoveForward;
 }

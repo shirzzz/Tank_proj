@@ -5,7 +5,7 @@
 #include "DestructionCause.h"
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "ActionType.h"
+#include "ActionRequest.h"
 #include "CanonDirection.h"
 #include "CellType.h"
 #include <iostream>
@@ -69,14 +69,13 @@ void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
     std::vector<Shape*> toExplode;
 
-    // התנגשויות בין קליעים
+    // Shell vs Shell collisions
     for (size_t i = 0; i < shells.size(); ++i) {
         for (size_t j = i + 1; j < shells.size(); ++j) {
             auto pi = shells[i].getPosition();
             auto pj = shells[j].getPosition();
             auto oi = shells[i].getPreviousPosition();
             auto oj = shells[j].getPreviousPosition();
-
             if (pi == pj || (pi == oj && pj == oi)) {
                 toExplode.push_back(&shells[i]);
                 toExplode.push_back(&shells[j]);
@@ -84,13 +83,12 @@ void GameManager::resolveShellCollisions() {
         }
     }
 
-    // פגיעות בקירות ובטנקים
+    // Shell vs Wall or Tank
     for (Shell& shell : shells) {
         auto [x, y] = shell.getPosition();
         auto cell = shared_board->getCell(x, y);
-        CellType cellType = cell->getCellType();
 
-        if (cellType == CellType::WALL) {
+        if (cell->getCellType() == CellType::WALL) {
             Wall* wall = static_cast<Wall*>(cell.get());
             wall->setLives(wall->getLives() - 1);
             if (wall->getLives() <= 0) {
@@ -98,27 +96,21 @@ void GameManager::resolveShellCollisions() {
                 toExplode.push_back(wall);
             }
             toExplode.push_back(&shell);
-        } else if (cellType == CellType::TANK1 || cellType == CellType::TANK2) {
+        } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
             std::shared_ptr<Tank> hitTank = shared_board->getTankAtPosition(x, y);
             if (hitTank) {
-                //hitTank->setDestructionCause(DestructionCause::SHELL);
-                //hitTank->addAction(ActionType::LOSE);
-               // shared_board->removeTank(hitTank);
-                shared_board->getPlayerByTank(hitTank)->removeTank(hitTank);
+                auto player = shared_board->getPlayerByTank(hitTank);
+                player->addKilledTank(hitTank->getTankIndex());
+                player->setNumKilledTanks(player->getNumKilledTanks() + 1);
+                shared_board->removeTank(hitTank);
+                player->removeTank(hitTank);
                 toExplode.push_back(&shell);
-                toExplode.push_back(hitTank.get());
             }
         }
     }
 
-    // פינוי כל מי שהתפוצץ
-    for (const auto& shape : toExplode) {
-        CellType cell = shape->getCellType();
-        switch(cell) {
-            case CellType::TANK1:
-            case CellType::TANK2:
-                shared_board->removeTank(std::shared_ptr<Tank>(static_cast<Tank*>(shape)));
-                break;
+    for (auto* shape : toExplode) {
+        switch (shape->getCellType()) {
             case CellType::WALL:
                 shared_board->removeWall(static_cast<Wall*>(shape));
                 break;
@@ -126,98 +118,102 @@ void GameManager::resolveShellCollisions() {
                 shared_board->removeShell(*static_cast<Shell*>(shape));
                 break;
             default:
-                std::cout << "Unknown object in toExplode!" << std::endl;
                 break;
         }
     }
-
-    isGameEnded();
 }
 
 void GameManager::resolveTankCollisions() {
     auto player1Tanks = shared_board->getPlayer1()->getTanks();
     auto player2Tanks = shared_board->getPlayer2()->getTanks();
 
-    // התנגשויות בין טנקים משני שחקנים
     for (auto& tank1 : player1Tanks) {
         for (auto& tank2 : player2Tanks) {
             if (!tank1 || !tank2) continue;
-
             auto p1 = tank1->getPosition();
             auto p2 = tank2->getPosition();
             auto o1 = tank1->getPreviousPosition();
             auto o2 = tank2->getPreviousPosition();
 
             if (p1 == p2 || (p1 == o2 && p2 == o1)) {
-                //tank1->setDestructionCause(DestructionCause::TANK);
-                //tank2->setDestructionCause(DestructionCause::TANK);
-                //tank1->addAction(ActionType::DRAW);
-                //tank2->addAction(ActionType::DRAW);
-
+                auto player1 = shared_board->getPlayerByTank(tank1);
+                auto player2 = shared_board->getPlayerByTank(tank2);
+                player1->addKilledTank(tank1->getTankIndex());
+                player1->setNumKilledTanks(player1->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank1);
-                shared_board->getPlayerByTank(tank1)->removeTank(tank1);
+                player1->removeTank(tank1);
 
+                player2->addKilledTank(tank2->getTankIndex());
+                player2->setNumKilledTanks(player2->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank2);
-                shared_board->getPlayerByTank(tank2)->removeTank(tank2);
+                player2->removeTank(tank2);
             }
         }
     }
 
-    // התנגשויות עם מוקשים
     auto allTanks = shared_board->getAllTanks();
     for (auto& tank : allTanks) {
         if (!tank) continue;
         auto [x, y] = tank->getPosition();
         if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
-            //tank->setDestructionCause(DestructionCause::MINE);
-            //tank->addAction(ActionType::LOSE);
+            auto player = shared_board->getPlayerByTank(tank);
+            player->addKilledTank(tank->getTankIndex());
+            player->setNumKilledTanks(player->getNumKilledTanks() + 1);
             shared_board->removeTank(tank);
-            shared_board->getPlayerByTank(tank)->removeTank(tank);
+            player->removeTank(tank);
             shared_board->setCell(x, y, std::make_shared<Empty>(x, y));
         }
     }
 
-    // התנגשויות עם קליעים
     auto& shells = shared_board->getShells();
     for (const Shell& shell : shells) {
         auto [sx, sy] = shell.getPosition();
-
         for (auto& tank : allTanks) {
             if (tank && tank->getPosition() == std::make_pair(sx, sy)) {
-                //tank->setDestructionCause(DestructionCause::SHELL);
-               // tank->addAction(ActionType::LOSE);
-
+                auto player = shared_board->getPlayerByTank(tank);
+                player->addKilledTank(tank->getTankIndex());
+                player->setNumKilledTanks(player->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank);
-                shared_board->getPlayerByTank(tank)->removeTank(tank);
+                player->removeTank(tank);
                 shared_board->removeShellAtfromBoard(sx, sy);
                 break;
             }
         }
     }
 
-    isGameEnded();
+    endGame();
 }
 
 
 
-void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, const std::string& name) {
+void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action, const std::string& name) {
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
-
+    
+    if (action == ActionRequest::GetBattleInfo) {
+        MySatelliteView view(*shared_board);
+        BattleInfo info(tank->getX(), tank->getY(), tank->getCanonDirection(), view);
+        tank->updateTankWithBattleInfo(info);
+        ActionRequest newAction = tank->getAlgorithm()->getAction();
+        if (newAction != ActionRequest::GetBattleInfo) {
+            processAction(tank, newAction, name);
+        }
+        return;
+    }
     if (waiting_to_go_back == 0) {
 
         std::pair<int, int> new_position = tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
         if(shared_board->isCellWalkable(new_position.first, new_position.second)){
             tank->setWaitingToGoBack(-1);
-            tank->addAction(ActionType::MOVE_BACKWARD);
+            tank->addAction(ActionRequest::MoveBackward);
             shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
         }
         else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-            tank->addAction(ActionType::INVALID_ACTION);
+            tank->addAction(ActionRequest::INVALID_ACTION);
         }
         else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
             shared_board->removeTank(tank);
-            tank->addAction(ActionType::LOSE);
+            tank->addActionActionRequest::LOSE);
             tank->setDestructionCause(DestructionCause::MINE);
             if(tank->getIndexTank() == '1'){
                 tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
@@ -230,20 +226,20 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
         }
 
     switch (action) {
-        case ActionType::MOVE_FORWARD:
+        case ActionRequest::MoveForward:
             if (waiting_to_go_back >= 1) tank->setWaitingToGoBack(-1);
             else {
                 std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
                 if(shared_board->isCellWalkable(new_position.first, new_position.second)){
-                    tank->addAction(ActionType::MOVE_FORWARD);
+                    tank->addAction(ActionRequest::MoveForward);
                     shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
                 }
                 else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-                    tank->addAction(ActionType::INVALID_ACTION);
+                    tank->addAction(ActionRequest::INVALID_ACTION);
                 }
                 else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
                     shared_board->removeTank(tank);
-                    tank->addAction(ActionType::LOSE);
+                    tank->addAction(ActionRequest::LOSE);
                     tank->setDestructionCause(DestructionCause::MINE);
                     if(tank->getIndexTank() == '1'){
                         tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
@@ -255,13 +251,13 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             }
             break;
 
-        case ActionType::MOVE_BACKWARD:
+        case ActionRequest::MoveBackward:
             if (waiting_to_go_back >= 1) {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             } 
             break;
 
-        case ActionType::ROTATE_EIGHTH_LEFT:
+        case ActionRequest::RotateLeft45:
             if (waiting_to_go_back == -1) {
                 tank->rotateEighthLeft();
                 tank->addAction(action);
@@ -270,7 +266,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
-        case ActionType::ROTATE_EIGHTH_RIGHT:
+        case ActionRequest::RotateRight45:
             if (waiting_to_go_back == -1) {
                 tank->rotateEighthRight();
                 tank->addAction(action);
@@ -279,7 +275,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
-        case ActionType::ROTATE_QUARTER_LEFT:
+        case ActionRequest::RotateLeft90:
             if (waiting_to_go_back == -1) {
                 tank->rotateQuarterLeft();
                 tank->addAction(action);
@@ -288,7 +284,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
-        case ActionType::ROTATE_QUARTER_RIGHT:
+        case ActionRequest::RotateRight90:
             if (waiting_to_go_back == -1) {
                 tank->rotateQuarterRight();
                 tank->addAction(action);
@@ -298,12 +294,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
             }
             break;
 
-            case ActionType::SHOOT:
+            case ActionRequest::Shoot:
             if (waiting_to_shoot != -1) {
-                tank->addAction(ActionType::INVALID_ACTION);
+                tank->addAction(ActionRequest::INVALID_ACTION);
                 tank->setWaitingToShootAgain(waiting_to_shoot - 1);
             } else if (tank->getNumBullets() == 0) {
-                tank->addAction(ActionType::INVALID_ACTION);
+                tank->addAction(ActionRequest::INVALID_ACTION);
                 if (shared_board->getTank1()->getNumBullets() == 0 &&
                     shared_board->getTank2()->getNumBullets() == 0) {
                     if (moves_left > 40) moves_left = 40;
@@ -320,32 +316,34 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionType action, c
         
                 // Place shell one step ahead
                 shared_board->addShell(*(std::make_shared<Shell>(shell_x, shell_y, tank->getCanonDirection())));
-                tank->addAction(ActionType::SHOOT);
+                tank->addAction(ActionRequest::Shoot);
                 tank->setWaitingToShootAgain(4);
             }
             break;
 
-        case ActionType::WIN:
+
+        
+        case ActionRequest::WIN:
             std::cout << "Game Over: " << name << " wins!" << std::endl;
-            tank->addAction(ActionType::WIN);
+            tank->addAction(ActionRequest::WIN);
             endGame();
             break;
 
-        case ActionType::LOSE:
+        case ActionRequest::LOSE:
             std::cout << "Game Over: " << name << " loses!" << std::endl;
-            tank->addAction(ActionType::LOSE);
+            tank->addAction(ActionRequest::LOSE);
             endGame();
             break;
 
-        case ActionType::DRAW:
+        case ActionRequest::DRAW:
             std::cout << "Game Over: It's a draw!" << std::endl;
-            tank->addAction(ActionType::DRAW);
+            tank->addAction(ActionRequest::DRAW);
             endGame();
             break;
 
-        case ActionType::INVALID_ACTION:
+        case ActionRequest::INVALID_ACTION:
             std::cout << "Bad step by " << name << std::endl;
-            tank->addAction(ActionType::INVALID_ACTION);
+            tank->addAction(ActionRequest::INVALID_ACTION);
             break;
     }
 }
@@ -357,14 +355,14 @@ void GameManager::updateGame() {
     for(auto& tank : player1.getTanks()) {
         if (tank) {
             tank->setPreviousPosition();
-            ActionType action1 = shared_board->movingAlgorithm(*tank1);
+            ActionRequest action1 = shared_board->movingAlgorithm(*tank1);
             processAction(tank1, action1, "Tank 1");
         }
     }
     for(auto& tank : player2.getTanks()) {
         if (tank) {
             tank->setPreviousPosition();
-            ActionType action2 = shared_board->movingAlgorithm(*tank2);
+            ActionRequest action2 = shared_board->movingAlgorithm(*tank2);
             processAction(tank2, action2, "Tank 2");
         }
     }
@@ -496,18 +494,18 @@ void GameManager::run() {
     }
 
     void GameManager::endGame() {
-    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionType::LOSE){
+    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionRequest::LOSE){
         std::cout << "Game Over: Tank 1 loses!" << std::endl;
-        tank2.get()->addAction(ActionType::WIN);
+        tank2.get()->addAction(ActionRequest::WIN);
     }
-    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionType::LOSE){
+    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionRequest::LOSE){
         std::cout << "Game Over: Tank 2 loses!" << std::endl;
-        tank1.get()->addAction(ActionType::WIN);
+        tank1.get()->addAction(ActionRequest::WIN);
     }
     else {
         std::cout << "Game Over: It's a draw!" << std::endl;
-        tank1.get()->addAction(ActionType::DRAW);
-        tank2.get()->addAction(ActionType::DRAW);
+        tank1.get()->addAction(ActionRequest::DRAW);
+        tank2.get()->addAction(ActionRequest::DRAW);
     }
     displayGame();
     setGameOver(true);

@@ -5,7 +5,7 @@
 #include <ostream>
 
 
-enum class ActionReqeuest {
+enum class ActionRequest {
     MoveForward,
     MoveBackward,
     RotateLeft90,
@@ -17,22 +17,22 @@ enum class ActionReqeuest {
     DoNothing
 };
 
-inline std::string toString(ActionReqeuest action) {
+inline std::string toString(ActionRequest action) {
     switch (action) {
-        case ActionReqeuest::MoveForward: return "MoveForward";
-        case ActionReqeuest::MoveBackward: return "MoveBackward";
-        case ActionReqeuest::RotateLeft90: return "RotateLeft90";
-        case ActionReqeuest::RotateRight90: return "RotateRight90";
-        case ActionReqeuest::RotateLeft45: return "RotateLeft45";
-        case ActionReqeuest::RotateRight45: return "RotateRight45";
-        case ActionReqeuest::Shoot: return "Shoot";
-        case ActionReqeuest::GetBattleInfo: return "GetBattleInfo";
-        case ActionReqeuest::DoNothing: return "DoNothing"; 
+        case ActionRequest::MoveForward: return "MoveForward";
+        case ActionRequest::MoveBackward: return "MoveBackward";
+        case ActionRequest::RotateLeft90: return "RotateLeft90";
+        case ActionRequest::RotateRight90: return "RotateRight90";
+        case ActionRequest::RotateLeft45: return "RotateLeft45";
+        case ActionRequest::RotateRight45: return "RotateRight45";
+        case ActionRequest::Shoot: return "Shoot";
+        case ActionRequest::GetBattleInfo: return "GetBattleInfo";
+        case ActionRequest::DoNothing: return "DoNothing"; 
         default: return "BadStep";
     }
 }
 
-inline std::ostream& operator<<(std::ostream& os, ActionType action) {
+inline std::ostream& operator<<(std::ostream& os, ActionRequest action) {
     return os << toString(action);
 };
 
