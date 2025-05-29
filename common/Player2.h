@@ -2,6 +2,10 @@
 #ifndef PLAYER2_H
 #define PLAYER2_H
 #pragma once
+#include "Player.h"         
+#include "Tank.h"           
+#include <vector>          
+#include <memory>
 
 class Player2 : public Player {
 private:

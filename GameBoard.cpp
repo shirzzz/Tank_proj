@@ -67,10 +67,11 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
     }
     for(int i = 0; i < height; i++){
         std::string line;
-        if()
+        // *** FIXED: REMOVED EMPTY if() STATEMENT ***
         std::getline(file_board, line);
         if(file_board.eof()){
-            line = " "*width; // Fill the rest of the board with empty spaces
+            // *** FIXED: CORRECTED STRING MULTIPLICATION SYNTAX ***
+            line = std::string(width, ' '); // Fill the rest of the board with empty spaces
         }
         if (line.empty()) {
             continue; // Skip empty lines
@@ -78,18 +79,21 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
         for(int j = 0; j < width; j++){
             char c = ' ';
         
-            if(j < line.size()){
+            // *** FIXED: ADDED CAST TO INT FOR COMPARISON ***
+            if(j < static_cast<int>(line.size())){
                 c = line[j];
             }
             if (c == '1') {
                 count_tanks_for_player1++;
-                std::shared_ptr<Tank>& current_tank = std::make_shared<Tank>(j, i, '1');
+                // *** FIXED: REMOVED UNNECESSARY REFERENCE ***
+                std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '1');
                 board[i][j] = current_tank;
                 player1.addTank(current_tank);
             }
             else if( c== '2') {
                 count_tanks_for_player2++;
-                std::shared_ptr<Tank>& current_tank = std::make_shared<Tank>(j, i, '2');
+                // *** FIXED: REMOVED UNNECESSARY REFERENCE ***
+                std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '2');
                 board[i][j] = current_tank;
                 player2.addTank(current_tank);
             }
@@ -286,16 +290,17 @@ void GameBoard::moveShell(Shell* shell) {
     std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
 
-ActionType GameBoard::movingAlgorithm(Tank &tank) {
+ActionRequest GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1') {
         Player1Algorithm chaser_algorithm;
-        ActionType action =  chaser_algorithm.getAction();
+        ActionRequest action =  chaser_algorithm.getAction();
         return action;
     } else if (tank.getIndexTank() == '2') {
         Player1Algorithm chasedAI;
         return chasedAI.getAction();
     }
-    return ActionType::INVALID_ACTION; // Default action if tank is not found
+    // *** FIXED: CHANGED FROM INVALID_ACTION TO DoNothing ***
+    return ActionRequest::DoNothing; // Default action if tank is not found
 }
 
 int GameBoard::getWidth() const {

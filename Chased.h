@@ -4,6 +4,7 @@
 #include "GameBoard.h"
 #include "DirectionUtils.h"
 #include "ActionRequest.h"
+#include "TankAlgorithm.h"
 class Chased : public TankAlgorithm {
 public:
     Chased() = default;

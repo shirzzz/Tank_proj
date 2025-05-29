@@ -131,11 +131,11 @@ void Tank::rotateQuarterRight() {
 }
 
 // Actions Tracking
-void Tank::addAction(ActionType action) {
+void Tank::addAction(ActionRequest action) {
     my_actions.push_back(action);
 }
 
-std::vector<ActionType> Tank::getActions() const {
+std::vector<ActionRequest> Tank::getActions() const {
     return my_actions;
 }
 

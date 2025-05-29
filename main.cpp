@@ -6,6 +6,8 @@
 #include "GameBoard.h"
 #include "GameManager.h"
 #include "ActionRequest.h"
+#include "MyPlayerFactory.h"
+#include "MyTankAlgorithmFactory.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -15,27 +17,16 @@ int main(int argc, char* argv[]) {
 
     std::string filename = argv[1];
 
-    std::ifstream file_board(filename);
-    std::ofstream file_errors("input_errors.txt");
-
-    if (!file_board.is_open()) {
-        file_errors << "Error opening file of the board: " << filename << std::endl;
-        file_errors.close();
-        std::cerr << "Error opening file of the board: " << filename << std::endl;
-        return 1;
-    }
-
-    //GameBoard game_board(width, height);
-    if (!game_board.loadBoardFromFile(file_board, filename)) {
-        file_errors << "Failed to load the game board from input." << std::endl;
-        return 1;
-    }
-
-    //GameManager game_manager(std::make_shared<GameBoard>(game_board));
-    GameManager game(MyPlayerFactory(), MyTankFactory());
-    game.readBoard(file_board, filename);
-    game.getBoard.get()->displayBoard();
-    game.setMovesLeft(game.getBoard()->getMaxSteps());
+    // Assignment 2 API - Create factories
+    MyPlayerFactory playerFactory;
+    MyTankAlgorithmFactory tankFactory;
+    
+    // Assignment 2 API - Create GameManager with factories
+    GameManager game(playerFactory, tankFactory);
+    
+    // Read board and run
+    game.readBoard(filename);
     game.run();
+    
     return 0;
 }

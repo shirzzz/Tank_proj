@@ -86,7 +86,7 @@ GameBoard(int width, int height) : width(width), height(height){
 
     void removeShellAtfromBoard(int x, int y);
     void moveShell(Shell* shell);
-    ActionType movingAlgorithm(Tank& tank);
+    ActionRequest movingAlgorithm(Tank& tank);
     void setCell(int x, int y, std::shared_ptr<Shape> shape);
     
     bool isCellPassable(int x, int y) const;

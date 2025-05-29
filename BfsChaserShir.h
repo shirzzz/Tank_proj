@@ -3,7 +3,8 @@
 #define BFSCHASERSHIR_H
 #pragma once
 #include <memory>
-
+#include "TankAlgorithm.h"  
+#include "ActionRequest.h"
 #include "GameBoard.h"
 
 class BfsChaserShir : public TankAlgorithm {
@@ -12,7 +13,7 @@ private:
 public:
     BfsChaserShir() = default;
     ~BfsChaserShir() override = default;
-    ActionReqeuest getAction() override;
+    ActionRequest getAction() override;
     void updateBattleInfo(BattleInfo& battleInfo) override;
     std::vector<int> getFutureMovesBfs(std::vector<std::vector<int>> graph, int start, int end);
     std::vector<ActionRequest> getFutureMoves(std::vector<int> path, std::shared_ptr<Tank> tank1, std::shared_ptr<Tank> tank2, int height);

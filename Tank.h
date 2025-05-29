@@ -3,7 +3,7 @@
 
 #include "CanonDirection.h"
 #include "Shape.h"
-#include "ActionType.h"
+#include "ActionRequest.h"
 #include "DestructionCause.h"
 
 #include <vector>
@@ -13,7 +13,7 @@
 class Tank : public Shape {
 private:
     char index_tank;
-    std::vector<ActionType> my_actions;
+    std::vector<ActionRequest> my_actions;
     CanonDirection canon_dir;
     int num_bullets;
     int last_time_shoot;
@@ -48,8 +48,8 @@ public:
     int getNumBullets() const;
 
     // Movement Logic
-    void addAction(ActionType action);
-    std::vector<ActionType> getActions() const;
+    void addAction(ActionRequest action);
+    std::vector<ActionRequest> getActions() const;
 
     // Wait State Control
     int getWaitingToGoBack() const { return waiting_to_go_back; }
