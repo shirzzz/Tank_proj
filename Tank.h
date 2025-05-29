@@ -3,7 +3,7 @@
 
 #include "CanonDirection.h"
 #include "Shape.h"
-#include "ActionRequest.h"
+#include "common/ActionRequest.h"
 #include "DestructionCause.h"
 
 #include <vector>

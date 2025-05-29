@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
+#include "common/Player1.h"
+#include "common/Player2.h"
 
 class GameBoard {
     int width, height;

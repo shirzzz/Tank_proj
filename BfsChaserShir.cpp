@@ -66,7 +66,7 @@ std::vector<ActionRequest> BfsChaserShir::getFutureMoves(std::vector<int> path, 
     std::vector<ActionRequest> moves;
 
     if (path.empty()) {
-        moves.push_back(ActionRequest::SHOOT);
+        moves.push_back(ActionRequest::Shoot);
         return moves;
     }
 
@@ -81,7 +81,7 @@ std::vector<ActionRequest> BfsChaserShir::getFutureMoves(std::vector<int> path, 
         int dy = y2 - y1;
 
         if (isFacingOpponent(*tank1, *tank2)) {
-            moves.push_back(ActionRequest::SHOOT);
+            moves.push_back(ActionRequest::Shoot);
             continue;
         }
 
@@ -94,17 +94,17 @@ std::vector<ActionRequest> BfsChaserShir::getFutureMoves(std::vector<int> path, 
 
         if (left_steps <= right_steps) {
             for (int j = 0; j < left_steps; ++j) {
-                moves.push_back(ActionRequest::ROTATE_EIGHTH_LEFT);
+                moves.push_back(ActionRequest::RotateLeft45);
                 canon_direction = rotateDirectionLeft(canon_direction);
             }
         } else {
             for (int j = 0; j < right_steps; ++j) {
-                moves.push_back(ActionRequest::ROTATE_EIGHTH_RIGHT);
+                moves.push_back(ActionRequest::RotateRight45);
                 canon_direction = rotateDirectionRight(canon_direction);
             }
         }
 
-        moves.push_back(ActionRequest::MOVE_FORWARD);
+        moves.push_back(ActionRequest::MoveForward);
     }
 
     return moves;
@@ -123,9 +123,9 @@ ActionRequest BfsChaserShir::getNextMove(std::shared_ptr<GameBoard> shared_board
 
         std::vector<int> path = getFutureMovesBfs(graph, startNode, endNode);
         my_future_moves = getFutureMoves(path, tank1, tank2, shared_board->getHeight());
-
+        //need to check with shir
         if (my_future_moves.empty()) {
-            return ActionRequest::INVALID_ACTION;
+            return ActionRequest::DoNothing;
         }
 
         ActionRequest next_move = my_future_moves.front();

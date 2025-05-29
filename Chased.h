@@ -3,8 +3,8 @@
 #include "Tank.h"
 #include "GameBoard.h"
 #include "DirectionUtils.h"
-#include "ActionRequest.h"
-#include "TankAlgorithm.h"
+#include "common/ActionRequest.h"
+#include "common/TankAlgorithm.h"
 class Chased : public TankAlgorithm {
 public:
     Chased() = default;

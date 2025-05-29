@@ -1,6 +1,6 @@
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "ActionRequest.h"
+#include "common/ActionRequest.h"
 #include "GameBoard.h"
 #include "Tank.h"
 #include "Shell.h"
