@@ -15,25 +15,54 @@
 #include "Mine.h"
 #include "BfsChaserShir.h"
 
+/**
+ * @brief Loads game board configuration from input stream
+ * @param file_board Input stream containing board data
+ * @param filename Name of the source file for error reporting and logging
+ * @return true if board loaded successfully, false otherwise
+ * 
+ * Design Decision: The filename parameter is used for enhanced error reporting
+ * and debugging. While the actual file reading is done through the input stream,
+ * having the filename allows us to:
+ * 1. Provide more informative error messages to users
+ * 2. Create better logging and debugging output
+ * 3. Support future features like configuration file validation
+ * 4. Maintain consistency with file-based error reporting patterns
+ * 
+ * This approach separates file I/O concerns (handled by caller) from
+ * data parsing (handled by this method) while still maintaining context
+ * about the data source for error reporting purposes.
+ */
 bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename) {
     
     int count_tanks_for_player1 = 0; //counts how many tanks player1 has
     int count_tanks_for_player2 = 0; //counts how many tanks player2 has
+    
+    // Use filename in error file creation for better traceability
     std::ofstream file_errors("input_errors.txt");
-    std::cout << "Opening file for writing input errors." << std::endl;
+    std::cout << "Opening file for writing input errors from: " << filename << std::endl;
+    
     if (!file_errors) {
-        file_errors << "Error: Failed to open file for writing input errors.\n" << std::endl;
+        file_errors << "Error: Failed to open file for writing input errors from " << filename << ".\n" << std::endl;
         file_errors.close();
-        std::cerr << "Failed to open file for writing input errors." << std::endl;
+        std::cerr << "Failed to open file for writing input errors from " << filename << std::endl;
         return false;
     }
+    
+    // Log the source file being processed
+    file_errors << "Processing board file: " << filename << std::endl;
+    file_errors << "===========================================" << std::endl;
+    
     std::regex pattern_max_steps(R"(MaxSteps\s*:\s*(\d+))");
     std::regex pattern_num_shells(R"(NumShells\s*:\s*(\d+))");
     std::regex pattern_rows(R"(Rows\s*:\s*(\d+))");
     std::regex pattern_cols(R"(Cols\s*:\s*(\d+))");
-    // **I think we need to change this part ***
-    player1 =  player1(1, 0, 0, 0, 0, 0);
-    player2 = player2(2, 0, 0, 0, 0, 0);
+    
+    // Initialize players with default values
+    player1 = Player1(1, 0, 0, 0, 0, 0);
+    player2 = Player2(2, 0, 0, 0, 0, 0);
+    
+    // Parse configuration parameters (first 4 lines)
     for(int i = 0; i < 4; i++){
         std::string line;
         std::getline(file_board, line);
@@ -55,44 +84,45 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
             std::cout << "Cols: " << width << std::endl;
         }
         else {
-            file_errors << "Error: Invalid line format in input file: " << line << std::endl;
-            std::cerr << "Invalid line format in input file: " << line << std::endl;
+            // Enhanced error reporting with filename context
+            file_errors << "Error in " << filename << " (line " << (i+1) << "): Invalid line format: " << line << std::endl;
+            std::cerr << "Invalid line format in " << filename << " (line " << (i+1) << "): " << line << std::endl;
             return false;
         }
     }
+    
     if (width <= 0 || height <= 0) {
-        file_errors << "Error: Invalid board dimensions." << std::endl;
-        std::cerr << "Invalid board dimensions." << std::endl;
+        file_errors << "Error in " << filename << ": Invalid board dimensions (width: " << width << ", height: " << height << ")" << std::endl;
+        std::cerr << "Invalid board dimensions in " << filename << std::endl;
         return false;
     }
+    
+    // Parse board layout
     for(int i = 0; i < height; i++){
         std::string line;
-        // *** FIXED: REMOVED EMPTY if() STATEMENT ***
         std::getline(file_board, line);
         if(file_board.eof()){
-            // *** FIXED: CORRECTED STRING MULTIPLICATION SYNTAX ***
             line = std::string(width, ' '); // Fill the rest of the board with empty spaces
         }
         if (line.empty()) {
             continue; // Skip empty lines
         }
+        
         for(int j = 0; j < width; j++){
             char c = ' ';
         
-            // *** FIXED: ADDED CAST TO INT FOR COMPARISON ***
             if(j < static_cast<int>(line.size())){
                 c = line[j];
             }
+            
             if (c == '1') {
                 count_tanks_for_player1++;
-                // *** FIXED: REMOVED UNNECESSARY REFERENCE ***
                 std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '1');
                 board[i][j] = current_tank;
                 player1.addTank(current_tank);
             }
             else if( c== '2') {
                 count_tanks_for_player2++;
-                // *** FIXED: REMOVED UNNECESSARY REFERENCE ***
                 std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '2');
                 board[i][j] = current_tank;
                 player2.addTank(current_tank);
@@ -106,12 +136,14 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
             else if (c == '@') {
                 board[i][j] = std::make_shared<Mine>(j, i);
             }
-            else if (c == 'o') {
-                board[i][j] = std::make_shared<Shell>(j, i);
-            }
+            //need you here shir!!
+            //else if (c == 'o') {
+               // board[i][j] = std::make_shared<Shell>(j, i);
+            //}
             else {
-                file_errors << "Error: Invalid character in input file: " << c << std::endl;
-                std::cerr << "Invalid character in input file: " << c << std::endl;
+                // Enhanced error reporting with filename and position context
+                file_errors << "Error in " << filename << " at position (" << j << "," << i << "): Invalid character '" << c << "'" << std::endl;
+                std::cerr << "Invalid character '" << c << "' in " << filename << " at position (" << j << "," << i << ")" << std::endl;
                 return false;
             }
         }
@@ -120,8 +152,14 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
     displayBoard(); // Display the loaded board
     player1.setNumTanks(count_tanks_for_player1);
     player2.setNumTanks(count_tanks_for_player2);
+    
+    // Log successful completion
+    file_errors << "Successfully loaded board from " << filename << std::endl;
+    file_errors << "Player 1 tanks: " << count_tanks_for_player1 << std::endl;
+    file_errors << "Player 2 tanks: " << count_tanks_for_player2 << std::endl;
+    
     file_errors.close();
-    std::cout << "Board loaded successfully." << std::endl;
+    std::cout << "Board loaded successfully from " << filename << std::endl;
     return true;
 }
 
@@ -289,7 +327,7 @@ void GameBoard::moveShell(Shell* shell) {
     board[new_y][new_x] = std::make_shared<Shell>(*shell);
     std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
-
+//need your help shir!!
 ActionRequest GameBoard::movingAlgorithm(Tank &tank) {
     if (tank.getIndexTank() == '1') {
         Player1Algorithm chaser_algorithm;
