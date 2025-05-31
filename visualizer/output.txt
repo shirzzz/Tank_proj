@@ -1,0 +1,6 @@
+RotateRight45, MoveForward, MoveForward, MoveForward
+RotateLeft45, MoveForward, MoveForward, MoveForward
+RotateRight45, MoveForward, MoveForward, MoveForward
+RotateLeft45, MoveForward, MoveForward, MoveForward
+RotateRight45, MoveForward, MoveForward, MoveForward
+Player 2 won with 2 tanks still alive
