@@ -2,7 +2,7 @@
 #define PLAYERFACTORY_H
 
 #include <memory>
-
+#include "Player.h"
 class PlayerFactory {
 public:
     virtual ~PlayerFactory() {}

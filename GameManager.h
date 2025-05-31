@@ -2,12 +2,12 @@
 #define GAMEMANAGER_H
 #pragma once
 
-#include "ActionRequest.h"
+#include "common/ActionRequest.h"
 #include "Tank.h"
-#include "PlayerFactory.h"
-#include "TankAlgorithmFactory.h"
-#include "Player1.h"
-#include "Player2.h"
+#include "common/PlayerFactory.h"
+#include "common/TankAlgorithmFactory.h"
+#include "common/Player1.h"
+#include "common/Player2.h"
 #include <string>
 #include <climits>  // For INT_MAX
 #include <memory>

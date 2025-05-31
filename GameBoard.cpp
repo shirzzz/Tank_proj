@@ -328,18 +328,17 @@ void GameBoard::moveShell(Shell* shell) {
     std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
 //need your help shir!!
-ActionRequest GameBoard::movingAlgorithm(Tank &tank) {
-    if (tank.getIndexTank() == '1') {
-        Player1Algorithm chaser_algorithm;
-        ActionRequest action =  chaser_algorithm.getAction();
-        return action;
-    } else if (tank.getIndexTank() == '2') {
-        Player1Algorithm chasedAI;
-        return chasedAI.getAction();
-    }
-    // *** FIXED: CHANGED FROM INVALID_ACTION TO DoNothing ***
-    return ActionRequest::DoNothing; // Default action if tank is not found
-}
+
+//ActionRequest GameBoard::movingAlgorithm(Tank &tank) {
+//    if (tank.getIndexTank() == '1') {
+//        Player1Algorithm chaser_algorithm;
+//        ActionRequest action =  chaser_algorithm.getAction();
+//        return action;
+//    } else if (tank.getIndexTank() == '2') {
+//        Player1Algorithm chasedAI;
+//        return chasedAI.getAction();
+//    }
+
 
 int GameBoard::getWidth() const {
     return width;
@@ -417,3 +416,5 @@ void GameBoard::setCell(int x, int y, std::shared_ptr<Shape> shape) {
         board[y][x] = std::make_shared<Shape>(*shape);
     }
 }
+
+

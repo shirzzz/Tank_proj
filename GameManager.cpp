@@ -5,7 +5,7 @@
 #include "DestructionCause.h"
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "ActionRequest.h"
+#include "common/ActionRequest.h"
 #include "CanonDirection.h"
 #include "CellType.h"
 #include <iostream>
@@ -97,7 +97,7 @@ void GameManager::resolveShellCollisions() {
             }
             toExplode.push_back(&shell);
         } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
-            std::shared_ptr<Tank> hitTank = shared_board->getTankAtPosition(x, y);
+            std::shared_ptr<Tank> hitTank = shared_board->getCell(x, y);
             if (hitTank) {
                 auto player = shared_board->getPlayerByTank(hitTank);
                 player->addKilledTank(hitTank->getTankIndex());
