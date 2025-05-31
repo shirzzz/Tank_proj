@@ -1,61 +1,86 @@
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "common/ActionRequest.h"
+#include "ActionRequest.h"
 #include "GameBoard.h"
 #include "Tank.h"
 #include "Shell.h"
 #include <vector>
 
-// Check if any shell will move into the tile in front of the tank
-bool Chased::isDangerAhead(const Tank& tank,const GameBoard& board) {
-    std::pair<int, int> dir = directionToVector(tank.getCanonDirection());
-    int dx = dir.first;
-    int dy = dir.second;
-    int fx = tank.getX() + dx;
-    int fy = tank.getY() + dy;
+// // Check if any shell will move into the tile in front of the tank
+// bool Chased::isDangerAhead() {
+//     Tank& my_tank = *this->my_tank.get();
+//     const GameBoard& board = *this->game_board.get();
+//     std::pair<int, int> dir = directionToVector(tank.getCanonDirection());
+//     int dx = dir.first;
+//     int dy = dir.second;
+//     int fx = tank.getX() + dx;
+//     int fy = tank.getY() + dy;
 
-    for (const Shell& shell : board.getShells()) {
-        int sx = shell.getX();
-        int sy = shell.getY();
-        auto dir = directionToVector(shell.getDirection());
-        int sdx = dir.first;
-        int sdy = dir.second;
+//     for (const Shell& shell : board.getShells()) {
+//         int sx = shell.getX();
+//         int sy = shell.getY();
+//         auto dir = directionToVector(shell.getDirection());
+//         int sdx = dir.first;
+//         int sdy = dir.second;
 
-        for (int step = 0; step < 5; ++step) {
-            if (sx == fx && sy == fy) return true;
+//         for (int step = 0; step < 5; ++step) {
+//             if (sx == fx && sy == fy) return true;
 
-            sx += sdx;
-            sy += sdy;
-            if (sx < 0 || sx >= board.getWidth() || sy < 0 || sy >= board.getHeight())
-                break;
-        }
-    }
+//             sx += sdx;
+//             sy += sdy;
+//             if (sx < 0 || sx >= board.getWidth() || sy < 0 || sy >= board.getHeight())
+//                 break;
+//         }
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
-// Helper function: check if opponent is aligned with self
-bool isAlignedHorizontally(const Tank& self, const Tank& opponent) {
-    return self.getY() == opponent.getY();
-}
+// // Helper function: check if opponent is aligned with self
+// int isAlignedHorizontally() {
+//     int i = 0;
+//     //returns which opponent is aligned with self
+//     for(const auto& opponent : opponents) {
+//         if (my_tank.get().getY() == opponent.get().getY()) {
+//             return i;
+//         }
+//         i++;
+//     }
+//     return -1; // No opponent aligned horizontally
+// }
 
-bool isAlignedVertically(const Tank& self, const Tank& opponent) {
-    return self.getX() == opponent.getX();
-}
+// int isAlignedVertically() {
+//     int i = 0;
+//     for(const auto& opponent : opponents) {
+//         if (my_tank.get().getX() == opponent.get().getX()) {
+//             return i;
+//         }
+//         i++;
+//     }
+//     return -1; // No opponent aligned vertically
+// }
 
-// Helper: check if cannon direction matches direction to opponent
-bool isFacingOpponent(const Tank& self, const Tank& opponent) {
-    int dx = opponent.getX() - self.getX();
-    int dy = opponent.getY() - self.getY();
-
-    if (dx == 0 && dy == 0) return false; // Same position (somehow?)
-
-    CanonDirection dirToOpponent = getDirectionFromDelta(dx, dy);
-    return self.getCanonDirection() == dirToOpponent;
-}
+// // Helper: check if cannon direction matches direction to opponent
+// int isFacingOpponent() {
+//     Tank& self = *my_tank.get();
+//     int i = 0;
+//     for(const auto& opponent : opponents) {
+//         if (opponent == nullptr) continue; // Skip null opponents
+//         int dx = opponent.getX() - self.getX();
+//         int dy = opponent.getY() - self.getY();
+//         if (dx == 0 && dy == 0) return false; // Same position (somehow?)
+//         CanonDirection dirToOpponent = getDirectionFromDelta(dx, dy);
+//         if (self.getCanonDirection() == dirToOpponent) {
+//             return i; // Facing opponent
+//         }
+//         i++;
+//     }
+//     return -1; // Not facing any opponent
+// }
 
 // Compute best rotation toward the opponent's position
-ActionRequest rotateToward(const Tank& self, const Tank& opponent) {
+ActionRequest rotateToward(std::shared_ptr<Tank> opponent) {
+    Tank& self = *my_tank.get();
     int dx = opponent.getX() - self.getX();
     int dy = opponent.getY() - self.getY();
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
@@ -73,21 +98,23 @@ ActionRequest rotateToward(const Tank& self, const Tank& opponent) {
     return ActionRequest::RotateLeft90;
 }
 
-ActionRequest Chased::decideNextAction(GameBoard& board, const Tank& self, const Tank& opponent) {
+ActionRequest Chased::decideNextAction() {
+    Tank& self = *my_tank.get();
+    GameBoard& board = *game_board.get();
+
     // 1. Avoid danger if necessary
-    if (isDangerAhead(self, board)) {
+    if (isDangerAhead()) {
         return rotateToward(self, opponent);  // Or choose another evasive action
     }
 
     // 2. If facing opponent and aligned, shoot!
-    if ((isAlignedHorizontally(self, opponent) || isAlignedVertically(self, opponent)) &&
-        isFacingOpponent(self, opponent)) {
+    if ((isAlignedHorizontally() != -1 || isAlignedVertically() != -1) && isFacingOpponent() != -1) {
         return ActionRequest::Shoot;
     }
 
     // 3. Not facing opponent? Rotate toward them
-    if (!isFacingOpponent(self, opponent)) {
-        return rotateToward(self, opponent);
+    if (int index := isFacingOpponent() != -1) {
+        return rotateToward(opponents[index]);
     }
 
     // 4. Default action: move toward the opponent
@@ -101,3 +128,29 @@ ActionRequest Chased::decideNextAction(GameBoard& board, const Tank& self, const
     }
     return ActionRequest::MoveForward;
 }
+
+ActionRequest Chased::getAction() {
+    if (my_future_moves.empty()) {
+        setFutureMoves(); // Populate future moves if empty
+        return ActionRequest::GetBattleInfo; 
+    }
+    ActionRequest action = my_future_moves.front();
+    my_future_moves.erase(my_future_moves.begin());
+    return action;
+}
+std::vector<ActionRequest> Chased::setFutureMoves() {
+    my_future_moves.clear();
+    for (int i = 0; i < 5; ++i) {
+        MyBattleInfo battleInfo;
+        opponents = battleInfo.getOpponents();
+        board = battleInfo.getBoard();
+        my_future_moves.push_back(decideNextAction(*board, opponents));
+    }
+}
+
+
+
+
+
+
+
