@@ -205,23 +205,32 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
         std::pair<int, int> new_position = tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
         if(shared_board->isCellWalkable(new_position.first, new_position.second)){
             tank->setWaitingToGoBack(-1);
-            tank->addAction(ActionRequest::MoveBackward);
-            shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+            if(tank->isAlive()){
+                tank->addAction("MoveBackward");
+                shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+            }
+            else {
+                tank->addAction("MoveBackward (killed)");
+            }
         }
         else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-            tank->addAction(ActionRequest::INVALID_ACTION);
+            tank->addAction("MoveBackward (Ignored)");
         }
         else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
             shared_board->removeTank(tank);
-            tank->addActionActionRequest::LOSE);
-            tank->setDestructionCause(DestructionCause::MINE);
-            if(tank->getIndexTank() == '1'){
-                tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
-            } else if(tank->getIndexTank() == '2'){
-                tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
-            }
-            endGame();
-            return;
+            tank->killTank();
+            // ------------------------------------------------------------------------
+            //Shir: I think this is not needed, as the tank is already dead
+            // -----------------------------------------------------------------------
+            //tank->addActionActionRequest::LOSE);
+            // tank->setDestructionCause(DestructionCause::MINE);
+            // if(tank->getIndexTank() == '1'){
+            //     tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
+            // } else if(tank->getIndexTank() == '2'){
+            //     tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
+            // }
+            //endGame();
+            //return;
         }
         }
 
@@ -231,14 +240,24 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             else {
                 std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
                 if(shared_board->isCellWalkable(new_position.first, new_position.second)){
-                    tank->addAction(ActionRequest::MoveForward);
-                    shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+                    if(tank->isAlive()) {
+                        tank->setWaitingToGoBack(-1);
+                        tank->addAction("MoveForward");
+                        shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+                    } else {
+                        tank->addAction("MoveForward (killed)");
+                    }    
                 }
                 else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-                    tank->addAction(ActionRequest::INVALID_ACTION);
+                    tank->addAction("MoveForward (Ignored)");
                 }
                 else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
                     shared_board->removeTank(tank);
+                    tank->killTank();
+                    // ------------------------------------------------------------------------
+                    //Shir: I think this is not needed, as the tank is already dead
+                    // -----------------------------------------------------------------------
+                    /*
                     tank->addAction(ActionRequest::LOSE);
                     tank->setDestructionCause(DestructionCause::MINE);
                     if(tank->getIndexTank() == '1'){
@@ -247,7 +266,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                         tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
                     }
                     endGame();
-                } 
+                } */
             }
             break;
 
@@ -259,8 +278,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
 
         case ActionRequest::RotateLeft45:
             if (waiting_to_go_back == -1) {
-                tank->rotateEighthLeft();
-                tank->addAction(action);
+                if(tank->isAlive()){
+                    tank->addAction("RotateLeft45");
+                    tank->rotateEighthLeft();
+                }
+                else
+                    tank->addAction("RotateLeft45 (killed)");
             }
             else {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
@@ -268,8 +291,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             break;
         case ActionRequest::RotateRight45:
             if (waiting_to_go_back == -1) {
-                tank->rotateEighthRight();
-                tank->addAction(action);
+                if(tank->isAlive()){
+                    tank->addAction("RotateRight45");
+                    tank->rotateEighthRight();
+                }
+                else
+                    tank->addAction("RotateRight45 (killed)");
             }
             else {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
@@ -277,8 +304,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             break;
         case ActionRequest::RotateLeft90:
             if (waiting_to_go_back == -1) {
-                tank->rotateQuarterLeft();
-                tank->addAction(action);
+                if(tank->isAlive()){
+                    tank->addAction("RotateLeft90");
+                    tank->rotateQuarterLeft();
+                }
+                else
+                    tank->addAction("RotateLeft90 (killed)");
             }
             else {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
@@ -286,8 +317,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             break;
         case ActionRequest::RotateRight90:
             if (waiting_to_go_back == -1) {
-                tank->rotateQuarterRight();
-                tank->addAction(action);
+                if(tank->isAlive()){
+                    tank->addAction("RotateRight90");
+                    tank->rotateQuarterRight();
+                }
+                else
+                    tank->addAction("RotateRight90 (killed)");
             }
             else {
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
@@ -296,13 +331,29 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
 
             case ActionRequest::Shoot:
             if (waiting_to_shoot != -1) {
-                tank->addAction(ActionRequest::INVALID_ACTION);
-                tank->setWaitingToShootAgain(waiting_to_shoot - 1);
+                if(tank->isAlive())
+                    tank->addAction("Shoot (ignored)");
+                    tank->setWaitingToShootAgain(waiting_to_shoot - 1);
+                else
+                    tank->addAction("Shoot (killed)");
+                
             } else if (tank->getNumBullets() == 0) {
-                tank->addAction(ActionRequest::INVALID_ACTION);
-                if (shared_board->getTank1()->getNumBullets() == 0 &&
-                    shared_board->getTank2()->getNumBullets() == 0) {
-                    if (moves_left > 40) moves_left = 40;
+                if(tank->isAlive())
+                    tank->addAction("Shoot (ignored)");
+                else
+                    tank->addAction("Shoot (killed)");
+
+                //Shir: I think we need to handle the case where all the tanks are out of ammo
+                if(tank->getIndexTank() == '1'){
+                    player1->player1Shoot();
+
+                }
+                else if(tank->getIndexTank() == '2'){
+                    player2->player1Shoot();
+                }
+                if(player1->getSumShells() == 0 && player2->getSumShells() == 0) {
+                    // If both players are out of shells, end the game
+                    moves_left = 40; // Set moves_left to 40 to end the game
                 }
             } else {
                 tank->shoot();
@@ -316,34 +367,10 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
         
                 // Place shell one step ahead
                 shared_board->addShell(*(std::make_shared<Shell>(shell_x, shell_y, tank->getCanonDirection())));
-                tank->addAction(ActionRequest::Shoot);
+
+                tank->addAction("Shoot");
                 tank->setWaitingToShootAgain(4);
             }
-            break;
-
-
-        
-        case ActionRequest::WIN:
-            std::cout << "Game Over: " << name << " wins!" << std::endl;
-            tank->addAction(ActionRequest::WIN);
-            endGame();
-            break;
-
-        case ActionRequest::LOSE:
-            std::cout << "Game Over: " << name << " loses!" << std::endl;
-            tank->addAction(ActionRequest::LOSE);
-            endGame();
-            break;
-
-        case ActionRequest::DRAW:
-            std::cout << "Game Over: It's a draw!" << std::endl;
-            tank->addAction(ActionRequest::DRAW);
-            endGame();
-            break;
-
-        case ActionRequest::INVALID_ACTION:
-            std::cout << "Bad step by " << name << std::endl;
-            tank->addAction(ActionRequest::INVALID_ACTION);
             break;
     }
 }
@@ -380,24 +407,30 @@ void GameManager::removeTank(char index) {
 
 void GameManager::run() {
     int step = 0;
+    std::ofstream file("Output_" + filename + ".txt");
+    if (!file) {
+        std::cerr << "Failed to open Output file for writing." << std::endl;
+        return 1;
+    }
     if(shared_board->getPlayer1()->getTanks().size() == 0 && shared_board->getPlayer2()->getTanks().size() == 0){
-        std::cout << "Game Over: Both players have no tanks left!" << std::endl;
+        std::cout << "Tie, both players have zero tanks " << std::endl;
+        file << "Tie, both players have zero tanks" << std::endl;
         wining_tank = '0';
         endGame();
-        
         return;
     }
 
-    //לסדר את הoutpul file למקרה הזה
     else if(shared_board->getPlayer1()->getTanks().size() == 0){
         wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
+        file << "Player 2 won with " <<shared_board->getPlayer2()->getTanks().size()<<"tanks still alive"<<std::endl;
         endGame();
         return;
     }
     else if(shared_board->getPlayer2()->getTanks().size() == 0){
         wining_tank = '1';
         std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
+        file<< "Player 1 won with " <<shared_board->getPlayer1()->getTanks().size()<<"tanks still alive"<<std::endl;
         endGame();
         return;
     }
@@ -413,41 +446,29 @@ void GameManager::run() {
         step++;
         moves_left = game_manager.getMovesLeft() - 1;
         if (moves_left == 0) {
-            endGame();
+            
             std::cout << "Game Over: No moves left!" << std::endl;
-            // *** need to change this part ***
-            getTank1()->setDestructionCause(DestructionCause::OUTOFAMMO);
-            getTank2()->setDestructionCause(DestructionCause::OUTOFAMMO);
+            wining_tank = '0';
+            endGame();
+            // *** need to change this part *** Shir: I dont think we need to set the destruction cause here
+            // getTank1()->setDestructionCause(DestructionCause::OUTOFAMMO);
+            // getTank2()->setDestructionCause(DestructionCause::OUTOFAMMO);
             }
         }
-    std::ofstream file("Output_" + filename + ".txt");
-    if (!file) {
-        std::cerr << "Failed to open Output file for writing." << std::endl;
-        return 1;
-    }
+    
     for(int i=0; i<step; i++){
         for(auto& tank : player1.getTanks()) {
-        if (tank) {
-            if(player1.isTankAlive(tank.get()->getIndexTank())){
-                file << tank.get()->getActions()[0]<< ",";
-                tank.get()->deleteFirstAction();
+            for(int j = 0; j < tank->getActions().size() - 1; j++) {
+                file << tank->getActions()[j] << ",";
             }
-            else{
-                file<<"killed, ";
-            }
-        }
+        file << tank->getActions().back() << " ";
+        file << std::endl;
     }
     for(auto& tank : player2.getTanks()) {
-        if (tank) {
-            if(player2.isTankAlive(tank.get()->getIndexTank())){
-                file << tank.get()->getActions()[0]<< ",";
-                tank.get()->deleteFirstAction();
-            }
-            else{
-                file<<"killed, ";
-            }
-        }
+       for(int j = 0; j < tank->getActions().size() -1; j++) {
+            file << tank->getActions()[j] << ",";
     }
+        file << tank->getActions().back() << " ";
         file << std::endl;
     }
 
@@ -494,40 +515,8 @@ void GameManager::run() {
     }
 
     void GameManager::endGame() {
-    if(tank1.get()->getActions()[tank1.get()->getActions().size()-1] == ActionRequest::LOSE){
-        std::cout << "Game Over: Tank 1 loses!" << std::endl;
-        tank2.get()->addAction(ActionRequest::WIN);
-    }
-    else if(tank2.get()->getActions()[tank2.get()->getActions().size()-1] == ActionRequest::LOSE){
-        std::cout << "Game Over: Tank 2 loses!" << std::endl;
-        tank1.get()->addAction(ActionRequest::WIN);
-    }
-    else {
-        std::cout << "Game Over: It's a draw!" << std::endl;
-        tank1.get()->addAction(ActionRequest::DRAW);
-        tank2.get()->addAction(ActionRequest::DRAW);
-    }
     displayGame();
     setGameOver(true);
-}
-//need to delete
-void GameManager::checkWinCondition() {
-    auto p1Tanks = shared_board->getPlayer1()->getTanks();
-    auto p2Tanks = shared_board->getPlayer2()->getTanks();
-
-    if (p1Tanks.empty() && p2Tanks.empty()) {
-        wining_tank = '0';
-        std::cout << "Game Over: Both players eliminated." << std::endl;
-        setGameOver(true);
-    } else if (p1Tanks.empty()) {
-        wining_tank = '2';
-        std::cout << "Game Over: Player 2 wins with " << p2Tanks.size() << " tank(s) remaining." << std::endl;
-        setGameOver(true);
-    } else if (p2Tanks.empty()) {
-        wining_tank = '1';
-        std::cout << "Game Over: Player 1 wins with " << p1Tanks.size() << " tank(s) remaining." << std::endl;
-        setGameOver(true);
-    }
 }
 
 

@@ -13,7 +13,9 @@
 class Tank : public Shape {
 private:
     char index_tank;
+    bool is_alive = true; // Track if the tank is alive
     std::vector<ActionRequest> my_actions;
+    std::vector<std::string> my_actions_str; // For human-readable actions
     CanonDirection canon_dir;
     int num_bullets;
     int last_time_shoot;
@@ -48,8 +50,10 @@ public:
     int getNumBullets() const;
 
     // Movement Logic
-    void addAction(ActionRequest action);
-    std::vector<ActionRequest> getActions() const;
+    void addAction(std::string action) {
+        my_actions_str.push_back(action);
+    }
+    std::vector<std::string> getActions() const;
 
     // Wait State Control
     int getWaitingToGoBack() const { return waiting_to_go_back; }
@@ -71,6 +75,8 @@ public:
     DestructionCause getDestructionCause() const;
     std::string getDestructionCauseStr() const;
     void deleteFirstAction() { my_actions.erase(my_actions.begin()); } // Remove the first action
+    bool isAlive() const { return is_alive; }
+    void killTank() { is_alive = false; }
 };
 
 #endif // TANK_H

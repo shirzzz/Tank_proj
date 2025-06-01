@@ -101,6 +101,7 @@ GameBoard(int width, int height) : width(width), height(height){
     Player2 getPlayer2() const { return player2; }
     void setPlayer1(const Player1& player) { player1 = player; }
     void setPlayer2(const Player2& player) { player2 = player; }
+    int getMaxSteps() const { return max_steps; }
 };
 
 #endif // GAMEBOARD_H

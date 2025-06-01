@@ -11,6 +11,7 @@ class Player2 : public Player {
 private:
     size_t num_tanks = 0;
     std::vector<bool> killed_tanks;
+    size_t sum_shells = 0; // Total number of shells available for all tanks
     int num_killed_tanks = 0;
     std::vector<std::shared_ptr<Tank>> tanks;
 
@@ -58,6 +59,12 @@ public:
     
     void setNumKilledTanks(int num) {
         num_killed_tanks = num;
+    }
+    size_t getSumShells() const {
+        return sum_shells;
+    }
+    void player2Shoot() {
+        sum_shells --; // Decrease the total number of shells available for all tanks
     }
 };
 
