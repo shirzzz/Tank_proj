@@ -79,10 +79,10 @@
 // }
 
 // Compute best rotation toward the opponent's position
-ActionRequest rotateToward(std::shared_ptr<Tank> opponent) {
+ActionRequest rotateToward(std::pair<size_t, size_t> opponent) {
     Tank& self = *my_tank.get();
-    int dx = opponent.getX() - self.getX();
-    int dy = opponent.getY() - self.getY();
+    int dx = opponent.first - self.getX();
+    int dy = opponent.second - self.getY();
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
     CanonDirection currentDir = self.getCanonDirection();
 

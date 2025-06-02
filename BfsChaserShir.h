@@ -10,11 +10,9 @@
 class BfsChaserShir : public TankAlgorithm {
 private:
     std::vector<ActionRequest> my_future_moves;
-    std::shared_ptr<GameBoard> game_board;
-    vector<std::shared_ptr<Tank>> opponents; // List of opponent tanks
     std::shared_ptr<Tank> my_tank;
 public:
-    BfsChaserShir() = default;
+    BfsChaserShir(std::shared_ptr<Tank> tank): my_tank(tank){};
     ~BfsChaserShir() override = default;
     ActionRequest getAction() override;
     std::vector<std::vector<int>> getGraphOutOfBoard(const std::shared_ptr<GameBoard> board);

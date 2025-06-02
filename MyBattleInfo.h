@@ -7,7 +7,8 @@
 #include <vector>
 #include <string>
 #include <utility>
-
+// MyBattleInfo.cpp - Implementation file
+#include "MyBattleInfo.h"
 class MyBattleInfo : public BattleInfo {
 public:
     // Tank-specific fields
@@ -16,10 +17,9 @@ public:
 
     // Constructor declaration only
     MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar = '1');
-};
+}
 
-// MyBattleInfo.cpp - Implementation file
-#include "MyBattleInfo.h"
+
 
 MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar) {
     if (!satelliteView) return;
@@ -49,3 +49,11 @@ MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar) {
         }
     }
 }
+
+std::vector<std::pair<size_t, size_t>> MyBattleInfo::getOpponents() const {
+    return knownEnemyLocations; // Return the list of known enemy locations
+}
+
+GameBoard* MyBattleInfo::getGameBoard() const {
+    return gameBoard; // Return the pointer to the game board
+};

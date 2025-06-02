@@ -99,13 +99,14 @@ void GameManager::resolveShellCollisions() {
             }
             toExplode.push_back(&shell);
         } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
-            std::shared_ptr<Tank> hitTank = shared_board->getCell(x, y);
-            if (hitTank) {
-                auto player = shared_board->getPlayerByTank(hitTank);
-                player->addKilledTank(hitTank->getTankIndex());
+            std::shared_ptr<Tank> hit_tank = shared_board->getCell(x, y);
+            if (hit_tank) {
+                auto player = shared_board->getPlayerByTank(hit_tank);
+                hit_tank->killTank();
+                player->addKilledTank(hit_tank->getTankIndex());
                 player->setNumKilledTanks(player->getNumKilledTanks() + 1);
-                shared_board->removeTank(hitTank);
-                player->removeTank(hitTank);
+                shared_board->removeTank(hit_tank);
+                player->removeTank(hit_tank);
                 toExplode.push_back(&shell);
             }
         }
@@ -144,7 +145,8 @@ void GameManager::resolveTankCollisions() {
                 player1->setNumKilledTanks(player1->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank1);
                 player1->removeTank(tank1);
-
+                tank1->killTank();
+                tank2->killTank();
                 player2->addKilledTank(tank2->getTankIndex());
                 player2->setNumKilledTanks(player2->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank2);
@@ -160,6 +162,7 @@ void GameManager::resolveTankCollisions() {
         if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
             auto player = shared_board->getPlayerByTank(tank);
             player->addKilledTank(tank->getTankIndex());
+            tank->killTank();
             player->setNumKilledTanks(player->getNumKilledTanks() + 1);
             shared_board->removeTank(tank);
             player->removeTank(tank);
@@ -177,6 +180,7 @@ void GameManager::resolveTankCollisions() {
                 player->setNumKilledTanks(player->getNumKilledTanks() + 1);
                 shared_board->removeTank(tank);
                 player->removeTank(tank);
+                tank->killTank();
                 shared_board->removeShellAtfromBoard(sx, sy);
                 break;
             }
@@ -218,22 +222,12 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
         else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
             tank->addAction("MoveBackward (Ignored)");
         }
-        else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
-            shared_board->removeTank(tank);
-            tank->killTank();
-            // ------------------------------------------------------------------------
-            //Shir: I think this is not needed, as the tank is already dead
-            // -----------------------------------------------------------------------
-            //tank->addActionActionRequest::LOSE);
-            // tank->setDestructionCause(DestructionCause::MINE);
-            // if(tank->getIndexTank() == '1'){
-            //     tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
-            // } else if(tank->getIndexTank() == '2'){
-            //     tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
-            // }
-            //endGame();
-            //return;
-        }
+
+        /* Shir: we dont need this I believe*/
+        // else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
+        //     shared_board->removeTank(tank);
+        //     tank->killTank();
+        // }
         }
 
     switch (action) {

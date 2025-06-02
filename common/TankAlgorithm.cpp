@@ -37,8 +37,8 @@ bool TankAlgorithm::isDangerAhead() {
 int TankAlgorithm::isAlignedHorizontally() {
     int i = 0;
     //returns which opponent is aligned with self
-    for(const auto& opponent : opponents) {
-        if (my_tank.get().getY() == opponent.get().getY()) {
+    for(std::pair<size_t, size_t> opponent : opponents) {
+        if (my_tank.get().getY() == opponent.second) {
             return i;
         }
         i++;
@@ -48,8 +48,8 @@ int TankAlgorithm::isAlignedHorizontally() {
 
 int TankAlgorithm::isAlignedVertically() {
     int i = 0;
-    for(const auto& opponent : opponents) {
-        if (my_tank.get().getX() == opponent.get().getX()) {
+    for(std::pair<size_t, size_t> opponent : opponents) {
+        if (my_tank.get().getX() == opponent.first) {
             return i;
         }
         i++;
@@ -61,10 +61,10 @@ int TankAlgorithm::isAlignedVertically() {
 intTankAlgorithm::isFacingOpponent() {
     Tank& self = *my_tank.get();
     int i = 0;
-    for(const auto& opponent : opponents) {
+    for(std::pair<size_t, size_t> opponent : opponents) {
         if (opponent == nullptr) continue; // Skip null opponents
-        int dx = opponent.getX() - self.getX();
-        int dy = opponent.getY() - self.getY();
+        int dx = opponent.first- self.getX();
+        int dy = opponent.second - self.getY();
         if (dx == 0 && dy == 0) return false; // Same position (somehow?)
         CanonDirection dirToOpponent = getDirectionFromDelta(dx, dy);
         if (self.getCanonDirection() == dirToOpponent) {
@@ -84,7 +84,7 @@ void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
     }
     
     // 2. Save enemy locations directly
-    enemy_locations = myInfo.knownEnemyLocations;  
+   opponents = myInfo.knownEnemyLocations;  
     // 3. Set flag that we have battle info
     have_battle_info = true;
 }

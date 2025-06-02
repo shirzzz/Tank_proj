@@ -86,8 +86,8 @@ void BfsChaserShir::setFutureMoves(std::vector<int> path, int height) {
         int index = canKillOpponent(path[i]);
         if (index != -1) {
             std::pair<int, int> pos = fromIndextoPos(path[i], height);
-            int dx = opponents[index]->getX() - pos.first;
-            int dy = opponents[index]->getY() - pos.second;
+            int dx = opponents[index].first- pos.first;
+            int dy = opponents[index].second - pos.second;
             CanonDirection target_direction = getDirectionFromDelta(dx, dy);
             
             if (canon_direction == target_direction) {
@@ -148,7 +148,7 @@ ActionRequest BfsChaserShir::getAction() {
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
     } else {
-        MyBattleInfo& battle_info = BattleInfo::getInstance();
+        MyBattleInfo battle_info(my_tank.get()->getSatelliteView(), my_tank.get()->getIndexTank());
         game_board = battle_info.getGameBoard();
         opponents = battle_info.getOpponents();
         std::vector<std::vector<int>> graph = getGraphOutOfBoard();
@@ -241,10 +241,10 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
 int canKillOpponent(int spot) {
     std::pair<int, int> pos = fromIndextoPos(spot, shared_board->getHeight());
     int i = 0;
-    for (const auto& opponent : opponents) {
+    for (std::pair<size_t, size_t> opponent : opponents) {
         if (opponent == nullptr) continue; // Skip null opponents
-        int dx = opponent->getX() - pos.first;
-        int dy = opponent->getY() - pos.second;
+        int dx = opponent.first - pos.first;
+        int dy = opponent.second - pos.second;
         if (dx == 0 || dy == 0 || abs(dx) == abs(dy)) return i; // Same position'
         i++;
     }
@@ -253,9 +253,9 @@ int canKillOpponent(int spot) {
 
 vector<int> opponentsSpots() {
     vector<int> opponents_spots;
-    for (const auto& opponent : opponents) {
+    for (std::pair<size_t, size_t> opponent : opponents) {
         if (opponent == nullptr) continue; // Skip null opponents
-        int pos = opponent->getX() * shared_board->getHeight() + opponent->getY();
+        int pos = opponent.first * shared_board->getHeight() + opponent.second;
         opponents_spots.push_back(pos);
     }
     return opponents_spots;

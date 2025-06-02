@@ -328,16 +328,21 @@ void GameBoard::moveShell(Shell* shell) {
     std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
 //need your help shir!!
-
-//ActionRequest GameBoard::movingAlgorithm(Tank &tank) {
-//    if (tank.getIndexTank() == '1') {
-//        Player1Algorithm chaser_algorithm;
-//        ActionRequest action =  chaser_algorithm.getAction();
-//        return action;
-//    } else if (tank.getIndexTank() == '2') {
-//        Player1Algorithm chasedAI;
-//        return chasedAI.getAction();
-//    }
+//I got it :-) maybe we should move it to the GameManager?
+ActionRequest GameBoard::movingAlgorithm(std::shared_ptr<Tank> tank) {
+   if (!tank) {
+       std::cerr << "Error: Attempted to move a tank that does not exist." << std::endl;
+       return ActionRequest::DoNothing; // Return a default action if tank is null
+   }
+   if (tank.getIndexTank() == '1') {
+       BfsChaserShir chaser_algorithm(tank);
+       ActionRequest action =  chaser_algorithm.getAction();
+       return action;
+   } else if (tank.getIndexTank() == '2') {
+       Chased chasedAI(tank);
+       return chasedAI.getAction();
+   }
+}
 
 
 int GameBoard::getWidth() const {
