@@ -10,4 +10,7 @@ private:
 public:
     explicit MySatelliteView(const GameBoard& board);
     char getObjectAt(size_t x, size_t y) const override;
+    const GameBoard* getBoardReference() const {
+    return &board;
+}
 };

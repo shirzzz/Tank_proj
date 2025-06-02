@@ -1,25 +1,25 @@
 #include "Player1.h"
-#include "Player1BattleInfo.h"
+#include "MyBattleInfo.h"
 #include "MySatelliteView.h"
 
-void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view) {
-    Player1BattleInfo info;
-    
-    // Simple implementation - extract opponent tanks
-    std::vector<Tank> opponents;
-    // Scan the battlefield for opponent tanks
-    for (size_t y = 0; y < 20; ++y) {
-        for (size_t x = 0; x < 20; ++x) {
-            char obj = view.getObjectAt(x, y);
-            if (obj == '2') {  // Found Player 2 tank
-                opponents.emplace_back(x, y, '2');
-            }
-            if (obj == '&') break;  // Hit boundary
-        }
+void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
+    // Cast SatelliteView to MySatelliteView to access our specific methods
+    MySatelliteView* mySatView = dynamic_cast<MySatelliteView*>(&satellite_view);
+    if (!mySatView) {
+        // Handle error case - satellite view is not MySatelliteView
+        std::cerr << "Error: SatelliteView is not MySatelliteView in Player1" << std::endl;
+        return;
     }
     
-    info.opponents = opponents;
-    // Note: For full implementation you'd also reconstruct the board
+    // Create MyBattleInfo using your constructor
+    // Player 1 looks for Player 2 tanks ('2' characters)
+    MyBattleInfo battleInfo(mySatView, '1');
     
-    tank.updateBattleInfo(info);
+    // Call the tank algorithm's updateBattleInfo method
+    // This passes the battlefield information to the tank
+    tank.updateBattleInfo(battleInfo);
+    
+    // Optional: Log or store coordination information
+    std::cout << "Player 1 provided battle info to tank. Found " 
+              << battleInfo.knownEnemyLocations.size() << " enemy tanks." << std::endl;
 }

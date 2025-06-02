@@ -7,6 +7,8 @@
 #include "DirectionUtils.h"
 #include "common/ActionRequest.h"
 #include "CanonDirection.h"
+#include "Wall.h"
+#include "MySatelliteView.h"
 #include "CellType.h"
 #include <iostream>
 #include <vector>
@@ -259,7 +261,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                     // -----------------------------------------------------------------------
                     /*
                     tank->addAction(ActionRequest::LOSE);
-                    tank->setDestructionCause(DestructionCause::MINE);
+                    tank->setDestructionCause(DestructionCause::MINE); 
                     if(tank->getIndexTank() == '1'){
                         tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
                     } else if(tank->getIndexTank() == '2'){
@@ -374,7 +376,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             break;
     }
 }
-
+}
 void GameManager::updateGame() {
     if (game_over) return;
     Player1 player1 = shared_board->getPlayer1();

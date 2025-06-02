@@ -2,11 +2,11 @@
 #include "Chased.h"
 #include "ActionRequest.h"
 #include "GameBoard.h"
+#include "../MyBattleInfo.h"
 
 // Check if any shell will move into the tile in front of the tank
 bool TankAlgorithm::isDangerAhead() {
-    Tank& my_tank = *this->my_tank.get();
-    const GameBoard& board = *this->game_board.get();
+    Tank& my_tank = *this->my_tank.get();  
     std::pair<int, int> dir = directionToVector(tank.getCanonDirection());
     int dx = dir.first;
     int dy = dir.second;
@@ -73,4 +73,18 @@ intTankAlgorithm::isFacingOpponent() {
         i++;
     }
     return -1; // Not facing any opponent
+}
+void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
+    // Cast to MyBattleInfo
+    MyBattleInfo& myInfo = static_cast<MyBattleInfo&>(info);
+        
+    // 1. Save the game board
+    if (myInfo.gameBoard) {
+        game_board = std::shared_ptr<GameBoard>(myInfo.gameBoard, [](GameBoard*){});
+    }
+    
+    // 2. Save enemy locations directly
+    enemy_locations = myInfo.knownEnemyLocations;  
+    // 3. Set flag that we have battle info
+    have_battle_info = true;
 }
