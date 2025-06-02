@@ -2,8 +2,8 @@
 **Advanced Topics in Programming — TAU Semester B 2025 — Assignment 1**
 
 ## 👩🏻‍💻👨🏼‍💻 Authors
-- **Itai Lifshitz** — 211466123  
-- **Shir Zadok** — 212399455
+- **Itai Lifshitz** —  
+- **Shir Zadok** — 
 
 ---
 
