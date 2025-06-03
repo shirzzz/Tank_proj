@@ -20,19 +20,23 @@ private:
     bool game_over = false;
 
     // Assignment 2 - Factory references
-    PlayerFactory* playerFactory = nullptr;
-    TankAlgorithmFactory* tankFactory = nullptr;
+    PlayerFactory* player_factory = nullptr;
+    TankAlgorithmFactory* tank_factory = nullptr;
+    size_t max_steps = 0; // Maximum steps allowed in the game
+    size_t num_shells = 0; // Number of shells available for each tank
+    size_t width = 0; // Width of the game board
+    size_t height = 0; // Height of the game board
 
     Player1 player1;
     Player2 player2;
     char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
     int moves_left = INT_MAX;
 
-    // Stores last known tanks for final action logging or destruction cause
-    std::shared_ptr<Tank> lastKnownTank1 = nullptr;
-    std::shared_ptr<Tank> lastKnownTank2 = nullptr;
-    std::shared_ptr<Tank> tank1 = nullptr;
-    std::shared_ptr<Tank> tank2 = nullptr;
+    // // Stores last known tanks for final action logging or destruction cause
+    // std::shared_ptr<Tank> lastKnownTank1 = nullptr;
+    // std::shared_ptr<Tank> lastKnownTank2 = nullptr;
+    // std::shared_ptr<Tank> tank1 = nullptr;
+    // std::shared_ptr<Tank> tank2 = nullptr;
 
     //Class methods which are only used in this class
     
@@ -70,44 +74,32 @@ private:
         
     // Assignment 2 - Win condition checker
     void checkWinCondition();
-    
+
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(PlayerFactory& pf, TankAlgorithmFactory& tf) 
         : playerFactory(&pf), tankFactory(&tf) {
-        // Create default board - will be updated when reading from file
-        shared_board = std::make_shared<GameBoard>(10, 8);
+
     }
 
-    // Assignment 1 Constructor - Keep for backward compatibility
-    GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
-        if (shared_board) {
-            tank1 = shared_board->getTank1(); 
-            tank2 = shared_board->getTank2();
-        }
-    }
+    // // Assignment 1 Constructor - Keep for backward compatibility
+    // GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
+    //     if (shared_board) {
+    //         tank1 = shared_board->getTank1(); 
+    //         tank2 = shared_board->getTank2();
+    //     }
+    // }
 
     // ~GameManager() = default;
 
     // Assignment 2 - Factory accessors
     PlayerFactory* getPlayerFactory() const { return playerFactory; }
     TankAlgorithmFactory* getTankAlgorithmFactory() const { return tankFactory; }
-
-    // File reading methods
-    void readBoard(std::istream& file_board, std::string filename);
     
     // Assignment 2 - Direct filename reading
-    void readBoard(const std::string& filename) {
-        std::ifstream file_board(filename);
-        if (!file_board.is_open()) {
-            std::cerr << "Error opening file: " << filename << std::endl;
-            return;
-        }
-        readBoard(file_board, filename);
-        file_board.close();
-    }
-
+    void readBoard(const std::string& filename);
     void run();
+    void loadBoardFromFile(std::istream& file_board, std::string filename);
 
 };
 

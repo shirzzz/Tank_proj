@@ -1,5 +1,4 @@
 #include "TankAlgorithm.h"
-#include "Chased.h"
 #include "ActionRequest.h"
 #include "GameBoard.h"
 #include "../MyBattleInfo.h"

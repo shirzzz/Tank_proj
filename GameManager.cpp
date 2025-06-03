@@ -13,26 +13,18 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <regex>
+#include "common/Player1.h"
+#include "common/Player2.h"
 
-// Track tanks after removal for reporting
-Tank* lastKnownTank1 = nullptr;
-Tank* lastKnownTank2 = nullptr;
-
-void GameManager::readBoard(std::istream& file_board, std::string filename) {
-    if (!shared_board->loadBoardFromFile(file_board, filename)) {
-        std::cerr << "Error loading board from file." << std::endl;
-        return;
-    }
-    shared_board->displayBoard();
-    if (tank1 == nullptr) {
-        tank1 = shared_board->getTank1();
-    }
-    if (tank2 == nullptr) {
-        tank2 = shared_board->getTank2();
-    }
-}
+// // Track tanks after removal for reporting
+// Tank* lastKnownTank1 = nullptr;
+// Tank* lastKnownTank2 = nullptr;
+Player1* player1 = nullptr;
+Player2* player2 = nullptr;
 
 
+//Shir: need to have a look here!!
 void GameManager::displayGame() const {
     std::cout << "Tank 1 Actions:\n";
     if (lastKnownTank1) {
@@ -192,7 +184,7 @@ void GameManager::resolveTankCollisions() {
 
 
 
-void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action, const std::string& name) {
+void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action) {
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
     
@@ -200,20 +192,19 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
         MySatelliteView view(*shared_board);
         BattleInfo info(tank->getX(), tank->getY(), tank->getCanonDirection(), view);
         tank->updateTankWithBattleInfo(info);
-        ActionRequest newAction = tank->getAlgorithm()->getAction();
-        if (newAction != ActionRequest::GetBattleInfo) {
-            processAction(tank, newAction, name);
-        }
+        if(tank->isAlive())
+            tank->addAction("GetBattleInfo");
+        else
+            tank->addAction("GetBattleInfo (killed)");
         return;
     }
     if (waiting_to_go_back == 0) {
-
         std::pair<int, int> new_position = tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
         if(shared_board->isCellWalkable(new_position.first, new_position.second)){
             tank->setWaitingToGoBack(-1);
             if(tank->isAlive()){
                 tank->addAction("MoveBackward");
-                shared_board->moveTank(tank->getIndexTank(), new_position.first, new_position.second);
+                shared_board->moveTank(tank, new_position.first, new_position.second);
             }
             else {
                 tank->addAction("MoveBackward (killed)");
@@ -233,7 +224,10 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
 
     switch (action) {
         case ActionRequest::MoveForward:
-            if (waiting_to_go_back >= 1) tank->setWaitingToGoBack(-1);
+            if (waiting_to_go_back >= 1){
+                tank->setWaitingToGoBack(-1);
+                tank->addAction("MoveForward (Ignored)");
+            }
             else {
                 std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
                 if(shared_board->isCellWalkable(new_position.first, new_position.second)){
@@ -257,6 +251,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
 
         case ActionRequest::MoveBackward:
             if (waiting_to_go_back >= 1) {
+                tank->addAction("MoveBackward (Ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             } 
             break;
@@ -271,6 +266,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                     tank->addAction("RotateLeft45 (killed)");
             }
             else {
+                tank->addAction("RotateLeft45 (ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
@@ -284,6 +280,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                     tank->addAction("RotateRight45 (killed)");
             }
             else {
+                tank->addAction("RotateRight45 (ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
@@ -297,6 +294,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                     tank->addAction("RotateLeft90 (killed)");
             }
             else {
+                tank->addAction("RotateLeft90 (ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
@@ -363,24 +361,24 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
 
 void GameManager::updateGame() {
     if (game_over) return;
-    Player1 player1 = shared_board->getPlayer1();
-    Player2 player2 = shared_board->getPlayer2();
-    for(auto& tank : player1.getTanks()) {
+    for(auto& tank_algorithm : player1->getTankAlgorithms()) {
+        std::shared_ptr<Tank> tank = tank_algorithm->getTank();
         if (tank) {
             tank->setPreviousPosition();
-            ActionRequest action1 = shared_board->movingAlgorithm(tank);
-            processAction(tank, action1, "Tank 1");
+            ActionRequest action1 = tank_algorithm->getAction();
+            processAction(tank, action1);
         }
     }
-    for(auto& tank : player2.getTanks()) {
+    for(auto& tank : player2->getTankAlgorithms()) {
+        std::shared_ptr<Tank> tank = tank->getTank();
         if (tank) {
             tank->setPreviousPosition();
             ActionRequest action2 = shared_board->movingAlgorithm(tank);
-            processAction(tank, action2, "Tank 2");
+            processAction(tank, action2);
         }
     }
 }
-
+//Shir: why do we need this?
 void GameManager::removeTank(char index) {
     if (index == '1') {
         shared_board->removeTank(tank1);
@@ -398,7 +396,7 @@ void GameManager::run() {
         std::cerr << "Failed to open Output file for writing." << std::endl;
         return 1;
     }
-    if(shared_board->getPlayer1()->getTanks().size() == 0 && shared_board->getPlayer2()->getTanks().size() == 0){
+    if(player1.getNumTanks() == 0 && player2.getNumTanks() == 0){
         std::cout << "Tie, both players have zero tanks " << std::endl;
         file << "Tie, both players have zero tanks" << std::endl;
         wining_tank = '0';
@@ -406,14 +404,14 @@ void GameManager::run() {
         return;
     }
 
-    else if(shared_board->getPlayer1()->getTanks().size() == 0){
+    else if(player1.getNumTanks() == 0){
         wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
         file << "Player 2 won with " <<shared_board->getPlayer2()->getTanks().size()<<"tanks still alive"<<std::endl;
         endGame();
         return;
     }
-    else if(shared_board->getPlayer2()->getTanks().size() == 0){
+    else if(player2.getNumTanks() == 0){
         wining_tank = '1';
         std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
         file<< "Player 1 won with " <<shared_board->getPlayer1()->getTanks().size()<<"tanks still alive"<<std::endl;
@@ -442,11 +440,10 @@ void GameManager::run() {
             }
         }
     
-    for(int i=0; i<step; i++){
-        for(auto& tank : player1.getTanks()) {
-            for(int j = 0; j < tank->getActions().size() - 1; j++) {
-                file << tank->getActions()[j] << ",";
-            }
+    for(auto& tank : player1.getTanks()) {
+        for(int j = 0; j < tank->getActions().size() - 1; j++) {
+            file << tank->getActions()[j] << ",";
+        }
         file << tank->getActions().back() << " ";
         file << std::endl;
     }
@@ -475,7 +472,6 @@ void GameManager::run() {
     file.close();
     std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
     }
-}
 
     bool GameManager::isGameEnded() const {
         if(player1.getTanks().size() == 0 && player2.getTanks().size() == 0){
@@ -506,4 +502,146 @@ void GameManager::run() {
     setGameOver(true);
 }
 
+void readBoard(const std::string& filename) {
+        std::ifstream file_board(filename);
+        if (!file_board.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+        if (!loadBoardFromFile(file_board, filename)) {
+        std::cerr << "Error loading board from file." << std::endl;
+        return;
+        }
+        file_board.close();
+    }
+
+ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filename) {
+    
+    int count_tanks_for_player1 = 0; //counts how many tanks player1 has
+    int count_tanks_for_player2 = 0; //counts how many tanks player2 has
+    
+    // Use filename in error file creation for better traceability
+    std::ofstream file_errors("input_errors.txt");
+    std::cout << "Opening file for writing input errors from: " << filename << std::endl;
+    
+    if (!file_errors) {
+        file_errors << "Error: Failed to open file for writing input errors from " << filename << ".\n" << std::endl;
+        file_errors.close();
+        std::cerr << "Failed to open file for writing input errors from " << filename << std::endl;
+        return false;
+    }
+    
+    // Log the source file being processed
+    file_errors << "Processing board file: " << filename << std::endl;
+    file_errors << "===========================================" << std::endl;
+    
+    std::regex pattern_max_steps(R"(MaxSteps\s*:\s*(\d+))");
+    std::regex pattern_num_shells(R"(NumShells\s*:\s*(\d+))");
+    std::regex pattern_rows(R"(Rows\s*:\s*(\d+))");
+    std::regex pattern_cols(R"(Cols\s*:\s*(\d+))");
+    
+  
+    // Parse configuration parameters (first 4 lines)
+    for(int i = 0; i < 4; i++){
+        std::string line;
+        std::getline(file_board, line);
+        if (line.empty()) {
+            continue; // Skip empty lines
+        }
+        std::smatch match;
+        if (std::regex_search(line, match, pattern_max_steps)) {
+            max_steps = std::stoi(match[1]);
+            std::cout << "MaxSteps: " << max_steps << std::endl;
+        } else if (std::regex_search(line, match, pattern_num_shells)) {
+            num_shells = std::stoi(match[1]);
+            std::cout << "NumShells: " << num_shells << std::endl;
+        } else if (std::regex_search(line, match, pattern_rows)) {
+            height = std::stoi(match[1]);
+            std::cout << "Rows: " << height << std::endl;
+        } else if (std::regex_search(line, match, pattern_cols)) {
+            width = std::stoi(match[1]);
+            std::cout << "Cols: " << width << std::endl;
+        }
+        else {
+            // Enhanced error reporting with filename context
+            file_errors << "Error in " << filename << " (line " << (i+1) << "): Invalid line format: " << line << std::endl;
+            std::cerr << "Invalid line format in " << filename << " (line " << (i+1) << "): " << line << std::endl;
+            return false;
+        }
+    }
+
+      // Initialize players with default values
+    player1 = player_factory->create(1, width, height, max_steps, num_shells, 0);
+    player2 = player_factory->create(2, width, height, max_steps, num_shells, 0);
+    moves_left = max_steps; // Initialize moves left to max steps
+    shared_board = std::make_shared<GameBoard>(width, height);
+
+    
+    if (width <= 0 || height <= 0) {
+        file_errors << "Error in " << filename << ": Invalid board dimensions (width: " << width << ", height: " << height << ")" << std::endl;
+        std::cerr << "Invalid board dimensions in " << filename << std::endl;
+        return false;
+    }
+    
+    // Parse board layout
+    for(int i = 0; i < height; i++){
+        std::string line;
+        std::getline(file_board, line);
+        if(file_board.eof()){
+            line = std::string(width, ' '); // Fill the rest of the board with empty spaces
+        }
+        if (line.empty()) {
+            continue; // Skip empty lines
+        }
+        
+        for(int j = 0; j < width; j++){
+            char c = ' ';
+        
+            if(j < static_cast<int>(line.size())){
+                c = line[j];
+            }
+            
+            if (c == '1') {
+                count_tanks_for_player1++;
+                std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '1');
+                board[i][j] = current_tank;
+                player1.addTank(current_tank);
+                player1.addTankAlgorithm(tank_factory->create(1, count_tanks_for_player1 - 1)); // Add tank algorithm for player 1
+            }
+            else if( c== '2') {
+                count_tanks_for_player2++;
+                std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '2');
+                board[i][j] = current_tank;
+                player2.addTank(current_tank);
+                player2.addTankAlgorithm(tank_factory->create(2, count_tanks_for_player2 - 1)); // Add tank algorithm for player 2
+            }
+            else if (c == ' ') {
+                board[i][j] = std::make_shared<Empty>(j, i);
+            }
+            else if (c == '#') {
+                board[i][j] = std::make_shared<Wall>(j, i);
+            }
+            else if (c == '@') {
+                board[i][j] = std::make_shared<Mine>(j, i);
+            }
+            else {
+                // Enhanced error reporting with filename and position context
+                board[i][j] = std::make_shared<Empty>(j, i); // Default to empty cell
+            }
+        }
+    }    
+
+    displayBoard(); // Display the loaded board
+    player1.setNumTanks(count_tanks_for_player1);
+    player2.setNumTanks(count_tanks_for_player2);
+    
+    // Log successful completion
+    file_errors << "Successfully loaded board from " << filename << std::endl;
+    file_errors << "Player 1 tanks: " << count_tanks_for_player1 << std::endl;
+    file_errors << "Player 2 tanks: " << count_tanks_for_player2 << std::endl;
+    
+    file_errors.close();
+    std::cout << "Board loaded successfully from " << filename << std::endl;
+    return true;
+}
 

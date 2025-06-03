@@ -14,6 +14,7 @@ private:
     std::vector<bool> killed_tanks;
     int num_killed_tanks = 0;
     std::vector<std::shared_ptr<Tank>> tanks;
+    std::vector<TankAlgorithm*> tank_algorithms; // Vector to hold tank algorithms
 
 public:
     // Default constructor
@@ -31,9 +32,16 @@ public:
     void addTank(std::shared_ptr<Tank> tank) {
         tanks.push_back(tank);
     }
+
+    void addTankAlgorithm(TankAlgorithm* algorithm) {
+        tank_algorithms.push_back(algorithm);
+    }
     
     std::vector<std::shared_ptr<Tank>> getTanks() const {
         return tanks;
+    }
+    std::vector<TankAlgorithm*> getTankAlgorithms() const {
+        return tank_algorithms;
     }
     
     void setNumTanks(size_t num) {

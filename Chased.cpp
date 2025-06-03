@@ -1,6 +1,6 @@
 #include "Chased.h"
 #include "DirectionUtils.h"
-#include "ActionRequest.h"
+#include "common/ActionRequest.h"
 #include "GameBoard.h"
 #include "Tank.h"
 #include "Shell.h"
@@ -79,7 +79,7 @@
 // }
 
 // Compute best rotation toward the opponent's position
-ActionRequest rotateToward(std::pair<size_t, size_t> opponent) {
+ActionRequest Chased::rotateToward(std::pair<size_t, size_t> opponent) {
     Tank& self = *my_tank.get();
     int dx = opponent.first - self.getX();
     int dy = opponent.second - self.getY();
@@ -102,10 +102,10 @@ ActionRequest Chased::decideNextAction() {
     Tank& self = *my_tank.get();
     GameBoard& board = *game_board.get();
 
-    // 1. Avoid danger if necessary
-    if (isDangerAhead()) {
-        return rotateToward(self, opponent);  // Or choose another evasive action
-    }
+    // // 1. Avoid danger if necessary
+    // if (isDangerAhead()) {
+    //     return rotateToward(self, opponents[0]);  // Or choose another evasive action
+    // }
 
     // 2. If facing opponent and aligned, shoot!
     if ((isAlignedHorizontally() != -1 || isAlignedVertically() != -1) && isFacingOpponent() != -1) {
@@ -113,7 +113,7 @@ ActionRequest Chased::decideNextAction() {
     }
 
     // 3. Not facing opponent? Rotate toward them
-    if (int index := isFacingOpponent() != -1) {
+    if (int index = isFacingOpponent() != -1) {
         return rotateToward(opponents[index]);
     }
 
@@ -138,13 +138,10 @@ ActionRequest Chased::getAction() {
     my_future_moves.erase(my_future_moves.begin());
     return action;
 }
-std::vector<ActionRequest> Chased::setFutureMoves() {
+void Chased::setFutureMoves() {
     my_future_moves.clear();
     for (int i = 0; i < 5; ++i) {
-        MyBattleInfo battleInfo;
-        opponents = battleInfo.getOpponents();
-        board = battleInfo.getBoard();
-        my_future_moves.push_back(decideNextAction(*board, opponents));
+        my_future_moves.push_back(decideNextAction());
     }
 }
 

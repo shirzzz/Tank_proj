@@ -14,6 +14,7 @@ private:
     size_t sum_shells = 0; // Total number of shells available for all tanks
     int num_killed_tanks = 0;
     std::vector<std::shared_ptr<Tank>> tanks;
+    std::vector<TankAlgorithm*> tank_algorithms; // Vector to hold tank algorithms
 
 public:
     // Default constructor
@@ -30,6 +31,14 @@ public:
     
     void addTank(std::shared_ptr<Tank> tank) {
         tanks.push_back(tank);
+    }
+
+    void addTankAlgorithm(TankAlgorithm* algorithm) {
+        tank_algorithms.push_back(algorithm);
+    }
+
+    std::vector<TankAlgorithm*> getTankAlgorithms() const {
+        return tank_algorithms;
     }
     
     std::vector<std::shared_ptr<Tank>> getTanks() const {

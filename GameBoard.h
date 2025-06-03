@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <memory>
 #include <iostream>
-#include "common/Player1.h"
-#include "common/Player2.h"
 
 class GameBoard {
     int width, height;
@@ -25,18 +23,16 @@ class GameBoard {
     std::vector<Shell> shells;
     int max_steps = 0;
     int num_shells = 0;
-    Player1 player1;
-    Player2 player2;
 
     //Class methods which are only used in this class
     // Placement and Movement
     void placeTank(int x, int y, char index_tank, CanonDirection cdir);
     void placeShell(int x, int y) const;
-    void moveTank(char tankIndex, int newX, int newY);
+    void moveTank(std::shared_ptr<Tank>& tank, int newX, int newY);
     void shootFromTank(char index_tank, CanonDirection cdir);
 
 public:
-GameBoard(int width, int height) : width(width), height(height){
+GameBoard(int width, int height) : width(width), height(height) {
     board.resize(height, std::vector<std::shared_ptr<Shape>>(width));
     for(int y = 0; y<height; y++){
         for(int x = 0; x<width;x++){
@@ -100,10 +96,6 @@ GameBoard(int width, int height) : width(width), height(height){
     bool isCellLegal(int x, int y) const;
     bool isSteppingWall(int x, int y) const;
     bool isSteppingMine(int x, int y) const;
-    Player1 getPlayer1() const { return player1; }
-    Player2 getPlayer2() const { return player2; }
-    void setPlayer1(const Player1& player) { player1 = player; }
-    void setPlayer2(const Player2& player) { player2 = player; }
     int getMaxSteps() const { return max_steps; }
 };
 
