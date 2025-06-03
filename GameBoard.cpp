@@ -142,9 +142,7 @@ bool GameBoard::loadBoardFromFile(std::istream& file_board, std::string filename
             //}
             else {
                 // Enhanced error reporting with filename and position context
-                file_errors << "Error in " << filename << " at position (" << j << "," << i << "): Invalid character '" << c << "'" << std::endl;
-                std::cerr << "Invalid character '" << c << "' in " << filename << " at position (" << j << "," << i << ")" << std::endl;
-                return false;
+                board[i][j] = std::make_shared<Empty>(j, i); // Default to empty cell
             }
         }
     }    
@@ -329,6 +327,7 @@ void GameBoard::moveShell(Shell* shell) {
 }
 //need your help shir!!
 //I got it :-) maybe we should move it to the GameManager?
+//Itai your help is always welcome!
 ActionRequest GameBoard::movingAlgorithm(std::shared_ptr<Tank> tank) {
    if (!tank) {
        std::cerr << "Error: Attempted to move a tank that does not exist." << std::endl;

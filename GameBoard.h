@@ -19,14 +19,21 @@
 class GameBoard {
     int width, height;
     std::vector<std::vector<std::shared_ptr<Shape>>> board;
-    std::shared_ptr<Tank> tank1;
-    std::shared_ptr<Tank>tank2;
+    // std::shared_ptr<Tank> tank1;
+    // std::shared_ptr<Tank>tank2;
     int num_walls = 0;
     std::vector<Shell> shells;
     int max_steps = 0;
     int num_shells = 0;
     Player1 player1;
     Player2 player2;
+
+    //Class methods which are only used in this class
+    // Placement and Movement
+    void placeTank(int x, int y, char index_tank, CanonDirection cdir);
+    void placeShell(int x, int y) const;
+    void moveTank(char tankIndex, int newX, int newY);
+    void shootFromTank(char index_tank, CanonDirection cdir);
 
 public:
 GameBoard(int width, int height) : width(width), height(height){
@@ -41,20 +48,15 @@ GameBoard(int width, int height) : width(width), height(height){
 
     bool loadBoardFromFile(std::istream& file_board, std::string filename);
     void displayBoard() const;
-    // Placement and Movement
-    void placeTank(int x, int y, char index_tank, CanonDirection cdir);
-    void placeShell(int x, int y) const;
-    void moveTank(char tankIndex, int newX, int newY);
-    void shootFromTank(char index_tank, CanonDirection cdir);
 
     // State Queries
     bool isCellWalkable(int x, int y) const;
     int getWidth() const;
     int getHeight() const;
 
-    // Tank Accessors
-    std::shared_ptr<Tank> getTank1() const { return tank1; }
-    std::shared_ptr<Tank> getTank2() const { return tank2; }
+    // // Tank Accessors
+    // std::shared_ptr<Tank> getTank1() const { return tank1; }
+    // std::shared_ptr<Tank> getTank2() const { return tank2; }
 
     std::vector<Shell>&  getShells () {
         return shells; // Mutable reference to shells
@@ -65,9 +67,10 @@ GameBoard(int width, int height) : width(width), height(height){
     }
 
     // // Board Accessor
-    std::shared_ptr<GameBoard> getGameBoard() const {
-        return std::make_shared<GameBoard>(*this);
-    }
+    //Shir: I dont think we need this, since we can access the board directly
+    // std::shared_ptr<GameBoard> getGameBoard() const {
+    //     return std::make_shared<GameBoard>(*this);
+    // }
     const Shape* getCell(int x, int y) const {
         if (x >= 0 && y >= 0 && y < height && x < width)
             return board[y][x].get();

@@ -9,12 +9,7 @@
 
 class BfsChaserShir : public TankAlgorithm {
 private:
-    std::vector<ActionRequest> my_future_moves;
-    std::shared_ptr<Tank> my_tank;
-public:
-    BfsChaserShir(std::shared_ptr<Tank> tank): my_tank(tank){};
-    ~BfsChaserShir() override = default;
-    ActionRequest getAction() override;
+//Class methods which are only used in this class
     std::vector<std::vector<int>> getGraphOutOfBoard(const std::shared_ptr<GameBoard> board);
     std::vector<int> getFutureMovesBfs(const std::vector<std::vector<int>>& graph, int start_node);
     std::vector<ActionRequest> setFutureMoves(const std::vector<int>& path, int height);
@@ -22,6 +17,11 @@ public:
     std::pair<int, int> fromIndextoPos(int index, int height) const;
     bool isChased(const Tank& self, const std::shared_ptr<GameBoard> board);
 
+public:
+    BfsChaserShir(std::shared_ptr<Tank> tank): my_tank(tank){};
+    ~BfsChaserShir() override = default;
+    ActionRequest getAction() override;
+   
 };
 
 

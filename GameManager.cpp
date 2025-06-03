@@ -222,13 +222,14 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
         else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
             tank->addAction("MoveBackward (Ignored)");
         }
+    }
 
         /* Shir: we dont need this I believe*/
         // else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
         //     shared_board->removeTank(tank);
         //     tank->killTank();
         // }
-        }
+        
 
     switch (action) {
         case ActionRequest::MoveForward:
@@ -247,22 +248,10 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                 else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
                     tank->addAction("MoveForward (Ignored)");
                 }
-                else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
-                    shared_board->removeTank(tank);
-                    tank->killTank();
-                    // ------------------------------------------------------------------------
-                    //Shir: I think this is not needed, as the tank is already dead
-                    // -----------------------------------------------------------------------
-                    /*
-                    tank->addAction(ActionRequest::LOSE);
-                    tank->setDestructionCause(DestructionCause::MINE); 
-                    if(tank->getIndexTank() == '1'){
-                        tank2->setDestructionCause(DestructionCause::MINEOPPONENT);
-                    } else if(tank->getIndexTank() == '2'){
-                        tank1->setDestructionCause(DestructionCause::MINEOPPONENT);
-                    }
-                    endGame();
-                } */
+                // Shir: we dont need this I believe
+                // else if(shared_board->isSteppingMine(new_position.first, new_position.second)){
+                //     shared_board->removeTank(tank);
+                //     tank->killTank();
             }
             break;
 
@@ -321,6 +310,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
                     tank->addAction("RotateRight90 (killed)");
             }
             else {
+                tank->addAction("RotateRight90 (ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
             }
             break;
@@ -370,7 +360,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, ActionRequest action
             break;
     }
 }
-}
+
 void GameManager::updateGame() {
     if (game_over) return;
     Player1 player1 = shared_board->getPlayer1();
@@ -378,15 +368,15 @@ void GameManager::updateGame() {
     for(auto& tank : player1.getTanks()) {
         if (tank) {
             tank->setPreviousPosition();
-            ActionRequest action1 = shared_board->movingAlgorithm(*tank1);
-            processAction(tank1, action1, "Tank 1");
+            ActionRequest action1 = shared_board->movingAlgorithm(tank);
+            processAction(tank, action1, "Tank 1");
         }
     }
     for(auto& tank : player2.getTanks()) {
         if (tank) {
             tank->setPreviousPosition();
-            ActionRequest action2 = shared_board->movingAlgorithm(*tank2);
-            processAction(tank2, action2, "Tank 2");
+            ActionRequest action2 = shared_board->movingAlgorithm(tank);
+            processAction(tank, action2, "Tank 2");
         }
     }
 }
@@ -440,7 +430,7 @@ void GameManager::run() {
         }
         //game_board.displayBoard(); 
         step++;
-        moves_left = game_manager.getMovesLeft() - 1;
+        moves_left = moves_left - 1;
         if (moves_left == 0) {
             
             std::cout << "Game Over: No moves left!" << std::endl;
@@ -484,6 +474,7 @@ void GameManager::run() {
 
     file.close();
     std::cout << "Finished writing to Output_" << filename << ".txt successfully." << std::endl;
+    }
 }
 
     bool GameManager::isGameEnded() const {

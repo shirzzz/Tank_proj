@@ -34,6 +34,43 @@ private:
     std::shared_ptr<Tank> tank1 = nullptr;
     std::shared_ptr<Tank> tank2 = nullptr;
 
+    //Class methods which are only used in this class
+    
+    // Core game progression
+    void updateGame();             // Advance tank logic
+    void updateShells() const;     // Move all shells
+
+     // Collision handlers
+    void resolveShellCollisions(); // Handle shell collisions with tanks/walls/other shells
+    void resolveTankCollisions();  // Handle tank collisions with tanks/mines
+
+    // Game status
+    void displayGame() const;      // Display actions and outcomes
+    void endGame();                // Ends the game
+    
+    // Action processor
+    void processAction(std::shared_ptr<Tank> tank, ActionRequest action, const std::string& name);
+
+    // Accessors
+    bool isGameOver() const { return game_over; }
+    // std::shared_ptr<Tank> getTank1() { return tank1; }
+    // std::shared_ptr<Tank> getTank2() { return tank2; }
+    int getMovesLeft() const { return moves_left; }
+
+    // Modifiers
+    void setMovesLeft(int moves) { moves_left = moves; }
+    //Isnt it the GameBoard's responsibility to remove tanks?
+    //void removeTank(char index);   // Remove a tank from the game board
+    void setGameOver(bool game_over) { this->game_over = game_over; }
+    bool getGameOver() const { return game_over; }
+    std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
+    std::shared_ptr<GameBoard> getBoard() { return shared_board; }
+        
+    bool isGameEnded() const;
+        
+    // Assignment 2 - Win condition checker
+    void checkWinCondition();
+    
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(PlayerFactory& pf, TankAlgorithmFactory& tf) 
@@ -52,39 +89,10 @@ public:
 
     // ~GameManager() = default;
 
-    // Core game progression
-    void updateGame();             // Advance tank logic
-    void updateShells() const;     // Move all shells
-
-    // Collision handlers
-    void resolveShellCollisions(); // Handle shell collisions with tanks/walls/other shells
-    void resolveTankCollisions();  // Handle tank collisions with tanks/mines
-
-    // Game status
-    void displayGame() const;      // Display actions and outcomes
-    void endGame();                // Ends the game
-
-    // Action processor
-    void processAction(std::shared_ptr<Tank> tank, ActionRequest action, const std::string& name);
-
-    // Accessors
-    bool isGameOver() const { return game_over; }
-    std::shared_ptr<Tank> getTank1() { return tank1; }
-    std::shared_ptr<Tank> getTank2() { return tank2; }
-    int getMovesLeft() const { return moves_left; }
-
     // Assignment 2 - Factory accessors
     PlayerFactory* getPlayerFactory() const { return playerFactory; }
     TankAlgorithmFactory* getTankAlgorithmFactory() const { return tankFactory; }
 
-    // Modifiers
-    void setMovesLeft(int moves) { moves_left = moves; }
-    void removeTank(char index);   // Remove a tank from the game board
-    void setGameOver(bool game_over) { this->game_over = game_over; }
-    bool getGameOver() const { return game_over; }
-    std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
-    std::shared_ptr<GameBoard> getBoard() { return shared_board; }
-    
     // File reading methods
     void readBoard(std::istream& file_board, std::string filename);
     
@@ -98,12 +106,9 @@ public:
         readBoard(file_board, filename);
         file_board.close();
     }
-    
-    bool isGameEnded() const;
+
     void run();
-    
-    // Assignment 2 - Win condition checker
-    void checkWinCondition();
+
 };
 
 #endif // GAMEMANAGER_H
