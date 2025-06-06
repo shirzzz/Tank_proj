@@ -9,9 +9,10 @@
 class Chased : public TankAlgorithm {
 private:
     //Class methods which are only used in this class
-    int player_index; // ADDED: Store player index
-    int tank_index;   // ADDED: Store tank index
     
+    std::unique_ptr<TankAlgorithm> clone() const override {
+        return std::make_unique<Chased>(*this);
+    }
     ActionRequest rotateToward(std::pair<size_t, size_t> opponent);
     // Function to check if the tank is in danger from a shell
     bool isDangerAhead();
@@ -26,11 +27,10 @@ private:
 
 public:
     // EXISTING constructor (keep this):
-    Chased(std::shared_ptr<Tank> tank) : TankAlgorithm(tank) {};
+    Chased() : TankAlgorithm() {};
     
     // ADDED: Constructor that matches your factory:
-    Chased(int player_index, int tank_index) : TankAlgorithm(nullptr), 
-        player_index(player_index), tank_index(tank_index) {}
+    Chased(int player_index, int tank_index) : TankAlgorithm(player_index, tank_index){}
     
     ~Chased() = default;
     

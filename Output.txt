@@ -1,15 +1,55 @@
-And the winner is: Player 2 :) 
-Tank 1 Actions:
-1. MOVE_FORWARD
-2. ROTATE_EIGHTH_RIGHT
-3. BAD_STEP
-4. BAD_STEP
-5. LOSE
-Reason of destruction: SHELL HIT ME
-Tank 2 Actions:
-1. ROTATE_EIGHTH_RIGHT
-2. MOVE_FORWARD
-3. ROTATE_EIGHTH_RIGHT
-4. SHOOT
-5. WIN
-Reason of destruction: I HIT OPPONENT WITH A SHELL
+Step: 1, Moves left: 49
+Step: 2, Moves left: 48
+Step: 3, Moves left: 47
+Step: 4, Moves left: 46
+Step: 5, Moves left: 45
+Step: 6, Moves left: 44
+Step: 7, Moves left: 43
+Step: 8, Moves left: 42
+Step: 9, Moves left: 41
+Step: 10, Moves left: 40
+Step: 11, Moves left: 39
+Step: 12, Moves left: 38
+Step: 13, Moves left: 37
+Step: 14, Moves left: 36
+Step: 15, Moves left: 35
+Step: 16, Moves left: 34
+Step: 17, Moves left: 33
+Step: 18, Moves left: 32
+Step: 19, Moves left: 31
+Step: 20, Moves left: 30
+Step: 21, Moves left: 29
+Step: 22, Moves left: 28
+Step: 23, Moves left: 27
+Step: 24, Moves left: 26
+Step: 25, Moves left: 25
+Step: 26, Moves left: 24
+Step: 27, Moves left: 23
+Step: 28, Moves left: 22
+Step: 29, Moves left: 21
+Step: 30, Moves left: 20
+Step: 31, Moves left: 19
+Step: 32, Moves left: 18
+Step: 33, Moves left: 17
+Step: 34, Moves left: 16
+Step: 35, Moves left: 15
+Step: 36, Moves left: 14
+Step: 37, Moves left: 13
+Step: 38, Moves left: 12
+Step: 39, Moves left: 11
+Step: 40, Moves left: 10
+Step: 41, Moves left: 9
+Step: 42, Moves left: 8
+Step: 43, Moves left: 7
+Step: 44, Moves left: 6
+Step: 45, Moves left: 5
+Step: 46, Moves left: 4
+Step: 47, Moves left: 3
+Step: 48, Moves left: 2
+Step: 49, Moves left: 1
+Step: 50, Moves left: 0
+Tank 1 has no actions.
+Tank 1 has no actions.
+Tank 2 has no actions.
+Tank 2 has no actions.
+Tie, reached max steps = 50, player 1 has 2, player2 has 2

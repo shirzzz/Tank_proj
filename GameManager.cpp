@@ -106,7 +106,6 @@ void GameManager::resolveShellCollisions() {
 void GameManager::resolveTankCollisions() {
     auto player1Tanks = this->player1.getTanks();
     auto player2Tanks = this->player2.getTanks();
-
     for (auto& tank1 : player1Tanks) {
         for (auto& tank2 : player2Tanks) {
             if (!tank1 || !tank2) continue;
@@ -114,7 +113,6 @@ void GameManager::resolveTankCollisions() {
             auto p2 = tank2->getPosition();
             auto o1 = tank1->getPreviousPosition();
             auto o2 = tank2->getPreviousPosition();
-
             if (p1 == p2 || (p1 == o2 && p2 == o1)) {
                 this->player1.addKilledTank(tank1->getIndexTank());
                 this->player1.setNumKilledTanks(this->player1.getNumKilledTanks() + 1);
@@ -133,7 +131,6 @@ void GameManager::resolveTankCollisions() {
     all_tanks.reserve(this->player1.getTanks().size() + this->player2.getTanks().size());
     all_tanks.insert(all_tanks.end(), this->player1.getTanks().begin(), this->player1.getTanks().end());
     all_tanks.insert(all_tanks.end(), this->player2.getTanks().begin(), this->player2.getTanks().end());
-    
     for (auto& tank : all_tanks) {
         if (!tank) continue;
         auto [x, y] = tank->getPosition();
@@ -176,10 +173,10 @@ void GameManager::resolveTankCollisions() {
         }
     }
 
-    endGame();
+    //endGame();
 }
 
-void GameManager::processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action) {
+void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_algorithm, ActionRequest action) {
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
     
@@ -360,58 +357,65 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_
 }
 
 void GameManager::updateGame() {
+    std::cout << "Updating game state..." << std::endl;
     if (game_over) return;
     for(auto& tank_algorithm : this->player1.getTankAlgorithms()) {
-        std::shared_ptr<Tank> tank = tank_algorithm->getTank();
+        std::cout << "Processing tank algorithm for player 1" << std::endl;
+        //std::shared_ptr<Tank> tank = tank_algorithm->getTank(); // CHANGED: Use -> directly on unique_ptr
+        std::shared_ptr<Tank> tank = player1.getTanks()[tank_algorithm->getIndexTank()]; // Get the tank from player1's tanks
+        std::cout << "Tank pointer: " << tank.get() << std::endl; // Debugging line
         if (tank) {
             tank->setPreviousPosition();
             ActionRequest action1 = tank_algorithm->getAction();
-            processAction(tank, *tank_algorithm, action1);
+            std::cout << "Tank " << tank->getIndexTank() << " action: " << action1 << std::endl;
+            processAction(tank, *tank_algorithm.get(), action1);
         }
     }
     for(auto& tank_algorithm : this->player2.getTankAlgorithms()) {
-        std::shared_ptr<Tank> tank = tank_algorithm->getTank();
+        // std::shared_ptr<Tank> tank = tank_algorithm->getTank(); // CHANGED: Use -> directly on unique_ptr
+        std::shared_ptr<Tank> tank = player2.getTanks()[tank_algorithm->getIndexTank()]; // Get the tank from player2's tanks
         if (tank) {
             tank->setPreviousPosition();
             ActionRequest action2 = tank_algorithm->getAction();
-            processAction(tank, *tank_algorithm, action2);
+            std::cout << "Tank " << tank->getIndexTank() << " action: " << action2 << std::endl;
+            processAction(tank,*tank_algorithm.get(), action2);
         }
     }
 }
 
 void GameManager::run() {
     int step = 0;
-    std::ofstream file("Output.txt");
-    if (!file) {
+    std::ofstream output_file("Output.txt");
+
+    if (!output_file) {
         std::cerr << "Failed to open Output file for writing." << std::endl;
         return;
     }
+    std::cout << "Output file opened successfully." << std::endl;
     if(this->player1.getNumTanks() == 0 && this->player2.getNumTanks() == 0){
         std::cout << "Tie, both players have zero tanks " << std::endl;
-        file << "Tie, both players have zero tanks" << std::endl;
+        output_file << "Tie, both players have zero tanks" << std::endl;
         wining_tank = '0';
         endGame();
         return;
     }
-
     else if(this->player1.getNumTanks() == 0){
         wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
-        file << "Player 2 won with " <<this->player2.getTanks().size()<<"tanks still alive"<<std::endl;
+        output_file << "Player 2 won with " <<this->player2.getTanks().size()<<"tanks still alive"<<std::endl;
         endGame();
         return;
     }
     else if(this->player2.getNumTanks() == 0){
         wining_tank = '1';
         std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
-        file<< "Player 1 won with " <<this->player1.getTanks().size()<<"tanks still alive"<<std::endl;
+        output_file<< "Player 1 won with " <<this->player1.getTanks().size()<<"tanks still alive"<<std::endl;
         endGame();
         return;
     }
     while (!isGameOver() && moves_left > 0) {
         updateShells();
         resolveShellCollisions();
-
         if (step % 2 == 0) {
             updateGame();
             resolveTankCollisions();
@@ -423,38 +427,51 @@ void GameManager::run() {
             wining_tank = '0';
             endGame();
         }
+        shared_board->displayBoard();
+        output_file << "Step: " << step << ", Moves left: " << moves_left << std::endl;
     }
-    
     for(auto& tank : this->player1.getTanks()) {
-        for(size_t j = 0; j < tank->getActions().size() - 1; j++) {
-            file << tank->getActions()[j] << ",";
+        if (!tank) continue; // Check if tank is valid
+        auto& actions = tank->getActions();
+        if (actions.empty()) {
+            output_file << "Tank " << tank->getIndexTank() << " has no actions." << std::endl;
+            continue; // Skip to next tank if no actions
         }
-        file << tank->getActions().back() << " ";
-        file << std::endl;
+        for(size_t j = 0; j < actions.size() - 1; j++) {
+            output_file << tank->getActions()[j] << ",";
+        }
+        output_file << tank->getActions().back() << " ";
+        output_file << std::endl;
     }
     for(auto& tank : this->player2.getTanks()) {
-       for(size_t j = 0; j < tank->getActions().size() -1; j++) {
-            file << tank->getActions()[j] << ",";
+        if (!tank) continue; // Check if tank is valid
+        auto& actions = tank->getActions();
+        if (actions.empty()) {
+            output_file << "Tank " << tank->getIndexTank() << " has no actions." << std::endl;
+            continue; // Skip to next tank if no actions
+        }
+       for(size_t j = 0; j < actions.size() -1; j++) {
+            output_file << tank->getActions()[j] << ",";
     }
-        file << tank->getActions().back() << " ";
-        file << std::endl;
+        output_file << tank->getActions().back() << " ";
+        output_file << std::endl;
     }
 
     if(wining_tank == '1'){
-        file << "Player 1 won with " <<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<< "still alive"<< std::endl;
+        output_file << "Player 1 won with " <<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<< "still alive"<< std::endl;
     }
     else if(wining_tank == '2'){
-        file << "Player 2 won with " <<this->player2.getNumTanks() - this->player2.getNumKilledTanks()<< "still alive"<< std::endl;
+        output_file << "Player 2 won with " <<this->player2.getNumTanks() - this->player2.getNumKilledTanks()<< "still alive"<< std::endl;
     }
     else if(wining_tank == '0'){
-        file << "Tie, reached max steps = " << max_steps<<", player 1 has "<<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<<
+        output_file << "Tie, reached max steps = " << max_steps<<", player 1 has "<<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<<
         ", player2 has "<<this->player2.getNumTanks() - this->player2.getNumKilledTanks()<< std::endl;
     }
     else{
-        file << "Game Over: No moves left!" << std::endl;
+        output_file << "Game Over: No moves left!" << std::endl;
     }
 
-    file.close();
+    output_file.close();
     std::cout << "Finished writing to Output.txt successfully." << std::endl;
 }
 
@@ -520,14 +537,21 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
     file_errors << "Processing board file: " << filename << std::endl;
     file_errors << "===========================================" << std::endl;
     
-    std::regex pattern_max_steps(R"(MaxSteps\s*:\s*(\d+))");
-    std::regex pattern_num_shells(R"(NumShells\s*:\s*(\d+))");
-    std::regex pattern_rows(R"(Rows\s*:\s*(\d+))");
-    std::regex pattern_cols(R"(Cols\s*:\s*(\d+))");
+    std::regex pattern_max_steps(R"(MaxSteps\s*=\s*(\d+))");
+    std::regex pattern_num_shells(R"(NumShells\s*=\s*(\d+))");
+    std::regex pattern_rows(R"(Rows\s*=\s*(\d+))");
+    std::regex pattern_cols(R"(Cols\s*=\s*(\d+))");
     
     // Parse configuration parameters (first 4 lines)
+    std::string line;
+    std::getline(file_board, line);
+    std::cout<< "Reading board file: " << filename << std::endl;
+    if (line.empty()) {
+        file_errors << "Error in " << filename << ": Empty file or missing configuration parameters." << std::endl;
+        std::cerr << "Empty file or missing configuration parameters in " << filename << std::endl;
+        return false;
+    }
     for(int i = 0; i < 4; i++){
-        std::string line;
         std::getline(file_board, line);
         if (line.empty()) {
             continue; // Skip empty lines
@@ -637,8 +661,8 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
                     this->player1.addTank(tank);
-                    // FIXED: Convert unique_ptr to raw pointer using .get()
-                    this->player1.addTankAlgorithm(tank_factory->create(1, tank_algorithm_count_p1).get());
+                    this->player1.addTankAlgorithm(tank_algorithm_factory->create(1, tank_algorithm_count_p1));
+
                     tank_algorithm_count_p1++;
                 }
             }
@@ -646,8 +670,7 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
                     this->player2.addTank(tank);
-                    // FIXED: Convert unique_ptr to raw pointer using .get()
-                    this->player2.addTankAlgorithm(tank_factory->create(2, tank_algorithm_count_p2).get());
+                    this->player2.addTankAlgorithm(tank_algorithm_factory->create(2, tank_algorithm_count_p2));
                     tank_algorithm_count_p2++;
                 }
             }

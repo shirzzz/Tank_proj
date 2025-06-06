@@ -6,6 +6,7 @@
 #include "../Tank.h"           
 #include <vector>          
 #include <memory>
+#include <algorithm>
 
 class Player1 : public Player {
 private:
@@ -14,33 +15,36 @@ private:
     std::vector<bool> killed_tanks;
     int num_killed_tanks = 0;
     std::vector<std::shared_ptr<Tank>> tanks;
-    std::vector<TankAlgorithm*> tank_algorithms; // Vector to hold tank algorithms
+    std::vector<std::unique_ptr<TankAlgorithm>> tank_algorithms;
 
 public:
     // Default constructor
     Player1() : Player(0, 0, 0, 0, 0), num_tanks(0) {}
-    
+    Player1(const Player1&) = delete;
+    Player1& operator=(const Player1&) = delete;
+    //Default move constructor and move assignment operator
+    Player1(Player1&&) = default;
+    Player1& operator=(Player1&&) = default;
     // Parameterized constructor
     Player1(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells, size_t num_tanks)
         : Player(player_index, x, y, max_steps, num_shells), num_tanks(num_tanks) {}
 
     void updateTankWithBattleInfo([[maybe_unused]] TankAlgorithm& tank, 
                                  [[maybe_unused]] SatelliteView& satellite_view) override {
-        // Implement the logic to update the tank with battle information
     }
     
     void addTank(std::shared_ptr<Tank> tank) {
-        tanks.push_back(tank);
+        tanks.push_back(std::move(tank));
     }
 
-    void addTankAlgorithm(TankAlgorithm* algorithm) {
-        tank_algorithms.push_back(algorithm);
+    void addTankAlgorithm(std::unique_ptr<TankAlgorithm> algorithm) {
+        tank_algorithms.push_back(std::move(algorithm));
     }
     
-    std::vector<std::shared_ptr<Tank>> getTanks() const {
+    const std::vector<std::shared_ptr<Tank>>& getTanks() const {
         return tanks;
     }
-    std::vector<TankAlgorithm*> getTankAlgorithms() const {
+    const std::vector<std::unique_ptr<TankAlgorithm>>& getTankAlgorithms() {
         return tank_algorithms;
     }
     

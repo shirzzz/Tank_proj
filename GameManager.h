@@ -21,7 +21,7 @@ private:
 
     // Assignment 2 - Factory references
     MyPlayerFactory* player_factory = nullptr;  // CHANGED: Use concrete type
-    MyTankAlgorithmFactory* tank_factory = nullptr;  // CHANGED: Use concrete type
+    MyTankAlgorithmFactory* tank_algorithm_factory = nullptr;  // CHANGED: Use concrete type
     size_t max_steps = 0; // Maximum steps allowed in the game
     size_t num_shells = 0; // Number of shells available for each tank
     size_t width = 0; // Width of the game board
@@ -68,13 +68,13 @@ private:
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(MyPlayerFactory& pf, MyTankAlgorithmFactory& tf)  // CHANGED: Use concrete types
-        : player_factory(&pf), tank_factory(&tf) {
+        : player_factory(&pf), tank_algorithm_factory(&tf) {
 
     }
 
     // Assignment 2 - Factory accessors
     MyPlayerFactory* getPlayerFactory() const { return player_factory; }  // CHANGED: Return concrete type
-    MyTankAlgorithmFactory* getTankAlgorithmFactory() const { return tank_factory; }  // CHANGED: Return concrete type
+    MyTankAlgorithmFactory* getTankAlgorithmFactory() const { return tank_algorithm_factory; }  // CHANGED: Return concrete type
     
     // Assignment 2 - Direct filename reading
     void readBoard(const std::string& filename);

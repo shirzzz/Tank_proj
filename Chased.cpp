@@ -80,11 +80,11 @@
 
 // Compute best rotation toward the opponent's position
 ActionRequest Chased::rotateToward(std::pair<size_t, size_t> opponent) {
-    Tank& self = *my_tank.get();
-    int dx = opponent.first - self.getX();
-    int dy = opponent.second - self.getY();
+    //Tank& self = *my_tank.get();
+    int dx = opponent.first - my_tank.first;
+    int dy = opponent.second - my_tank.second;
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
-    CanonDirection currentDir = self.getCanonDirection();
+    CanonDirection currentDir = canon_direction; // Use the tank's canon direction Itai 
 
     if (currentDir == desiredDir) return ActionRequest::Shoot;
 
@@ -99,7 +99,7 @@ ActionRequest Chased::rotateToward(std::pair<size_t, size_t> opponent) {
 }
 
 ActionRequest Chased::decideNextAction() {
-    Tank& self = *my_tank.get();
+    //Tank& self = *my_tank.get();
     GameBoard& board = *game_board.get();
 
     // // 1. Avoid danger if necessary
@@ -118,8 +118,9 @@ ActionRequest Chased::decideNextAction() {
     }
 
     // 4. Default action: move toward the opponent
-    std::pair<int, int> next_cell = {(directionToVector(self.getCanonDirection())).first + self.getX(),
-                                (directionToVector(self.getCanonDirection())).second + self.getY()};
+    //Itai here I need to use the canon direction of my tank
+    std::pair<int, int> next_cell = {(directionToVector(canon_direction)).first + my_tank.first,
+                                (directionToVector(canon_direction)).second + my_tank.second};
     if(board.getCell(next_cell.first,next_cell.second)->getCellType() == CellType::WALL) {
         return ActionRequest::RotateLeft45; // Or some other action
     }
@@ -132,11 +133,23 @@ ActionRequest Chased::decideNextAction() {
 ActionRequest Chased::getAction() {
     if (my_future_moves.empty()) {
         setFutureMoves(); // Populate future moves if empty
-        return ActionRequest::GetBattleInfo; 
+        if(have_battle_info) {
+            my_tank = my_tanks_positions[tank_index];
+            setFutureMoves();
+            if (my_future_moves.empty()) {
+                return ActionRequest::DoNothing; // If no future moves, do nothing
+            } else {
+            ActionRequest action = my_future_moves.front();
+            my_future_moves.erase(my_future_moves.begin());
+            return action;
+            }
+        }else{
+            return ActionRequest::GetBattleInfo; // If no battle info, request it
+        }  
     }
-    ActionRequest action = my_future_moves.front();
+    ActionRequest next_move = my_future_moves.front();
     my_future_moves.erase(my_future_moves.begin());
-    return action;
+    return next_move;
 }
 void Chased::setFutureMoves() {
     my_future_moves.clear();

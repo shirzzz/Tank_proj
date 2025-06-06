@@ -53,7 +53,7 @@ public:
     void addAction(std::string action) {
         my_actions_str.push_back(action);
     }
-    std::vector<std::string> getActions() const;
+    const std::vector<std::string>& getActions() const;
 
     // Wait State Control
     int getWaitingToGoBack() const { return waiting_to_go_back; }

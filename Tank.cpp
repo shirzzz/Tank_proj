@@ -138,7 +138,7 @@ void Tank::rotateQuarterRight() {
 //     my_actions.push_back(action);
 // }
 
-std::vector<std::string> Tank::getActions() const {
+const std::vector<std::string>& Tank::getActions() const {
     return my_actions_str;
 }
 

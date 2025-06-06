@@ -14,19 +14,21 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: " << argv[0] << " <game_board_input_file>" << std::endl;
         return 1;
     }
-
+    std::cout << "Starting the game with input file: " << argv[1] << std::endl;
     std::string filename = argv[1];
-
+    std::cout << "Reading game board from file: " << filename << std::endl;
     // Assignment 2 API - Create factories
     MyPlayerFactory playerFactory;
     MyTankAlgorithmFactory tankFactory;
-    
+    std::cout << "Creating player and tank algorithm factories." << std::endl;
     // Assignment 2 API - Create GameManager with factories
     GameManager game(playerFactory, tankFactory);
+    std::cout << "GameManager created with player and tank algorithm factories." << std::endl;
     
     // Read board and run
     game.readBoard(filename);
+    std::cout << "Board read successfully. Starting the game." << std::endl;
     game.run();
-    
+    std::cout << "Game finished." << std::endl;
     return 0;
 }

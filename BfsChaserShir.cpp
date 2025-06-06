@@ -85,8 +85,8 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height) {
         my_future_moves.push_back(ActionRequest::Shoot);
         return;
     }
-
-    CanonDirection canon_direction = my_tank->getCanonDirection();
+    //Itai here I need to use the canon direction of my tank
+    //CanonDirection canon_direction = my_tank->getCanonDirection();
 
     for (size_t i = 1; i < path.size(); ++i) {
         int x1 = path[i - 1] / height;
@@ -167,8 +167,9 @@ ActionRequest BfsChaserShir::getAction() {
         return next_move;
     } else {
         if (have_battle_info) {
+            my_tank = my_tanks_positions[tank_index];
             std::vector<std::vector<int>> graph = getGraphOutOfBoard();
-             int start_node = my_tank->getX() * game_board->getHeight() + my_tank->getY();
+             int start_node = my_tank.first * game_board->getHeight() + my_tank.second;
             std::vector<int> path = getFutureMovesBfs(graph, start_node);
             setFutureMoves(path, game_board->getHeight());
             //need to check with shir
