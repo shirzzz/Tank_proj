@@ -1,17 +1,43 @@
+// MyBattleInfo.cpp - Implementation file
 #include "MyBattleInfo.h"
 
-MyBattleInfo::MyBattleInfo() = default;
+// REMOVED: Class definition (belongs in header file)
+// REMOVED: Extra blank lines and misplaced comments
 
-MyBattleInfo::MyBattleInfo(size_t x, size_t y, int dir, size_t shells, int tankIdx)
-    : x(x), y(y), direction(dir), shellsRemaining(shells), tankIndex(tankIdx) {}
-
-void MyBattleInfo::extractSatelliteMatrix(const SatelliteView& view, size_t rows, size_t cols) {
-    satelliteMatrix.clear();
-    for (size_t row = 0; row < rows; ++row) {
-        std::string line;
-        for (size_t col = 0; col < cols; ++col) {
-            line += view.getObjectAt(col, row);
+MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar) {
+    if (!satelliteView) return;
+    
+    // 1. Get the board pointer from MySatelliteView
+    // FIXED: getBoardReference() now returns const GameBoard*, so we just cast away const
+    gameBoard = const_cast<GameBoard*>(satelliteView->getBoardReference());
+    
+    // 2. Clear enemy locations before scanning
+    knownEnemyLocations.clear();
+    
+    // 3. Determine enemy character based on my player character
+    char enemyChar = (myPlayerChar == '1') ? '2' : '1';
+    
+    // 4. Get battlefield dimensions from the board directly
+    size_t max_width = static_cast<size_t>(gameBoard->getWidth());
+    size_t max_height = static_cast<size_t>(gameBoard->getHeight());
+    
+    // 5. Scan the entire battlefield for enemy tank locations
+    for (size_t y = 0; y < max_height; ++y) {
+        for (size_t x = 0; x < max_width; ++x) {
+            char cellContent = satelliteView->getObjectAt(x, y);
+            
+            // Check if this cell contains an enemy tank
+            if (cellContent == enemyChar) {
+                knownEnemyLocations.emplace_back(x, y);
+            }
         }
-        satelliteMatrix.push_back(line);
     }
 }
+
+std::vector<std::pair<size_t, size_t>> MyBattleInfo::getOpponents() const {
+    return knownEnemyLocations; // Return the list of known enemy locations
+}
+
+GameBoard* MyBattleInfo::getGameBoard() const {
+    return gameBoard; // Return the pointer to the game board
+} // FIXED: Removed extra semicolon

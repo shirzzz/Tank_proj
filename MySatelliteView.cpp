@@ -4,11 +4,13 @@
 MySatelliteView::MySatelliteView(const GameBoard& board) : board(board) {}
 
 char MySatelliteView::getObjectAt(size_t x, size_t y) const {
-    if (y >= board.getHeight() || x >= board.getWidth()) {
+    // FIXED: Cast size_t to int for comparison with GameBoard methods
+    if (static_cast<int>(y) >= board.getHeight() || static_cast<int>(x) >= board.getWidth()) {
         return '&';
     }
 
-    auto cell = board.getCell(x, y);
+    // FIXED: Cast size_t to int for getCell parameters and handle const issue
+    auto cell = const_cast<GameBoard&>(board).getCell(static_cast<int>(x), static_cast<int>(y));
     if (!cell) return ' ';
 
     switch (cell->getCellType()) {

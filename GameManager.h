@@ -4,8 +4,8 @@
 
 #include "common/ActionRequest.h"
 #include "Tank.h"
-#include "common/PlayerFactory.h"
-#include "common/TankAlgorithmFactory.h"
+#include "MyPlayerFactory.h"  // CHANGED: Use your concrete factory
+#include "MyTankAlgorithmFactory.h"  // CHANGED: Use your concrete factory
 #include "common/Player1.h"
 #include "common/Player2.h"
 #include <string>
@@ -20,8 +20,8 @@ private:
     bool game_over = false;
 
     // Assignment 2 - Factory references
-    PlayerFactory* player_factory = nullptr;
-    TankAlgorithmFactory* tank_factory = nullptr;
+    MyPlayerFactory* player_factory = nullptr;  // CHANGED: Use concrete type
+    MyTankAlgorithmFactory* tank_factory = nullptr;  // CHANGED: Use concrete type
     size_t max_steps = 0; // Maximum steps allowed in the game
     size_t num_shells = 0; // Number of shells available for each tank
     size_t width = 0; // Width of the game board
@@ -31,12 +31,6 @@ private:
     Player2 player2;
     char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
     int moves_left = INT_MAX;
-
-    // // Stores last known tanks for final action logging or destruction cause
-    // std::shared_ptr<Tank> lastKnownTank1 = nullptr;
-    // std::shared_ptr<Tank> lastKnownTank2 = nullptr;
-    // std::shared_ptr<Tank> tank1 = nullptr;
-    // std::shared_ptr<Tank> tank2 = nullptr;
 
     //Class methods which are only used in this class
     
@@ -52,19 +46,15 @@ private:
     void displayGame() const;      // Display actions and outcomes
     void endGame();                // Ends the game
     
-    // Action processor
-    void processAction(std::shared_ptr<Tank> tank, TankAlgorithm tank_algorithm, ActionRequest action);
+    // Action processor - FIXED: Changed TankAlgorithm to TankAlgorithm& (reference)
+    void processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action);
 
     // Accessors
     bool isGameOver() const { return game_over; }
-    // std::shared_ptr<Tank> getTank1() { return tank1; }
-    // std::shared_ptr<Tank> getTank2() { return tank2; }
     int getMovesLeft() const { return moves_left; }
 
     // Modifiers
     void setMovesLeft(int moves) { moves_left = moves; }
-    //Isnt it the GameBoard's responsibility to remove tanks?
-    //void removeTank(char index);   // Remove a tank from the game board
     void setGameOver(bool game_over) { this->game_over = game_over; }
     bool getGameOver() const { return game_over; }
     std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
@@ -77,24 +67,14 @@ private:
 
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment
-    GameManager(PlayerFactory& pf, TankAlgorithmFactory& tf) 
+    GameManager(MyPlayerFactory& pf, MyTankAlgorithmFactory& tf)  // CHANGED: Use concrete types
         : player_factory(&pf), tank_factory(&tf) {
 
     }
 
-    // // Assignment 1 Constructor - Keep for backward compatibility
-    // GameManager(std::shared_ptr<GameBoard> shared_board) : shared_board(shared_board) {
-    //     if (shared_board) {
-    //         tank1 = shared_board->getTank1(); 
-    //         tank2 = shared_board->getTank2();
-    //     }
-    // }
-
-    // ~GameManager() = default;
-
     // Assignment 2 - Factory accessors
-    PlayerFactory* getPlayerFactory() const { return player_factory; }
-    TankAlgorithmFactory* getTankAlgorithmFactory() const { return tank_factory; }
+    MyPlayerFactory* getPlayerFactory() const { return player_factory; }  // CHANGED: Return concrete type
+    MyTankAlgorithmFactory* getTankAlgorithmFactory() const { return tank_factory; }  // CHANGED: Return concrete type
     
     // Assignment 2 - Direct filename reading
     void readBoard(const std::string& filename);

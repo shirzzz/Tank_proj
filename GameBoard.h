@@ -74,7 +74,7 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
     void updateShellPosition(Shell* shell, int x, int y);
 
     void removeShell(Shell& shell);
-
+    void displayGame() const;
     void addShell(const Shell& shell);
     
     void removeWall(Wall* wall);

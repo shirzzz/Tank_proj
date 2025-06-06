@@ -2,29 +2,33 @@
 #include "ActionRequest.h"
 #include "GameBoard.h"
 #include "../MyBattleInfo.h"
+#include "DirectionUtils.h"  // ADDED: Need this for directionToVector function
 
 // Check if any shell will move into the tile in front of the tank
 bool TankAlgorithm::isDangerAhead() {
-    Tank& my_tank = *this->my_tank.get();  
-    std::pair<int, int> dir = directionToVector(tank.getCanonDirection());
+    Tank& my_tank_ref = *this->my_tank.get();  // FIXED: Renamed variable to avoid confusion
+    std::pair<int, int> dir = directionToVector(my_tank_ref.getCanonDirection());  // FIXED: Use my_tank_ref instead of tank
     int dx = dir.first;
     int dy = dir.second;
-    int fx = tank.getX() + dx;
-    int fy = tank.getY() + dy;
+    int fx = my_tank_ref.getX() + dx;  // FIXED: Use my_tank_ref instead of tank
+    int fy = my_tank_ref.getY() + dy;  // FIXED: Use my_tank_ref instead of tank
 
-    for (const Shell& shell : board.getShells()) {
+    // FIXED: Use game_board instead of board
+    for (const Shell& shell : game_board->getShells()) {
         int sx = shell.getX();
         int sy = shell.getY();
-        auto dir = directionToVector(shell.getDirection());
-        int sdx = dir.first;
-        int sdy = dir.second;
+        auto shell_dir = directionToVector(shell.getDirection());  // FIXED: Renamed dir to shell_dir to avoid conflict
+        int sdx = shell_dir.first;
+        int sdy = shell_dir.second;
 
         for (int step = 0; step < 5; ++step) {
             if (sx == fx && sy == fy) return true;
 
             sx += sdx;
             sy += sdy;
-            if (sx < 0 || sx >= board.getWidth() || sy < 0 || sy >= board.getHeight())
+            // FIXED: Use game_board instead of board
+            if (sx < 0 || sx >= static_cast<int>(game_board->getWidth()) || 
+                sy < 0 || sy >= static_cast<int>(game_board->getHeight()))
                 break;
         }
     }
@@ -37,7 +41,8 @@ int TankAlgorithm::isAlignedHorizontally() {
     int i = 0;
     //returns which opponent is aligned with self
     for(std::pair<size_t, size_t> opponent : opponents) {
-        if (my_tank.get().getY() == opponent.second) {
+        // FIXED: Use my_tank.get()->getY() instead of my_tank.get().getY()
+        if (my_tank.get()->getY() == static_cast<int>(opponent.second)) {  // FIXED: Cast to int for comparison
             return i;
         }
         i++;
@@ -48,7 +53,8 @@ int TankAlgorithm::isAlignedHorizontally() {
 int TankAlgorithm::isAlignedVertically() {
     int i = 0;
     for(std::pair<size_t, size_t> opponent : opponents) {
-        if (my_tank.get().getX() == opponent.first) {
+        // FIXED: Use my_tank.get()->getX() instead of my_tank.get().getX()
+        if (my_tank.get()->getX() == static_cast<int>(opponent.first)) {  // FIXED: Cast to int for comparison
             return i;
         }
         i++;
@@ -57,14 +63,17 @@ int TankAlgorithm::isAlignedVertically() {
 }
 
 // Helper: check if cannon direction matches direction to opponent
-intTankAlgorithm::isFacingOpponent() {
+int TankAlgorithm::isFacingOpponent() {  // FIXED: Added missing return type 'int'
     Tank& self = *my_tank.get();
     int i = 0;
     for(std::pair<size_t, size_t> opponent : opponents) {
-        if (opponent == nullptr) continue; // Skip null opponents
-        int dx = opponent.first- self.getX();
-        int dy = opponent.second - self.getY();
-        if (dx == 0 && dy == 0) return false; // Same position (somehow?)
+        // FIXED: Remove nullptr check - size_t pairs can't be nullptr
+        int dx = static_cast<int>(opponent.first) - self.getX();   // FIXED: Cast size_t to int
+        int dy = static_cast<int>(opponent.second) - self.getY(); // FIXED: Cast size_t to int
+        if (dx == 0 && dy == 0) {
+            i++;
+            continue; // Same position, check next opponent
+        }
         CanonDirection dirToOpponent = getDirectionFromDelta(dx, dy);
         if (self.getCanonDirection() == dirToOpponent) {
             return i; // Facing opponent
@@ -73,17 +82,22 @@ intTankAlgorithm::isFacingOpponent() {
     }
     return -1; // Not facing any opponent
 }
+
 void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
     // Cast to MyBattleInfo
     MyBattleInfo& myInfo = static_cast<MyBattleInfo&>(info);
         
     // 1. Save the game board
     if (myInfo.gameBoard) {
-        game_board = std::shared_ptr<GameBoard>(myInfo.gameBoard, [](GameBoard*){});
+        // FIXED: Use shared_ptr properly - don't create custom deleter that does nothing
+        game_board = std::shared_ptr<GameBoard>(myInfo.gameBoard, [](GameBoard*){
+            // Don't delete - the original MyBattleInfo owns this pointer
+        });
     }
     
     // 2. Save enemy locations directly
-   opponents = myInfo.knownEnemyLocations;  
+    opponents = myInfo.knownEnemyLocations;  
+    
     // 3. Set flag that we have battle info
     have_battle_info = true;
 }

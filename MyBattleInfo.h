@@ -1,60 +1,24 @@
-//MyBattleInfo.h - Clean header with declaration only
-//Itai I need the height of the game board to convert from index to position I need also the width of the game board to convert from position to index
+// MyBattleInfo.h - Clean header with declaration only
 #pragma once
-#include "BattleInfo.h"
+#include "common/BattleInfo.h"
 #include "MySatelliteView.h"
 #include "Tank.h"
 #include "GameBoard.h"
 #include <vector>
 #include <string>
 #include <utility>
-// MyBattleInfo.cpp - Implementation file
-#include "MyBattleInfo.h"
+
+// FIXED: Moved class definition to proper location in header
 class MyBattleInfo : public BattleInfo {
 public:
     // Tank-specific fields
     std::vector<std::pair<size_t, size_t>> knownEnemyLocations;
     GameBoard* gameBoard = nullptr; // Pointer to the game board
 
-    // Constructor declaration only
+    // Constructor declaration
     MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar = '1');
-}
-
-
-
-MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar) {
-    if (!satelliteView) return;
-
-    // 1. Get the board pointer from MySatelliteView
-    gameBoard = const_cast<GameBoard>(satelliteView->getBoardReference());
-
-    // 2. Clear enemy locations before scanning
-    knownEnemyLocations.clear();
-
-    // 3. Determine enemy character based on my player character
-    char enemyChar = (myPlayerChar == '1') ? '2' : '1';
-
-    // 4. Get battlefield dimensions from the board directly
-    size_t max_width = static_cast<size_t>(gameBoard->getWidth());
-    size_t max_height = static_cast<size_t>(gameBoard->getHeight());
-
-    // 5. Scan the entire battlefield for enemy tank locations
-    for (size_t y = 0; y < max_height; ++y) {
-        for (size_t x = 0; x < max_width; ++x) {
-            char cellContent = satelliteView->getObjectAt(x, y);
-
-            // Check if this cell contains an enemy tank
-            if (cellContent == enemyChar) {
-                knownEnemyLocations.emplace_back(x, y);
-            }
-        }
-    }
-}
-
-std::vector<std::pair<size_t, size_t>> MyBattleInfo::getOpponents() const {
-    return knownEnemyLocations; // Return the list of known enemy locations
-}
-
-GameBoard MyBattleInfo::getGameBoard() const {
-    return gameBoard; // Return the pointer to the game board
-};
+    
+    // ADDED: Missing method declarations
+    std::vector<std::pair<size_t, size_t>> getOpponents() const;
+    GameBoard* getGameBoard() const;
+}; // ADDED: Missing semicolon

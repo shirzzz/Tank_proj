@@ -1,14 +1,22 @@
 CPP = g++
-CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic -fsanitize=address
+
+# Detect operating system and set flags accordingly
+ifeq ($(OS),Windows_NT)
+    # Windows - Remove AddressSanitizer (not reliable on MinGW)
+    CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic
+else
+    # Linux/Mac - Keep AddressSanitizer
+    CPP_FLAGS = -std=c++20 -g -Wall -Wextra -Werror -pedantic -fsanitize=address
+endif
 
 # Target executable (Windows adds .exe automatically)
 TARGET = tanks_game
 
 # Source files
-SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp Player1Algorithm.cpp Player2Algorithm.cpp MySatelliteView.cpp MyBattleInfo.cpp
+SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp MySatelliteView.cpp MyBattleInfo.cpp TankAlgorithm.cpp
 
 # Header files
-HEADERS = ActionRequest.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h Wall.h Player1.h Player2.h Player1BattleInfo.h Player2BattleInfo.h PlayerFactory.h TankAlgorithmFactory.h SatelliteView.h TankAlgorithm.h BattleInfo.h MySatelliteView.h MyBattleInfo.h MyPlayerFactory.h MyTankAlgorithmFactory.h Player1Algorithm.h Player2Algorithm.h
+HEADERS = ActionRequest.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h Wall.h Player1.h Player2.h Player1BattleInfo.h Player2BattleInfo.h PlayerFactory.h TankAlgorithmFactory.h SatelliteView.h TankAlgorithm.h BattleInfo.h MySatelliteView.h MyBattleInfo.h MyPlayerFactory.h MyTankAlgorithmFactory.h 
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -69,6 +77,12 @@ Player2Algorithm.o: Player2Algorithm.cpp Player2Algorithm.h
 MySatelliteView.o: MySatelliteView.cpp MySatelliteView.h
 
 MyBattleInfo.o: MyBattleInfo.cpp MyBattleInfo.h
+
+TankAlgorithm.o: TankAlgorithm.cpp common/TankAlgorithm.h MyBattleInfo.h DirectionUtils.h
+
+MyPlayerFactory.o: MyPlayerFactory.cpp MyPlayerFactory.h GameBoard.h Player1.h Player2.h
+
+MyTankAlgorithmFactory.o: MyTankAlgorithmFactory.cpp MyTankAlgorithmFactory.h GameBoard.h Player1.h Player2.h
 
 # Clean up build files - Cross-platform compatible
 clean:

@@ -1,6 +1,6 @@
 #pragma once
-
-#include "SatelliteView.h"
+#include <cstddef>
+#include "common/SatelliteView.h"
 #include "GameBoard.h"
 
 class MySatelliteView : public SatelliteView {
