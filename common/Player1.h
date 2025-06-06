@@ -74,6 +74,12 @@ public:
     void player1Shoot() {
         sum_shells--; // Decrease the total number of shells available for all tanks
     }
+    void removeTank(std::shared_ptr<Tank> tank) {
+        auto it = std::find(tanks.begin(), tanks.end(), tank);
+        if (it != tanks.end()) {
+            tanks.erase(it);
+        }
+    }
 };
 
 #endif //PLAYER1_H

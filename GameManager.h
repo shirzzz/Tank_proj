@@ -53,7 +53,7 @@ private:
     void endGame();                // Ends the game
     
     // Action processor
-    void processAction(std::shared_ptr<Tank> tank, ActionRequest action, const std::string& name);
+    void processAction(std::shared_ptr<Tank> tank, TankAlgorithm tank_algorithm, ActionRequest action);
 
     // Accessors
     bool isGameOver() const { return game_over; }
@@ -70,7 +70,7 @@ private:
     std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
     std::shared_ptr<GameBoard> getBoard() { return shared_board; }
         
-    bool isGameEnded() const;
+    bool isGameEnded();
         
     // Assignment 2 - Win condition checker
     void checkWinCondition();
@@ -78,7 +78,7 @@ private:
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(PlayerFactory& pf, TankAlgorithmFactory& tf) 
-        : playerFactory(&pf), tankFactory(&tf) {
+        : player_factory(&pf), tank_factory(&tf) {
 
     }
 
@@ -93,13 +93,13 @@ public:
     // ~GameManager() = default;
 
     // Assignment 2 - Factory accessors
-    PlayerFactory* getPlayerFactory() const { return playerFactory; }
-    TankAlgorithmFactory* getTankAlgorithmFactory() const { return tankFactory; }
+    PlayerFactory* getPlayerFactory() const { return player_factory; }
+    TankAlgorithmFactory* getTankAlgorithmFactory() const { return tank_factory; }
     
     // Assignment 2 - Direct filename reading
     void readBoard(const std::string& filename);
     void run();
-    void loadBoardFromFile(std::istream& file_board, std::string filename);
+    bool loadBoardFromFile(std::istream& file_board, std::string filename);
 
 };
 

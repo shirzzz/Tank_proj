@@ -28,15 +28,15 @@ class GameBoard {
     // Placement and Movement
     void placeTank(int x, int y, char index_tank, CanonDirection cdir);
     void placeShell(int x, int y) const;
-    void moveTank(std::shared_ptr<Tank>& tank, int newX, int newY);
+
     void shootFromTank(char index_tank, CanonDirection cdir);
 
 public:
-GameBoard(int width, int height) : width(width), height(height) {
+GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>> game_board) : width(width), height(height) {
     board.resize(height, std::vector<std::shared_ptr<Shape>>(width));
     for(int y = 0; y<height; y++){
         for(int x = 0; x<width;x++){
-            board[y][x] = std::make_shared<Empty> (x,y);
+            board[y][x] = game_board[y][x];
         }
     }
 }
@@ -62,14 +62,9 @@ GameBoard(int width, int height) : width(width), height(height) {
         return shells; // Mutable reference to shells
     }
 
-    // // Board Accessor
-    //Shir: I dont think we need this, since we can access the board directly
-    // std::shared_ptr<GameBoard> getGameBoard() const {
-    //     return std::make_shared<GameBoard>(*this);
-    // }
-    const Shape* getCell(int x, int y) const {
+    std::shared_ptr<Shape> getCell(int x, int y) {
         if (x >= 0 && y >= 0 && y < height && x < width)
-            return board[y][x].get();
+            return board[y][x];
         return nullptr;
     }
 
@@ -87,7 +82,7 @@ GameBoard(int width, int height) : width(width), height(height) {
 
     void removeShellAtfromBoard(int x, int y);
     void moveShell(Shell* shell);
-    ActionRequest movingAlgorithm(Tank& tank);
+    //ActionRequest movingAlgorithm(Tank& tank);
     void setCell(int x, int y, std::shared_ptr<Shape> shape);
     
     bool isCellPassable(int x, int y) const;
@@ -97,6 +92,7 @@ GameBoard(int width, int height) : width(width), height(height) {
     bool isSteppingWall(int x, int y) const;
     bool isSteppingMine(int x, int y) const;
     int getMaxSteps() const { return max_steps; }
+    void moveTank(std::shared_ptr<Tank>& tank, int newX, int newY);
 };
 
 #endif // GAMEBOARD_H
