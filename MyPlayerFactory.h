@@ -2,8 +2,8 @@
 #define MYPLAYERFACTORY_H
 
 #include "common/PlayerFactory.h"
-#include "common/Player1.h"
-#include "common/Player2.h"
+#include "Player1.h"
+#include "Player2.h"
 #include <memory>
 
 class MyPlayerFactory : public PlayerFactory {

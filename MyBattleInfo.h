@@ -12,11 +12,13 @@
 class MyBattleInfo : public BattleInfo {
 public:
     // Tank-specific fields
+    char myPlayerChar; // Character representing this player's tank
+    std::vector<std::shared_ptr<Tank>> myTanks; // List of this player's tanks
     std::vector<std::pair<size_t, size_t>> knownEnemyLocations;
     GameBoard* gameBoard = nullptr; // Pointer to the game board
 
     // Constructor declaration
-    MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar = '1');
+    MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar = '1', std::vector<std::shared_ptr<Tank>> myTanks = std::vector<std::shared_ptr<Tank>>());
     
     // ADDED: Missing method declarations
     std::vector<std::pair<size_t, size_t>> getOpponents() const;

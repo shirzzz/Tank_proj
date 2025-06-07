@@ -14,8 +14,8 @@
 #include <vector>
 #include <string>
 #include <regex>
-#include "common/Player1.h"
-#include "common/Player2.h"
+#include "Player1.h"
+#include "Player2.h"
 #include <fstream>
 #include "MyBattleInfo.h"
 #include "Mine.h"
@@ -359,26 +359,43 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
 void GameManager::updateGame() {
     std::cout << "Updating game state..." << std::endl;
     if (game_over) return;
-    for(auto& tank_algorithm : this->player1.getTankAlgorithms()) {
-        std::cout << "Processing tank algorithm for player 1" << std::endl;
-        //std::shared_ptr<Tank> tank = tank_algorithm->getTank(); // CHANGED: Use -> directly on unique_ptr
-        std::shared_ptr<Tank> tank = player1.getTanks()[tank_algorithm->getIndexTank()]; // Get the tank from player1's tanks
-        std::cout << "Tank pointer: " << tank.get() << std::endl; // Debugging line
-        if (tank) {
+    
+    // FIXED: Use index-based mapping between tanks and algorithms
+    auto& player1_algorithms = this->player1.getTankAlgorithms();
+    auto& player1_tanks = this->player1.getTanks();
+    
+    std::cout << "Player 1 has " << player1_algorithms.size() << " algorithms and " << player1_tanks.size() << " tanks" << std::endl;
+    
+    for(size_t i = 0; i < player1_algorithms.size() && i < player1_tanks.size(); i++) {
+        auto& tank_algorithm = player1_algorithms[i];
+        auto& tank = player1_tanks[i];
+        
+        std::cout << "Processing algorithm " << i << " for player 1" << std::endl;
+        std::cout << "Tank pointer: " << tank.get() << std::endl;
+        
+        if (tank && tank_algorithm) {
             tank->setPreviousPosition();
             ActionRequest action1 = tank_algorithm->getAction();
-            std::cout << "Tank " << tank->getIndexTank() << " action: " << action1 << std::endl;
-            processAction(tank, *tank_algorithm.get(), action1);
+            std::cout << "Tank " << tank->getIndexTank() << " action: " << static_cast<int>(action1) << std::endl;
+            processAction(tank, *tank_algorithm, action1);
         }
     }
-    for(auto& tank_algorithm : this->player2.getTankAlgorithms()) {
-        // std::shared_ptr<Tank> tank = tank_algorithm->getTank(); // CHANGED: Use -> directly on unique_ptr
-        std::shared_ptr<Tank> tank = player2.getTanks()[tank_algorithm->getIndexTank()]; // Get the tank from player2's tanks
-        if (tank) {
+    
+    // FIXED: Same pattern for player2
+    auto& player2_algorithms = this->player2.getTankAlgorithms();
+    auto& player2_tanks = this->player2.getTanks();
+    
+    std::cout << "Player 2 has " << player2_algorithms.size() << " algorithms and " << player2_tanks.size() << " tanks" << std::endl;
+    
+    for(size_t i = 0; i < player2_algorithms.size() && i < player2_tanks.size(); i++) {
+        auto& tank_algorithm = player2_algorithms[i];
+        auto& tank = player2_tanks[i];
+        
+        if (tank && tank_algorithm) {
             tank->setPreviousPosition();
             ActionRequest action2 = tank_algorithm->getAction();
-            std::cout << "Tank " << tank->getIndexTank() << " action: " << action2 << std::endl;
-            processAction(tank,*tank_algorithm.get(), action2);
+            std::cout << "Tank " << tank->getIndexTank() << " action: " << static_cast<int>(action2) << std::endl;
+            processAction(tank, *tank_algorithm, action2);
         }
     }
 }
@@ -578,15 +595,11 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
         }
     }
 
-    // WORKAROUND: Create players using the existing factory interface (without num_tanks)
-    // We'll set the tank count later after we count them from the board
-    auto player1_ptr = player_factory->create(1, width, height, max_steps, num_shells);
-    auto player2_ptr = player_factory->create(2, width, height, max_steps, num_shells);
+    // REMOVED: Factory calls that were causing issues
+    // auto player1_ptr = player_factory->create(1, width, height, max_steps, num_shells);
+    // auto player2_ptr = player_factory->create(2, width, height, max_steps, num_shells);
     
     moves_left = max_steps; // Initialize moves left to max steps
-    // FIXED: Comment out the problematic GameBoard constructor call
-    // We'll create it later with the board data
-    // shared_board = std::make_shared<GameBoard>(width, height);
 
     if (width <= 0 || height <= 0) {
         file_errors << "Error in " << filename << ": Invalid board dimensions (width: " << width << ", height: " << height << ")" << std::endl;
@@ -594,11 +607,11 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
         return false;
     }
     
-    // ADDED: Declare board variable that was missing
+    // Declare board variable
     std::vector<std::vector<std::shared_ptr<Shape>>> board;
     board = std::vector<std::vector<std::shared_ptr<Shape>>>(height, std::vector<std::shared_ptr<Shape>>(width, nullptr));
     
-    // Parse board layout
+    // Parse board layout and count tanks
     for(size_t i = 0; i < height; i++){
         std::string line;
         std::getline(file_board, line);
@@ -612,7 +625,6 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
         for(size_t j = 0; j < width; j++){
             char c = ' ';
         
-            // FIXED: Changed from int cast to size_t comparison to avoid signed/unsigned comparison warning
             if(j < line.size()){
                 c = line[j];
             }
@@ -621,13 +633,11 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
                 count_tanks_for_player1++;
                 std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '1');
                 board[i][j] = current_tank;
-                // CHANGED: We'll add tanks to players after we override them
             }
             else if( c== '2') {
                 count_tanks_for_player2++;
                 std::shared_ptr<Tank> current_tank = std::make_shared<Tank>(j, i, '2');
                 board[i][j] = current_tank;
-                // CHANGED: We'll add tanks to players after we override them
             }
             else if (c == ' ') {
                 board[i][j] = std::make_shared<Empty>(j, i);
@@ -645,44 +655,45 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
         }
     }    
 
-    // ADDED: OVERRIDE SOLUTION - Create our own Player1 and Player2 instances with the correct tank counts
-    // Instead of using the factory-created players, create our own with the tank counts we discovered
+    // FIXED: Create our Player1 and Player2 instances with the correct tank counts
     this->player1 = Player1(1, width, height, max_steps, num_shells, count_tanks_for_player1);
     this->player2 = Player2(2, width, height, max_steps, num_shells, count_tanks_for_player2);
     
-    // ADDED: Now add tanks and algorithms to our overridden players
+    // FIXED: Add tanks and algorithms to our players in one pass
     int tank_algorithm_count_p1 = 0;
     int tank_algorithm_count_p2 = 0;
     
-    // ADDED: Second pass through board to add tanks to the correct players
     for(size_t i = 0; i < height; i++){
         for(size_t j = 0; j < width; j++){
             if (board[i][j] && board[i][j]->getCellType() == CellType::TANK1) {
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
+                    // FIXED: Add tank to player1
                     this->player1.addTank(tank);
-                    this->player1.addTankAlgorithm(tank_algorithm_factory->create(1, tank_algorithm_count_p1));
-
+                    // FIXED: Create and add tank algorithm to player1
+                    this->player1.addTankAlgorithm(getTankAlgorithmFactory()->create(1, tank_algorithm_count_p1));
                     tank_algorithm_count_p1++;
                 }
             }
             else if (board[i][j] && board[i][j]->getCellType() == CellType::TANK2) {
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
+                    // FIXED: Add tank to player2
                     this->player2.addTank(tank);
-                    this->player2.addTankAlgorithm(tank_algorithm_factory->create(2, tank_algorithm_count_p2));
+                    // FIXED: Create and add tank algorithm to player2
+                    this->player2.addTankAlgorithm(getTankAlgorithmFactory()->create(2, tank_algorithm_count_p2));
                     tank_algorithm_count_p2++;
                 }
             }
         }
     }
     
-    // FIXED: Create GameBoard with the actual board data (3-parameter constructor)
+    // Create GameBoard with the actual board data
     GameBoard game_board(width, height, board);
-    shared_board = std::make_shared<GameBoard>(game_board); // Initialize shared_board with the game board
+    shared_board = std::make_shared<GameBoard>(game_board);
     shared_board->displayBoard(); // Display the loaded board
     
-    // CHANGED: Tank counts are already set in the constructor, but let's verify
+    // Set tank counts (already set in constructor, but verify)
     this->player1.setNumTanks(count_tanks_for_player1);
     this->player2.setNumTanks(count_tanks_for_player2);
     

@@ -1,6 +1,6 @@
 #include "Player1.h"
-#include "../MyBattleInfo.h"
-#include "../MySatelliteView.h"
+#include "MyBattleInfo.h"
+#include "MySatelliteView.h"
 
 void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
     // Cast SatelliteView to MySatelliteView to access our specific methods
@@ -11,9 +11,8 @@ void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satel
         return;
     }
     
-    // Create MyBattleInfo using your constructor
-    // Player 1 looks for Player 2 tanks ('2' characters)
-    MyBattleInfo battleInfo(mySatView, '1');
+    // FIXED: Pass tanks directly without copying
+    MyBattleInfo battleInfo(mySatView, '1', this->tanks);
     
     // Call the tank algorithm's updateBattleInfo method
     // This passes the battlefield information to the tank

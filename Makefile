@@ -13,10 +13,10 @@ endif
 TARGET = tanks_game
 
 # Source files
-SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp MySatelliteView.cpp MyBattleInfo.cpp TankAlgorithm.cpp
+SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp MySatelliteView.cpp MyBattleInfo.cpp TankAlgorithm.cpp Player1.cpp Player2.cpp 
 
 # Header files
-HEADERS = ActionRequest.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h Wall.h Player1.h Player2.h Player1BattleInfo.h Player2BattleInfo.h PlayerFactory.h TankAlgorithmFactory.h SatelliteView.h TankAlgorithm.h BattleInfo.h MySatelliteView.h MyBattleInfo.h MyPlayerFactory.h MyTankAlgorithmFactory.h 
+HEADERS = ActionRequest.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h Wall.h Player1BattleInfo.h Player2BattleInfo.h PlayerFactory.h TankAlgorithmFactory.h SatelliteView.h TankAlgorithm.h BattleInfo.h MySatelliteView.h MyBattleInfo.h MyPlayerFactory.h MyTankAlgorithmFactory.h
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -84,33 +84,57 @@ MyPlayerFactory.o: MyPlayerFactory.cpp MyPlayerFactory.h GameBoard.h Player1.h P
 
 MyTankAlgorithmFactory.o: MyTankAlgorithmFactory.cpp MyTankAlgorithmFactory.h GameBoard.h Player1.h Player2.h
 
-# Clean up build files - Cross-platform compatible
+Player1.o: Player1.cpp Player1.h MyBattleInfo.h MySatelliteView.h
+
+Player2.o: Player2.cpp Player2.h MyBattleInfo.h MySatelliteView.h
+
+# Clean up build files - FIXED: Better cross-platform clean
 clean:
 ifeq ($(OS),Windows_NT)
-	$(RM) *.o $(NULL_REDIRECT) || echo.
-	$(RM) $(TARGET).exe $(NULL_REDIRECT) || echo.
-	$(RM) log_file.txt $(NULL_REDIRECT) || echo.
-	$(RM) input_errors.txt $(NULL_REDIRECT) || echo.
-	$(RM) output_input_a.txt $(NULL_REDIRECT) || echo.
-	$(RM) output_input_b.txt $(NULL_REDIRECT) || echo.
-	$(RM) output_input_c.txt $(NULL_REDIRECT) || echo.
+	-del /Q *.o 2>nul
+	-del /Q $(TARGET).exe 2>nul
+	-del /Q tanks_game.exe 2>nul
+	-del /Q log_file.txt 2>nul
+	-del /Q input_errors.txt 2>nul
+	-del /Q output_input_a.txt 2>nul
+	-del /Q output_input_b.txt 2>nul
+	-del /Q output_input_c.txt 2>nul
+	@echo Clean completed.
 else
 	$(RM) $(OBJECTS) $(TARGET)
 	$(RM) log_file.txt input_errors.txt
 	$(RM) output_input_a.txt output_input_b.txt output_input_c.txt
 endif
 
-# Alternative clean for PowerShell users
+# Alternative clean that should work better on Windows
+clean-force:
+ifeq ($(OS),Windows_NT)
+	@echo Cleaning build files...
+	@if exist *.o del /Q *.o
+	@if exist tanks_game.exe del /Q tanks_game.exe
+	@if exist $(TARGET).exe del /Q $(TARGET).exe
+	@if exist log_file.txt del /Q log_file.txt
+	@if exist input_errors.txt del /Q input_errors.txt
+	@if exist output_input_*.txt del /Q output_input_*.txt
+	@echo Clean completed.
+else
+	$(RM) $(OBJECTS) $(TARGET)
+	$(RM) log_file.txt input_errors.txt
+	$(RM) output_input_a.txt output_input_b.txt output_input_c.txt
+endif
+
+# PowerShell clean (most reliable on Windows)
 clean-ps:
-	powershell -Command "Get-ChildItem -Path . -Include *.o, tanks_game.exe, log_file.txt, input_errors.txt, output_input_*.txt | Remove-Item -Force -ErrorAction SilentlyContinue"
+	@powershell -Command "& { Get-ChildItem -Path . -Include *.o, tanks_game.exe, $(TARGET).exe, log_file.txt, input_errors.txt, output_input_*.txt -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue; Write-Host 'Clean completed.' }"
 
 # Help target
 help:
 	@echo Available targets:
-	@echo   all      - Build the tanks_game executable
-	@echo   clean    - Remove build files (cross-platform)
-	@echo   clean-ps - Remove build files using PowerShell
-	@echo   help     - Show this help message
+	@echo   all         - Build the tanks_game executable
+	@echo   clean       - Remove build files (cross-platform)
+	@echo   clean-force - Force clean with existence checks
+	@echo   clean-ps    - Remove build files using PowerShell (most reliable on Windows)
+	@echo   help        - Show this help message
 
 # Phony targets
-.PHONY: all clean clean-ps help
+.PHONY: all clean clean-force clean-ps help
