@@ -81,10 +81,10 @@
 // Compute best rotation toward the opponent's position
 ActionRequest Chased::rotateToward(std::pair<size_t, size_t> opponent) {
     //Tank& self = *my_tank.get();
-    int dx = opponent.first - my_tank.first;
-    int dy = opponent.second - my_tank.second;
+    int dx = opponent.first - my_tank.get()->getX();
+    int dy = opponent.second - my_tank.get()->getY();
     CanonDirection desiredDir = getDirectionFromDelta(dx, dy);
-    CanonDirection currentDir = canon_direction; // Use the tank's canon direction Itai 
+    CanonDirection currentDir = my_tank.get()->getCanonDirection(); // Use the tank's canon direction Itai 
 
     if (currentDir == desiredDir) return ActionRequest::Shoot;
 
@@ -100,13 +100,11 @@ ActionRequest Chased::rotateToward(std::pair<size_t, size_t> opponent) {
 
 ActionRequest Chased::decideNextAction() {
     //Tank& self = *my_tank.get();
-    GameBoard& board = *game_board.get();
-
+    //GameBoard& board = *game_board.get();
     // // 1. Avoid danger if necessary
     // if (isDangerAhead()) {
     //     return rotateToward(self, opponents[0]);  // Or choose another evasive action
     // }
-
     // 2. If facing opponent and aligned, shoot!
     if ((isAlignedHorizontally() != -1 || isAlignedVertically() != -1) && isFacingOpponent() != -1) {
         return ActionRequest::Shoot;
@@ -116,25 +114,27 @@ ActionRequest Chased::decideNextAction() {
     if (int index = isFacingOpponent() != -1) {
         return rotateToward(opponents[index]);
     }
-
     // 4. Default action: move toward the opponent
     //Itai here I need to use the canon direction of my tank
-    std::pair<int, int> next_cell = {(directionToVector(canon_direction)).first + my_tank.first,
-                                (directionToVector(canon_direction)).second + my_tank.second};
-    if(board.getCell(next_cell.first,next_cell.second)->getCellType() == CellType::WALL) {
-        return ActionRequest::RotateLeft45; // Or some other action
-    }
-    if (board.getCell(next_cell.first, next_cell.second)->getCellType() == CellType::MINE) {
-        return ActionRequest::RotateLeft45; // Or some other action
-    }
+    //std::pair<int, int> next_cell = {(directionToVector(my_tank.get()->getCanonDirection())).first + my_tank.get()->getX(),
+                                //(directionToVector(my_tank.get()->getCanonDirection())).second + my_tank.get()->getY()};
+    //std::cout<<"board is nullptr? " << (game_board.get()->getCell(next_cell.first, next_cell.second) == nullptr) << std::endl;
+    //std::cout<<game_board.get()->getCell(next_cell.first,next_cell.second)->getCellType() << std::endl;
+
+    //Shir: Itai I decided that if a tank wants to die, it can die.
+    // if(game_board.get()->getCell(next_cell.first,next_cell.second)->getCellType() == CellType::WALL) {
+    //     return ActionRequest::RotateLeft45; // Or some other action
+    // }
+    // std::cout << "Checking next cell type." << std::endl;
+    // if (game_board.get()->getCell(next_cell.first, next_cell.second)->getCellType() == CellType::MINE) {
+    //     return ActionRequest::RotateLeft45; // Or some other action
+    // }
     return ActionRequest::MoveForward;
 }
 
 ActionRequest Chased::getAction() {
     if (my_future_moves.empty()) {
-        setFutureMoves(); // Populate future moves if empty
         if(have_battle_info) {
-            my_tank = my_tanks_positions[tank_index];
             setFutureMoves();
             if (my_future_moves.empty()) {
                 return ActionRequest::DoNothing; // If no future moves, do nothing
@@ -152,7 +152,7 @@ ActionRequest Chased::getAction() {
     return next_move;
 }
 void Chased::setFutureMoves() {
-    my_future_moves.clear();
+    //my_future_moves.clear();
     for (int i = 0; i < 5; ++i) {
         my_future_moves.push_back(decideNextAction());
     }

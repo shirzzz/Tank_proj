@@ -141,14 +141,12 @@ bool GameBoard::isSteppingMine(int x, int y) const{
 }
 void GameBoard::moveShell(Shell* shell) {
     if (!shell) return; // Always be defensive
-    std::cout << "I am in moveShell" << std::endl;
     int old_x = shell->getX();
     int old_y = shell->getY();
     int dx = 0, dy = 0;
     CanonDirection direction = shell->getDirection();
 
     int speed = 1; // How far a shell moves each time
-    std::cout << "Shell speed: " << speed << std::endl;
     switch (direction) {
         case CanonDirection::U:  dy = -speed; break;
         case CanonDirection::UR: dx = speed; dy = -speed; break;
@@ -171,7 +169,6 @@ void GameBoard::moveShell(Shell* shell) {
     // Wrap around vertically
     if (new_y < 0) new_y += height;
     if (new_y >= height) new_y -= height;
-    std::cout <<"I am in moveShell after calculating new position" << std::endl;
     //Step 1: clear old
     board[old_y][old_x] = std::make_shared<Empty>(old_x, old_y); // Mark as empty
 
@@ -179,24 +176,17 @@ void GameBoard::moveShell(Shell* shell) {
     shell->setX(new_x);
     shell->setY(new_y);
 
-    std::cout << "Shell moved to (" << new_x << ", " << new_y << ")" << std::endl;
-
     // Step 3: Check for collision at new location
     if (!isCellWalkable(new_x, new_y)) {
-        std::cout << "Collision detected at (" << new_x << ", " << new_y << ")" << std::endl;
-        
         // Clear what's already there
         if (board[new_y][new_x]) {
-            std::cout << "Collision with: " << board[new_y][new_x]->getCellType() << std::endl;
             board[new_y][new_x] = std::make_shared<Empty>(new_x, new_y); // Mark as empty
         }
-        std::cout << "Shell destroyed due to collision." << std::endl;
         return; // The shell is considered destroyed - do not reinsert it
     }
 
     // Step 4: Place the shell in the new location
     board[new_y][new_x] = std::make_shared<Shell>(*shell);
-    std::cout << "Shell placed at new location (" << new_x << ", " << new_y << ")" << std::endl;
 }
 //need your help shir!!
 //I got it :-) maybe we should move it to the GameManager?
@@ -235,14 +225,10 @@ bool GameBoard::removeShellAt(int x, int y) {
 
     // Check if the element was found
     if (it != shells.end()) {
-        std::cout << "Found matching shell. Erasing...\n";
         // Now erase the element from the vector
         shells.erase(it, shells.end());
         return true;  // Indicate successful removal
-    } else {
-        std::cout << "No matching shell found.\n";
     }
-
     return false;  // No matching element found
 }
 

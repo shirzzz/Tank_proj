@@ -77,6 +77,7 @@ public:
     void deleteFirstAction() { my_actions.erase(my_actions.begin()); } // Remove the first action
     bool isAlive() const { return is_alive; }
     void killTank() { is_alive = false; }
+    void setCanonDirection(CanonDirection new_dir) { canon_dir = new_dir; }
 };
 
 #endif // TANK_H

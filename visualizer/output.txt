@@ -1,6 +1,5 @@
-RotateRight45, MoveForward, MoveForward, MoveForward
-RotateLeft45, MoveForward, MoveForward, MoveForward
-RotateRight45, MoveForward, MoveForward, MoveForward
-RotateLeft45, MoveForward, MoveForward, MoveForward
-RotateRight45, MoveForward, MoveForward, MoveForward
-Player 2 won with 2 tanks still alive
+GetBattleInfo,Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed) 
+GetBattleInfo,Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo,Shoot (ignored) 
+GetBattleInfo,MoveForward,GetBattleInfo,Shoot,Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),GetBattleInfo (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed),MoveForward (killed) 
+GetBattleInfo,Shoot,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot,Shoot (ignored),Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot,Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,Shoot (ignored),GetBattleInfo 
+Tie, reached max steps = 50, player 1 has 1, player2 has 1
