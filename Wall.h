@@ -9,7 +9,7 @@
 
 class Wall :public Shape{
 private:
-  int lives;
+  int lives = 2;
 
 public:
     Wall(int x, int y);

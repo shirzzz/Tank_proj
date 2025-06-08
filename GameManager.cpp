@@ -61,6 +61,10 @@ void GameManager::resolveShellCollisions() {
         std::shared_ptr<Shape> cell = shared_board->getCell(x, y);
 
         if (cell->getCellType() == CellType::WALL) {
+            std::cout<<"######################################\n";
+            std::cout << "Collision detected between shell and wall at position (" << x << ", " << y << ")" << std::endl;
+            std::cout<<"######################################\n";
+            std::cout<<"lives of wall: " << static_cast<Wall*>(cell.get())->getLives() << "\n";
             Wall* wall = static_cast<Wall*>(cell.get());
             wall->setLives(wall->getLives() - 1);
             if (wall->getLives() <= 0) {
@@ -69,7 +73,11 @@ void GameManager::resolveShellCollisions() {
             }
             toExplode.push_back(&shell);
         } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
+
             std::shared_ptr<Tank> hit_tank = std::dynamic_pointer_cast<Tank>((shared_board->getCell(x, y)));
+            std::cout<<"######################################\n";
+            std::cout << "Collision detected between tank and shell " << hit_tank->getIndexTank() << " and " << shell.getPosition().first<<","<<shell.getPosition().second<< std::endl;
+            std::cout<<"######################################\n";
             if (hit_tank && hit_tank->isAlive()) {
                 hit_tank->killTank();
                 if(hit_tank->getIndexTank() == '1') {
@@ -83,6 +91,7 @@ void GameManager::resolveShellCollisions() {
                     this->player2.setNumKilledTanks(this->player2.getNumKilledTanks() + 1);
                     //this->player2.removeTank(hit_tank);
                 }     
+
                 shared_board->removeTank(hit_tank);
                 toExplode.push_back(&shell);
             }
@@ -101,6 +110,7 @@ void GameManager::resolveShellCollisions() {
                 break;
         }
     }
+    
 }
 
 void GameManager::resolveTankCollisions() {
@@ -114,6 +124,9 @@ void GameManager::resolveTankCollisions() {
             auto o1 = tank1->getPreviousPosition();
             auto o2 = tank2->getPreviousPosition();
             if (p1 == p2 || (p1 == o2 && p2 == o1)) {
+                std::cout<<"######################################\n";
+                std::cout << "Collision detected between tanks " << tank1->getIndexTank() << " and " << tank2->getIndexTank() << std::endl;
+                std::cout<<"######################################\n";
                 this->player1.addKilledTank(tank1->getIndexTank());
                 this->player1.setNumKilledTanks(this->player1.getNumKilledTanks() + 1);
                 shared_board->removeTank(tank1);
@@ -127,7 +140,7 @@ void GameManager::resolveTankCollisions() {
                         this->player2.addKilledTank(tank1->getIndexTank());
                         this->player2.setNumKilledTanks(this->player2.getNumKilledTanks() + 1);
                     }
-                    shared_board->removeTank(tank1);
+                    shared_board->removeTank(tank1);         
                 }
                 if(tank2->isAlive()) {
                     tank2->killTank();
@@ -153,6 +166,9 @@ void GameManager::resolveTankCollisions() {
         if (!tank) continue;
         auto [x, y] = tank->getPosition();
         if (shared_board->getCell(x, y)->getCellType() == CellType::MINE) {
+            std::cout<<"######################################\n";
+            std::cout << "Tank " << tank->getIndexTank() << " hit a mine at position (" << x << ", " << y << ")" << std::endl;
+            std::cout<<"######################################\n";
             if(tank->getIndexTank() == '1' && tank->isAlive()) {
                 this->player1.addKilledTank(tank->getIndexTank());
                 this->player1.setNumKilledTanks(this->player1.getNumKilledTanks() + 1);
@@ -171,10 +187,14 @@ void GameManager::resolveTankCollisions() {
     }
 
     auto& shells = shared_board->getShells();
-    for (const Shell& shell : shells) {
+    for (Shell& shell : shells) {
         auto [sx, sy] = shell.getPosition();
         for (auto& tank : all_tanks) {
             if (tank && tank->getPosition() == std::make_pair(sx, sy) && tank->isAlive()) {
+                std::cout<<"######################################\n";
+                std::cout << "Tank " << tank->getIndexTank() << " hit by shell at position (" << sx << ", " << sy << ")" << std::endl;
+                std::cout<<"pointer to shell: " << &shell << "\n";
+                std::cout<<"######################################\n";
                 // If the tank is hit by a shell
                 tank->killTank();
                 if(tank->getIndexTank() == '1') {
@@ -187,7 +207,7 @@ void GameManager::resolveTankCollisions() {
                     //this->player2.removeTank(tank);
                 }
                 shared_board->removeTank(tank);
-                shared_board->removeShellAtfromBoard(sx, sy);
+                shared_board->removeShell(shell);
                 break;
             }
         }
@@ -199,12 +219,18 @@ void GameManager::resolveTankCollisions() {
 void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_algorithm, ActionRequest action) {
     int waiting_to_go_back = tank->getWaitingToGoBack();
     int waiting_to_shoot = tank->getWaitingToShootAgain();
-    
+    std::cout<<"-------------------------------------------------------------------------------------------------\n";
+    std::cout << "Processing action: " << action
+          << " for tank: " << tank->getIndexTank()<<(tank->isAlive() ? " (alive)" : " (killed)")
+          << " algorithm is: "
+          << (tank_algorithm.getPlayerIndex() == 1 ? "BFS" : "CHASED")
+          << "\n";
+    std::cout<<"-----------------------------------------------------------------------------------------------\n";
     if (waiting_to_go_back == 0) {
         std::pair<int, int> new_position = tank->moveBackward(shared_board->getWidth(), shared_board->getHeight());
         if(shared_board->isCellWalkable(new_position.first, new_position.second)){
-            tank->setWaitingToGoBack(-1);
-            if(tank->isAlive()){
+             if(tank->isAlive()){
+                tank->setWaitingToGoBack(-1);
                 tank->addAction("MoveBackward");
                 shared_board->moveTank(tank, new_position.first, new_position.second);
                 tank_algorithm.setHaveBattleInfo(false);
@@ -213,65 +239,63 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
                 tank->addAction("MoveBackward (killed)");
             }
         }
-        else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-            tank->addAction("MoveBackward (Ignored)");
-        }
+        // else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
+        //     tank->addAction("MoveBackward (Ignored)");
+        // }
     }
-    // std::cout<<"--------------------------------------------------------------------------------------------------------------------\n";
-    // std::cout<<"-------------------------------------------------------------------------------------------------------------------\n";
-    // std::cout << "Processing action: " << action
-    //       << " for tank: " << tank->getIndexTank()
-    //       << " algorithm is: "
-    //       << (tank_algorithm.getPlayerIndex() == 1 ? "BFS" : "CHASED")
-    //       << "\n";
 
-    // std::cout<<"--------------------------------------------------------------------------------------------------------------------\n";
     // std::cout<<"-------------------------------------------------------------------------------------------------------------------\n";
     switch (action) {
         case ActionRequest::GetBattleInfo:{
             MySatelliteView view(*shared_board);
             // FIXED: MyBattleInfo constructor - pass MySatelliteView pointer and tank's player character
             MyBattleInfo info(&view, tank->getIndexTank());
-            if(tank->getIndexTank() == '1') {
-                this->player1.updateTankWithBattleInfo(tank_algorithm, view);
+            if(tank->isAlive()){
+                if(tank->getIndexTank() == '1') {
+                    this->player1.updateTankWithBattleInfo(tank_algorithm, view);
             } else if (tank->getIndexTank() == '2') {
-                this->player2.updateTankWithBattleInfo(tank_algorithm, view);
-            }
-            if(tank->isAlive())
+                    this->player2.updateTankWithBattleInfo(tank_algorithm, view);
+                }
                 tank->addAction("GetBattleInfo");
-            else
+            }    
+            else {
                 tank->addAction("GetBattleInfo (killed)");
+            }     
             break;
         }
         case ActionRequest::MoveForward:
-            if (waiting_to_go_back >= 1){
+        if(tank->isAlive()){
+                if (waiting_to_go_back >= 1){
                 tank->setWaitingToGoBack(-1);
                 tank->addAction("MoveForward (Ignored)");
             }
             else {
                 std::pair<int, int> new_position = tank->moveForward(shared_board->getWidth(), shared_board->getHeight());
                 if(shared_board->isCellWalkable(new_position.first, new_position.second)){
-                    if(tank->isAlive()) {
                         tank->setWaitingToGoBack(-1);
                         tank->addAction("MoveForward");
                         shared_board->moveTank(tank, new_position.first, new_position.second);
                         tank_algorithm.setHaveBattleInfo(false);
-                        
-                    } else {
-                        tank->addAction("MoveForward (killed)");
-                    }    
-                }
+                    }
                 else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
                     tank->addAction("MoveForward (Ignored)");
                 }
             }
+         } else {
+                tank->addAction("MoveForward (killed)");
+                // If the tank is dead, it cannot move forward
+            }
             break;
 
         case ActionRequest::MoveBackward:
+        if(tank->isAlive()){
             if (waiting_to_go_back >= 1) {
                 tank->addAction("MoveBackward (Ignored)");
                 tank->setWaitingToGoBack(waiting_to_go_back - 1);
-            } 
+            } }
+            else{
+                tank->addAction("MoveBackward (killed)");
+            }
             break;
 
         case ActionRequest::RotateLeft45:
@@ -336,33 +360,21 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
             break;
 
         case ActionRequest::Shoot:
-            if (waiting_to_shoot != -1) {
-                if(tank->isAlive()){
+            if(tank->isAlive()){
+                if (waiting_to_shoot != -1) { 
                     tank->addAction("Shoot (ignored)");
-                    tank->setWaitingToShootAgain(waiting_to_shoot - 1);
-                }
-                else
-                    tank->addAction("Shoot (killed)");
-                
-            } else if (tank->getNumBullets() == 0) {
-                if(tank->isAlive())
+                    tank->setWaitingToShootAgain(waiting_to_shoot - 1);    
+                }  else if (tank->getNumBullets() == 0) {
                     tank->addAction("Shoot (ignored)");
-                else
-                    tank->addAction("Shoot (killed)");
-
-                if(tank->getIndexTank() == '1'){
+                } else{
+                    if(tank->getIndexTank() == '1'){
                     this->player1.player1Shoot();
                 }
                 else if(tank->getIndexTank() == '2'){
                     this->player2.player2Shoot();
                 }
-                if(this->player1.getSumShells() == 0 && this->player2.getSumShells() == 0) {
-                    // If both players are out of shells, end the game
-                    moves_left = 40; // Set moves_left to 40 to end the game
-                }
-            } else {
+                tank->addAction("Shoot");
                 tank->shoot();
-        
                 // Calculate shell spawn position one step ahead
                 int dx = 0, dy = 0;
                 std::tie(dx, dy) = directionToVector(tank->getCanonDirection());
@@ -372,11 +384,15 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
         
                 // Place shell one step ahead
                 shared_board->addShell(*(std::make_shared<Shell>(shell_x, shell_y, tank->getCanonDirection())));
-
-                tank->addAction("Shoot");
                 tank->setWaitingToShootAgain(4);
                 tank_algorithm.setHaveBattleInfo(false);
-            }
+                if(this->player1.getSumShells() == 0 && this->player2.getSumShells() == 0) {
+                    // If both players are out of shells, end the game
+                    moves_left = 40; // Set moves_left to 40 to end the game
+                }
+                }
+                }
+            tank->addAction("Shoot (killed)");
             break;
         case ActionRequest::DoNothing:
             if (waiting_to_go_back == -1) {
@@ -456,11 +472,13 @@ void GameManager::run() {
         return;
     }
     while (!isGameOver() && moves_left > 0) {
+        
         updateShells();
         resolveShellCollisions();
         if (step % 2 == 0) {
             updateGame();
             resolveTankCollisions();
+            shared_board->displayBoard();
         }
         step++;
         moves_left = moves_left - 1;
@@ -469,7 +487,7 @@ void GameManager::run() {
             wining_tank = '0';
             endGame();
         }
-        shared_board->displayBoard();
+       
     }
 
     for(auto& tank : this->player1.getTanks()) {
