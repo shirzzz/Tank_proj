@@ -13,6 +13,7 @@
 class Tank : public Shape {
 private:
     char index_tank;
+    std::pair<int, int> next_position;
     bool is_alive = true; // Track if the tank is alive
     std::vector<ActionRequest> my_actions;
     std::vector<std::string> my_actions_str; // For human-readable actions
@@ -32,7 +33,7 @@ private:
 public:
     // Constructor
     Tank(int x, int y, char index_tank);
-
+    
     // Actions
     void shoot();
     void rotateEighthLeft();
@@ -78,6 +79,8 @@ public:
     bool isAlive() const { return is_alive; }
     void killTank() { is_alive = false; }
     void setCanonDirection(CanonDirection new_dir) { canon_dir = new_dir; }
+    void setNextPosition(int x, int y, CanonDirection direction, int moving, int width, int height); //0 meanning no moving, 1 meaning moving forward, -1 meaning moving backward
+    std::pair<int, int> getNextPosition() const { return next_position; }    
 };
 
 #endif // TANK_H

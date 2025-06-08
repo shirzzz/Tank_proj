@@ -17,6 +17,7 @@
 class GameBoard {
     int width, height;
     std::vector<std::vector<std::shared_ptr<Shape>>> board;
+    std::vector<std::vector<bool>> is_mine; // For mines, if needed
     // std::shared_ptr<Tank> tank1;
     // std::shared_ptr<Tank>tank2;
     int num_walls = 0;
@@ -32,8 +33,9 @@ class GameBoard {
     void shootFromTank(char index_tank, CanonDirection cdir);
 
 public:
-GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>> game_board) : width(width), height(height) {
+GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>> game_board, std::vector<std::vector<bool>> is_mines) : width(width), height(height) {
     board.resize(height, std::vector<std::shared_ptr<Shape>>(width));
+    is_mine = std::move(is_mines); // Initialize mine grid
     for(int y = 0; y<height; y++){
         for(int x = 0; x<width;x++){
             board[y][x] = game_board[y][x];
@@ -93,6 +95,13 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
     bool isSteppingMine(int x, int y) const;
     int getMaxSteps() const { return max_steps; }
     void moveTank(std::shared_ptr<Tank>& tank, int newX, int newY);
+    std::pair<int, int> getNextPosition(int x, int y, CanonDirection direction) const;
+    void bombMine(int x, int y) {
+        if (x >= 0 && y >= 0 && y < height && x < width) {
+            is_mine[y][x] = false; // Remove the mine
+            board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
+        }
+    }
 };
 
 #endif // GAMEBOARD_H

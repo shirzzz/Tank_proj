@@ -18,7 +18,7 @@ class GameManager {
 private:
     std::shared_ptr<GameBoard> shared_board; // Shared pointer to the game board
     bool game_over = false;
-
+    std::vector<std::vector<bool>> is_mine;
     // Assignment 2 - Factory references
     MyPlayerFactory* player_factory = nullptr;  // CHANGED: Use concrete type
     MyTankAlgorithmFactory* tank_factory = nullptr;  // CHANGED: Use concrete type
@@ -64,6 +64,7 @@ private:
         
     // Assignment 2 - Win condition checker
     void checkWinCondition();
+    void updateTanks() const; // Update tanks' positions and actions
 
 public:
     // Assignment 2 Constructor - Takes factories as required by assignment

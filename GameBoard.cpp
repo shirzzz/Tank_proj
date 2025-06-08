@@ -85,12 +85,16 @@ void GameBoard::moveTank(std::shared_ptr<Tank>& current_tank,  int new_x, int ne
         int prev_x = current_tank->getPreviousPosition().first;
         int prev_y = current_tank->getPreviousPosition().second;
         board[old_y][old_x] = std::make_shared<Empty>(old_x, old_y);
-        if(old_x != prev_x || old_y != prev_y){
-            board[prev_y][prev_x] = std::make_shared<Empty>(prev_x, prev_y);
-        }
+
         current_tank->setX(new_x);
         current_tank->setY(new_y);
-        board[new_y][new_x] = std::make_shared<Tank>(new_x, new_y, current_tank->getIndexTank());
+        if(isCellWalkable(new_x, new_y)){
+            if(old_x != prev_x || old_y != prev_y){
+                board[prev_y][prev_x] = std::make_shared<Empty>(prev_x, prev_y);
+            }
+            board[new_y][new_x] = std::make_shared<Tank>(new_x, new_y, current_tank->getIndexTank());
+        }
+        
     } else{
         std::cerr << "Error:Attempted to move a tank that does not exist (index: "<< current_tank->getIndexTank()<<")" <<std::endl;
     }
@@ -100,8 +104,14 @@ bool GameBoard::isCellWalkable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
     if (board[y][x]) {
         CellType c = board[y][x]->getCellType();
+        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
+        std::cout<<"cell type: "<<c<<"\n";
+        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
         return c != CellType::MINE && c != CellType::WALL && c != CellType::TANK1 && c != CellType::TANK2 && c != CellType::SHELL;
     }
+    std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
+    std::cout<<"this is not walkable cell\n";
+    std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
     return false; // Consider null pointers as not walkable
 }
 bool GameBoard::isCellPassable(int x, int y) const {
@@ -139,6 +149,22 @@ bool GameBoard::isSteppingMine(int x, int y) const{
     }
     return false; 
 }
+
+std::pair<int, int> GameBoard::getNextPosition(int x, int y, CanonDirection direction) const {
+    int dx = 0, dy = 0;
+    switch (direction) {
+        case CanonDirection::U:  dy = -1; break;
+        case CanonDirection::UR: dx = 1; dy = -1; break;
+        case CanonDirection::R:  dx = 1; break;
+        case CanonDirection::DR: dx = 1; dy = 1; break;
+        case CanonDirection::D:  dy = 1; break;
+        case CanonDirection::DL: dx = -1; dy = 1; break;
+        case CanonDirection::L:  dx = -1; break;
+        case CanonDirection::UL: dx = -1; dy = -1; break;
+    }
+    return { (x + dx + width) % width, (y + dy + height) % height };
+}
+
 void GameBoard::moveShell(Shell* shell) {
     if (!shell) return; // Always be defensive
     int old_x = shell->getX();
@@ -177,16 +203,13 @@ void GameBoard::moveShell(Shell* shell) {
     shell->setY(new_y);
 
     // Step 3: Check for collision at new location
-    if (!isCellWalkable(new_x, new_y)) {
-        // Clear what's already there
-        if (board[new_y][new_x]) {
-            board[new_y][new_x] = std::make_shared<Empty>(new_x, new_y); // Mark as empty
-        }
-        return; // The shell is considered destroyed - do not reinsert it
+    if (isCellWalkable(new_x, new_y)) {
+        board[new_y][new_x] = std::make_shared<Shell>(*shell);
     }
-
-    // Step 4: Place the shell in the new location
-    board[new_y][new_x] = std::make_shared<Shell>(*shell);
+    std::cout<<"The problem is here?"<<std::endl;
+    if(is_mine[old_y][old_x]) {
+        board[old_y][old_x] = std::make_shared<Mine>(old_x, old_y); // Reset cell to mine if it was a mine
+    }
 }
 //need your help shir!!
 //I got it :-) maybe we should move it to the GameManager?

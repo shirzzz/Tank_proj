@@ -171,6 +171,41 @@ std::string Tank::getDestructionCauseStr() const {
     }
 }
 
+void Tank::setNextPosition(int x, int y, CanonDirection direction, int moving, int width, int height) {
+    // Set the next position based on the current position, direction, and moving state
+    int dx = 0, dy = 0;
+    next_position = {x, y};
+    canon_dir = direction;
+    if (moving == 1) {
+        switch (direction) {
+            case CanonDirection::U:  dy = -1; break;
+            case CanonDirection::UR: dx = 1; dy = -1; break;
+            case CanonDirection::R:  dx = 1; break;
+            case CanonDirection::DR: dx = 1; dy = 1; break;
+            case CanonDirection::D:  dy = 1; break;
+            case CanonDirection::DL: dx = -1; dy = 1; break;
+            case CanonDirection::L:  dx = -1; break;
+            case CanonDirection::UL: dx = -1; dy = -1; break;
+    }
+        next_position =  { (x + dx + width) % width, (y + dy + height) % height };
+    }
+    else if (moving == -1) {
+        switch (direction) {
+            case CanonDirection::U:  dy = 1; break;
+            case CanonDirection::UR: dx = -1; dy = 1; break;
+            case CanonDirection::R:  dx = -1; break;
+            case CanonDirection::DR: dx = -1; dy = -1; break;
+            case CanonDirection::D:  dy = -1; break;
+            case CanonDirection::DL: dx = 1; dy = -1; break;
+            case CanonDirection::L:  dx = 1; break;
+            case CanonDirection::UL: dx = 1; dy = 1; break;
+        }
+        next_position = { (x + dx + width) % width, (y + dy + height) % height };
+    }
+    // If not moving, just return the current position
+    next_position = {x, y};
+}
+
 // Basic Accessors
 int Tank::getX() const { return x; }
 int Tank::getY() const { return y; }
