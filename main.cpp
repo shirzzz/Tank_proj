@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-
+#include "OurTester.h"
 #include "GameBoard.h"
 #include "GameManager.h"
 //#include "ActionRequest.h"
@@ -15,7 +15,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::cout << "Starting the game with input file: " << argv[1] << std::endl;
-    std::string filename = argv[1];
+    //std::string filename = argv[1]; //Originally used argv[1] directly, but we will use a fixed filename for testing
+    OurTester tester;
+    std::string filename = tester.buildRandomBoardFile();
     std::cout << "Reading game board from file: " << filename << std::endl;
     // Assignment 2 API - Create factories
     MyPlayerFactory playerFactory;

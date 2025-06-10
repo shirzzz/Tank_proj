@@ -70,6 +70,42 @@ void  GameBoard::displayBoard() const {
     }
 }
 
+void  GameBoard::displayBoard(std::ofstream& file) const {
+    std::cout << "Game Board:" << std::endl;
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            if (board[y][x]) {
+                switch (board[y][x]->getCellType()) {
+                    case CellType::EMPTY:
+                        file << " ";
+                        break;
+                    case CellType::WALL:
+                        file << "#";
+                        break;
+                    case CellType::TANK1:
+                        file << "1";
+                        break;
+                    case CellType::TANK2:
+                        file << "2";
+                        break;
+                    case CellType::SHELL:
+                        file << "o";
+                        break;
+                    case CellType::MINE:
+                        file << "@";
+                        break;
+                    default:
+                        file << " "; // Handle unknown cell types
+                        break;
+                }
+            } else {
+                file << " "; // Handle null pointer case
+            }
+        }
+        file << std::endl;
+    }
+}
+
 void GameBoard::updateShellPosition(Shell *shell, int new_x, int new_y) {
     if (shell) {
         shell->setX(new_x);
@@ -104,14 +140,8 @@ bool GameBoard::isCellWalkable(int x, int y) const {
     if (x < 0 || y < 0 || x >= width || y >= height) return false;
     if (board[y][x]) {
         CellType c = board[y][x]->getCellType();
-        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-        std::cout<<"cell type: "<<c<<"\n";
-        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
         return c != CellType::MINE && c != CellType::WALL && c != CellType::TANK1 && c != CellType::TANK2 && c != CellType::SHELL;
     }
-    std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
-    std::cout<<"this is not walkable cell\n";
-    std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n";
     return false; // Consider null pointers as not walkable
 }
 bool GameBoard::isCellPassable(int x, int y) const {
@@ -206,7 +236,6 @@ void GameBoard::moveShell(Shell* shell) {
     if (isCellWalkable(new_x, new_y)) {
         board[new_y][new_x] = std::make_shared<Shell>(*shell);
     }
-    std::cout<<"The problem is here?"<<std::endl;
     if(is_mine[old_y][old_x]) {
         board[old_y][old_x] = std::make_shared<Mine>(old_x, old_y); // Reset cell to mine if it was a mine
     }

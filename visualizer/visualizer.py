@@ -4,14 +4,15 @@ import re
 
 # ----- CONFIG -----
 CELL_SIZE = 60
-FPS = 1
+FPS = 0.1
 WRAP_EDGES = False  # Set to True to enable edge wrapping
 
 # ----- GLOBALS -----
 GRID_WIDTH = None
 GRID_HEIGHT = None
-grid = []  # Map grid
 
+grid = []  # Map grid (characters)
+wall_hits = {}  # (x, y) -> hit count for weakening walls
 
 # ----- CLASSES -----
 class Tank:
@@ -33,10 +34,18 @@ class Tank:
         if WRAP_EDGES:
             new_x %= GRID_WIDTH
             new_y %= GRID_HEIGHT
+        # within bounds
         if 0 <= new_x < GRID_WIDTH and 0 <= new_y < GRID_HEIGHT:
-            if grid[new_y][new_x] != '#':
-                self.x = new_x
-                self.y = new_y
+            cell = grid[new_y][new_x]
+            # collide with wall?
+            if cell == '#':
+                return
+            # move onto mine => death
+            if cell == '@':
+                self.x, self.y = new_x, new_y
+                self.alive = False
+                return
+            self.x, self.y = new_x, new_y
 
     def move_forward(self):
         self.move(1)
@@ -68,8 +77,8 @@ class Tank:
         directions = ['UP', 'UP_RIGHT', 'RIGHT', 'DOWN_RIGHT',
                       'DOWN', 'DOWN_LEFT', 'LEFT', 'UP_LEFT']
         if self.direction in directions:
-            i = directions.index(self.direction)
-            self.direction = directions[(i + step) % 8]
+            idx = directions.index(self.direction)
+            self.direction = directions[(idx + step) % len(directions)]
 
     def shoot(self):
         if not self.alive:
@@ -86,7 +95,6 @@ class Tank:
         key = f"player{self.player_id}_{self.direction.lower().replace('_', '')}"
         return self.images.get(key)
 
-
 class Shell:
     def __init__(self, x, y, dx, dy):
         self.x = x
@@ -94,22 +102,41 @@ class Shell:
         self.dx = dx
         self.dy = dy
         self.radius = CELL_SIZE // 6
+        self.alive = True
 
-    def update_position(self):
-        self.x += self.dx
-        self.y += self.dy
-        if WRAP_EDGES:
-            self.x %= GRID_WIDTH
-            self.y %= GRID_HEIGHT
-
-    def is_out_of_bounds(self):
-        return not (0 <= self.x < GRID_WIDTH and 0 <= self.y < GRID_HEIGHT)
+    def update(self, tanks):
+        # move two steps, checking collisions cell by cell
+        for _ in range(2):
+            self.x += self.dx
+            self.y += self.dy
+            if WRAP_EDGES:
+                self.x %= GRID_WIDTH
+                self.y %= GRID_HEIGHT
+            # bounds
+            if not (0 <= self.x < GRID_WIDTH and 0 <= self.y < GRID_HEIGHT):
+                self.alive = False
+                return
+            cell = grid[int(self.y)][int(self.x)]
+            # hit wall
+            if cell == '#':
+                pos = (int(self.x), int(self.y))
+                wall_hits[pos] = wall_hits.get(pos, 0) + 1
+                if wall_hits[pos] >= 2:
+                    grid[int(self.y)][int(self.x)] = '.'
+                self.alive = False
+                return
+            # hit mine - shells pass through
+            # hit tank
+            for tank in tanks:
+                if tank.alive and tank.x == int(self.x) and tank.y == int(self.y):
+                    tank.alive = False
+                    self.alive = False
+                    return
 
     def draw(self, screen):
         px = self.x * CELL_SIZE + CELL_SIZE // 2
         py = self.y * CELL_SIZE + CELL_SIZE // 2
         pygame.draw.circle(screen, (200, 30, 30), (px, py), self.radius)
-
 
 # ----- DRAWING -----
 def draw_grid(screen):
@@ -142,8 +169,8 @@ def draw_tanks(screen, tanks):
 
 def draw_shells(screen, shells):
     for shell in shells:
-        shell.draw(screen)
-
+        if shell.alive:
+            shell.draw(screen)
 
 # ----- HELPERS -----
 def clean_action(token):
@@ -171,7 +198,6 @@ def parse_action(action_str, tank):
     elif action == "shoot":
         return tank.shoot()
     return None
-
 
 # ----- LOADING -----
 def load_images():
@@ -202,15 +228,15 @@ def load_map_dimensions():
 
 
 def load_map():
-    global grid
+    global grid, wall_hits
     with open("map.txt", "r") as f:
         lines = f.readlines()[5:]
     grid = []
+    wall_hits.clear()
     for y in range(GRID_HEIGHT):
         line = lines[y].rstrip("\n") if y < len(lines) else ""
         row = list((line + " " * GRID_WIDTH)[:GRID_WIDTH])
         grid.append(row)
-
 
 # ----- MAIN LOOP -----
 def main():
@@ -234,7 +260,7 @@ def main():
                 player_id = 1 if num % 2 == 1 else 2
                 tanks.append(Tank(player_id, counts[player_id], x, y, images))
                 counts[player_id] += 1
-                grid[y][x] = '.'  # Clear tank digit from map
+                grid[y][x] = '.'  # Clear tank digit
 
     # Load actions
     action_log = []
@@ -257,25 +283,33 @@ def main():
         if current_round < len(action_log):
             actions = action_log[current_round]
             for i, tank in enumerate(tanks):
-                action = actions[i] if i < len(actions) else "DoNothing"
-                shell = parse_action(action, tank)
+                act = actions[i] if i < len(actions) else "DoNothing"
+                shell = parse_action(act, tank)
                 if shell:
                     shells.append(shell)
             current_round += 1
 
         # Update shells
-        for shell in shells[:]:
-            shell.update_position()
-            if shell.is_out_of_bounds() or grid[int(shell.y)][int(shell.x)] == '#':
-                shells.remove(shell)
-                continue
-            for tank in tanks:
-                if tank.alive and tank.x == int(shell.x) and tank.y == int(shell.y):
-                    tank.alive = False
-                    shells.remove(shell)
-                    break
+        # Move and handle collisions
+        for shell in shells:
+            if shell.alive:
+                shell.update(tanks)
 
-        # Draw
+        # Shell-shell collisions
+        positions = {}
+        for shell in shells:
+            if shell.alive:
+                pos = (int(shell.x), int(shell.y))
+                positions.setdefault(pos, []).append(shell)
+        for pos, group in positions.items():
+            if len(group) > 1:
+                for sh in group:
+                    sh.alive = False
+
+        # Remove dead shells
+        shells = [sh for sh in shells if sh.alive]
+
+        # Draw everything
         screen.fill((255, 255, 255))
         draw_grid(screen)
         draw_map(screen, images)
@@ -286,7 +320,6 @@ def main():
 
     pygame.quit()
     sys.exit()
-
 
 if __name__ == "__main__":
     main()

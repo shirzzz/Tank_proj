@@ -93,6 +93,8 @@ void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
         game_board = std::shared_ptr<GameBoard>(myInfo.gameBoard, [](GameBoard*){
             // Don't delete - the original MyBattleInfo owns this pointer
         });
+        height = myInfo.gameBoard->getHeight();  // FIXED: Use game_board to get height
+        width = myInfo.gameBoard->getWidth();    // FIXED: Use game_board to get width
     }
     
     //2. Save my tank
@@ -106,7 +108,7 @@ void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
 
     // 4. Save enemy locations directly
     opponents = myInfo.knownEnemyLocations;  
-    
+
     // 5. Set flag that we have battle info
     have_battle_info = true;
 }

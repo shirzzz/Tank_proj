@@ -17,7 +17,9 @@ int BfsChaserShir::canKillOpponent(int spot) {
     for (std::pair<size_t, size_t> opponent : opponents) {
         int dx = opponent.first - pos.first;
         int dy = opponent.second - pos.second;
-        if (dx == 0 || dy == 0 || abs(dx) == abs(dy)) return i; // Same position'
+        if (dx == 0 || dy == 0 || abs(dx) == abs(dy)){
+            return i; // Same position'
+        } 
         i++;
     }
     return -1; // No opponent can be
@@ -76,14 +78,51 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(const std::vector<std::vector<
         }
         std::reverse(moves.begin(), moves.end());
     }
-
+    if (moves.empty()) {
+        return moves; // Return empty vector if no path found
+    }
     return moves;
 }
 
-void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height) {
+void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int start) {
     if (path.empty()) {
-        my_future_moves.push_back(ActionRequest::Shoot);
-        return;
+        //Maybe can kill opponent from current position
+        int index = canKillOpponent(start);
+        if (index != -1) {
+            std::pair<int, int> pos = fromIndextoPos(start, height);
+            int dx = opponents[index].first - pos.first;
+            int dy = opponents[index].second - pos.second;
+            CanonDirection target_direction = getDirectionFromDelta(dx, dy);
+            
+            if (my_tank.get()->getCanonDirection() == target_direction) {
+                my_future_moves.push_back(ActionRequest::Shoot);
+                return;
+            } else {
+                int current = static_cast<int>(my_tank.get()->getCanonDirection());
+                int target = static_cast<int>(target_direction);
+                int right_steps = (target - current + 8) % 8;
+                int left_steps = (current - target + 8) % 8;
+
+                if (left_steps <= right_steps) {
+                    for (int j = 0; j < left_steps; ++j) {
+                        my_future_moves.push_back(ActionRequest::RotateLeft45);
+                        //my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
+                    }
+                } else {
+                    for (int j = 0; j < right_steps; ++j) {
+                        my_future_moves.push_back(ActionRequest::RotateRight45);
+                        //my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
+                    }
+                }
+
+                my_future_moves.push_back(ActionRequest::Shoot);
+                return;
+            }
+        } else {
+            my_future_moves.push_back(ActionRequest::DoNothing);
+            return;
+        }
+        
     }
     //Itai here I need to use the canon direction of my tank
     //CanonDirection canon_direction = my_tank->getCanonDirection();
@@ -120,12 +159,12 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height) {
                 if (left_steps <= right_steps) {
                     for (int j = 0; j < left_steps; ++j) {
                         my_future_moves.push_back(ActionRequest::RotateLeft45);
-                        my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
+                        //my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
                     }
                 } else {
                     for (int j = 0; j < right_steps; ++j) {
                         my_future_moves.push_back(ActionRequest::RotateRight45);
-                        my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
+                        //my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
                     }
                 }
 
@@ -147,12 +186,12 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height) {
         if (left_steps <= right_steps) {
             for (int j = 0; j < left_steps; ++j) {
                 my_future_moves.push_back(ActionRequest::RotateLeft45);
-                my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
+                //my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
             }
         } else {
             for (int j = 0; j < right_steps; ++j) {
                 my_future_moves.push_back(ActionRequest::RotateRight45);
-                my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
+                //my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
             }
         }
 
@@ -168,9 +207,9 @@ ActionRequest BfsChaserShir::getAction() {
     } else {
         if (have_battle_info) {
             std::vector<std::vector<int>> graph = getGraphOutOfBoard();
-            int start_node = my_tank.get()->getX() * game_board->getHeight() + my_tank.get()->getY();
+            int start_node = my_tank.get()->getX() * height+ my_tank.get()->getY();
             std::vector<int> path = getFutureMovesBfs(graph, start_node);
-            setFutureMoves(path, game_board->getHeight());
+            setFutureMoves(path,height, start_node);
             //need to check with shir
             if (my_future_moves.empty()) {
             //Shir: I believe it's better to shoot if we have no future moves
@@ -186,10 +225,7 @@ ActionRequest BfsChaserShir::getAction() {
 }
 
 std::vector<std::vector<int>> BfsChaserShir::getGraphOutOfBoard() {
-    // int width = game_board->getWidth();
-    // int height = game_board->getHeight();
     std::vector<std::vector<int>> graph(width * height + 1);
-  
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             if (!game_board->isCellPassable(x, y)) continue;
@@ -245,7 +281,7 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
             if (sx == fx && sy == fy) return true;
             sx += sdx;
             sy += sdy;
-            if (sx < 0 || sx >= board->getWidth() || sy < 0 || sy >= board->getHeight()) break;
+            if (sx < 0 || sx >= board->getWidth() || sy < 0 || sy >=height) break;
         }
     }
     return false;
@@ -255,7 +291,7 @@ bool BfsChaserShir::isChased(const Tank& self, const std::shared_ptr<GameBoard> 
 std::vector<int> BfsChaserShir::opponentsSpots() {
     std::vector<int> opponents_spots;
     for (std::pair<size_t, size_t> opponent : opponents) {
-        int pos = opponent.first *game_board->getHeight() + opponent.second;
+        int pos = opponent.first *height + opponent.second;
         opponents_spots.push_back(pos);
     }
     return opponents_spots;

@@ -133,11 +133,14 @@ void GameManager::resolveShellCollisions() {
 }
 
 void GameManager::resolveTankCollisions() {
-    auto player1Tanks = this->player1.getTanks();
-    auto player2Tanks = this->player2.getTanks();
-    for (auto& tank1 : player1Tanks) {
-        for (auto& tank2 : player2Tanks) {
+    std::vector<std::shared_ptr<Tank>> all_tanks;
+    all_tanks.reserve(this->player1.getTanks().size() + this->player2.getTanks().size());
+    all_tanks.insert(all_tanks.end(), this->player1.getTanks().begin(), this->player1.getTanks().end());
+    all_tanks.insert(all_tanks.end(), this->player2.getTanks().begin(), this->player2.getTanks().end());
+    for (auto& tank1 : all_tanks) {
+        for(auto& tank2 : all_tanks) {
             if (!tank1 || !tank2) continue;
+            if (tank1 == tank2 || !tank1->isAlive() || !tank2->isAlive()) continue; // Skip if same tank or either tank is dead
             auto p1 = tank1->getNextPosition();
             auto p2 = tank2->getNextPosition();
             auto o1 = tank1->getPosition();
@@ -171,13 +174,6 @@ void GameManager::resolveTankCollisions() {
             }
         }
     }
-    std::vector<std::shared_ptr<Tank>> all_tanks;
-    all_tanks.reserve(this->player1.getTanks().size() + this->player2.getTanks().size());
-    all_tanks.insert(all_tanks.end(), this->player1.getTanks().begin(), this->player1.getTanks().end());
-    all_tanks.insert(all_tanks.end(), this->player2.getTanks().begin(), this->player2.getTanks().end());
-    std::cout<<"######################################\n";
-    std::cout<<"size of all_tanks: " << all_tanks.size() << "\n";
-    std::cout<<"######################################\n";
     for (auto& tank : all_tanks) {
         if (!tank) continue;
         auto [x, y] = tank->getNextPosition();
@@ -210,7 +206,6 @@ void GameManager::resolveTankCollisions() {
             if (tank && tank->getPosition() == std::make_pair(sx, sy) && tank->isAlive()) {
                 std::cout<<"######################################\n";
                 std::cout << "Tank " << tank->getIndexTank() << " hit by shell at position (" << sx << ", " << sy << ")" << std::endl;
-                std::cout<<"pointer to shell: " << &shell << "\n";
                 std::cout<<"######################################\n";
                 // If the tank is hit by a shell
                 tank->killTank();
@@ -238,7 +233,10 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
     int waiting_to_shoot = tank->getWaitingToShootAgain();
     std::cout<<"-------------------------------------------------------------------------------------------------\n";
     std::cout << "Processing action: " << action
-          << " for tank: " << tank->getIndexTank()<<(tank->isAlive() ? " (alive)" : " (killed)")
+          << " for player: " << tank->getIndexTank()<<(tank->isAlive() ? " (alive)" : " (killed)")
+          <<" for tank index:" <<tank_algorithm.getIndexTank()
+          << " at position: (" << tank->getX() << ", " << tank->getY() << ")"
+          <<"in direction: " << tank->getCanonDirection()
           << " algorithm is: "
           << (tank_algorithm.getPlayerIndex() == 1 ? "BFS" : "CHASED")
           << "\n";
@@ -474,6 +472,8 @@ void GameManager::updateGame() {
 }
 
 void GameManager::run() {
+    int num_tanks_player1 = 0;
+    int num_tanks_player2 = 0;
     int step = 0;
     std::ofstream output_file("Output.txt");
 
@@ -503,19 +503,32 @@ void GameManager::run() {
         return;
     }
     while (!isGameOver() && moves_left > 0) {
+        num_tanks_player1 = 0;
+        num_tanks_player2 = 0;
+        for(auto& tank : this->player1.getTanks()) {
+            if (tank && tank->isAlive()) {
+                num_tanks_player1++;
+            }
+        }
+        for(auto& tank : this->player2.getTanks()) {
+            if (tank && tank->isAlive()) {
+                num_tanks_player2++;
+            }
+        }
         resolveShellCollisions();
         updateShells();
-        if(this->player1.getNumTanks() - player1.getNumKilledTanks() == 0 && this->player2.getNumTanks() - player2.getNumKilledTanks() == 0){
+        shared_board->displayBoard();
+        if(num_tanks_player1 == 0 && num_tanks_player2 == 0){
                 std::cout << "Game Over: Both players have no tanks left!" << std::endl;
                 wining_tank = '0';
                 endGame();
             }
-            else if(this->player1.getNumTanks() - player1.getNumKilledTanks()== 0){
+            else if(num_tanks_player1== 0){
                 std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
                 wining_tank = '2';
                 endGame();
             }
-            else if(this->player2.getNumTanks() - player2.getNumKilledTanks() == 0){
+            else if(num_tanks_player2 == 0){
                 std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
                 wining_tank = '1';
                 endGame();
@@ -525,26 +538,21 @@ void GameManager::run() {
             updateGame();
             resolveTankCollisions();
             updateTanks();
-            std::cout<<"-------------------------------------------------------------------------------------------------\n";
-            std::cout << "Step: " << step << ", Player 1 Tanks: " << this->player1.getNumTanks() 
-                      << ", Player 2 Tanks: " << this->player2.getNumTanks() << std::endl;
-            std::cout<<"-------------------------------------------------------------------------------------------------\n";
-            if(this->player1.getNumTanks() - player1.getNumKilledTanks() == 0 && this->player2.getNumTanks() - player2.getNumKilledTanks() == 0){
+            if(num_tanks_player1 == 0 && num_tanks_player2 == 0){
                 std::cout << "Game Over: Both players have no tanks left!" << std::endl;
                 wining_tank = '0';
                 endGame();
             }
-            else if(this->player1.getNumTanks() - player1.getNumKilledTanks()== 0){
+            else if(num_tanks_player1 == 0){
                 std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
                 wining_tank = '2';
                 endGame();
             }
-            else if(this->player2.getNumTanks() - player2.getNumKilledTanks() == 0){
+            else if(num_tanks_player2 == 0){
                 std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
                 wining_tank = '1';
                 endGame();
             }
-            shared_board->displayBoard();
         }
         step++;
         moves_left = moves_left - 1;
@@ -586,14 +594,14 @@ void GameManager::run() {
     }
 
     if(wining_tank == '1'){
-        output_file << "Player 1 won with " <<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<< "still alive"<< std::endl;
+        output_file << "Player 1 won with " <<num_tanks_player1<< "still alive"<< std::endl;
     }
     else if(wining_tank == '2'){
-        output_file << "Player 2 won with " <<this->player2.getNumTanks() - this->player2.getNumKilledTanks()<< "still alive"<< std::endl;
+        output_file << "Player 2 won with " <<num_tanks_player2<< "still alive"<< std::endl;
     }
     else if(wining_tank == '0'){
-        output_file << "Tie, reached max steps = " << max_steps<<", player 1 has "<<this->player1.getNumTanks() - this->player1.getNumKilledTanks()<<
-        ", player2 has "<<this->player2.getNumTanks() - this->player2.getNumKilledTanks()<< std::endl;
+        output_file << "Tie, reached max steps = " << max_steps<<", player 1 has "<<num_tanks_player1<<
+        ", player2 has "<<num_tanks_player2<< std::endl;
     }
     else{
         output_file << "Game Over: No moves left!" << std::endl;
@@ -826,8 +834,20 @@ void GameManager::displayGame() const {
     if (shared_board) {
         shared_board->displayBoard();
     }
-    std::cout << "Player 1 tanks: " << this->player1.getNumTanks() - this->player1.getNumKilledTanks() << std::endl;
-    std::cout << "Player 2 tanks: " << this->player2.getNumTanks() - this->player2.getNumKilledTanks() << std::endl;
+    int num_tanks_player1 = 0;
+    int num_tanks_player2 = 0;
+    for (const auto& tank : player1.getTanks()) {
+        if (tank && tank->isAlive()) {
+            num_tanks_player1++;
+        }
+    }
+    for (const auto& tank : player2.getTanks()) {
+        if (tank && tank->isAlive()) {
+            num_tanks_player2++;
+        }
+    }
+    std::cout << "Player 1 tanks: " << num_tanks_player1 << std::endl;
+    std::cout << "Player 2 tanks: " << num_tanks_player2 << std::endl;
     std::cout << "Moves left: " << moves_left << std::endl;
     std::cout << "=================" << std::endl;
 }

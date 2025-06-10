@@ -46,6 +46,7 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
 
     bool loadBoardFromFile(std::istream& file_board, std::string filename);
     void displayBoard() const;
+    void displayBoard(std::ofstream& file) const;
 
     // State Queries
     bool isCellWalkable(int x, int y) const;

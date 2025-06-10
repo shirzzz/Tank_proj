@@ -6,8 +6,8 @@
 #include "GameBoard.h"
 
 std::string OurTester::buildRandomBoardFile() {
-    bool placed_tank1 = false;
-    bool placed_tank2 = false;
+    // bool placed_player1 = false;
+    // bool placed_player2 = false;
     std::string filename = "random_board.txt";
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -16,30 +16,36 @@ std::string OurTester::buildRandomBoardFile() {
     }
 
     std::cout << "Opening file for writing random board." << std::endl;
-
+    std::mt19937 gen(std::random_device{}());
     std::uniform_int_distribution<> distrib(5, 10); // (Smaller boards are easier to debug)
+    std::uniform_int_distribution<> cell_type(1, 100); 
+
     std::random_device rd;
-    std::mt19937 gen(rd());
+ 
     int width = distrib(gen);
     int height = distrib(gen);
-    file << width << " " << height << "\n";
+
+    file << "Random Board\n";
+    file<<"MaxSteps =" << cell_type(gen) << "\n";
+    file << "NumShells =" << cell_type(gen) << "\n";
+    file <<"Rows = " << height << "\n";
+    file << "Cols =  " << width << "\n";
 
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
-            char c = '.';
-            if (rand() % 5 == 0) {
+            char c = ' '; // Default empty cell
+            int roll = cell_type(gen);
+            if (roll <= 15) {
                 c = '#'; // Wall
             }
-            else if (rand() % 10 == 0) {
+            else if (roll <= 30) {
                 c = '@'; // Mine
             }
-            else if (!placed_tank1 && rand() % 10 == 0) {
+            else if (roll <= 45) {
                 c = '1'; // Tank 1
-                placed_tank1 = true;
             }
-            else if (!placed_tank2 && rand() % 10 == 0) {
+            else if (roll <= 60) {
                 c = '2'; // Tank 2
-                placed_tank2 = true;
             }
             file << c;
         }
@@ -47,9 +53,9 @@ std::string OurTester::buildRandomBoardFile() {
     }
 
     // Force place tanks if they were not placed randomly
-    if (!placed_tank1 || !placed_tank2) {
-        std::cout << "Warning: One or both tanks not placed randomly. Please check file manually.\n";
-    }
+    // if (!placed_tank1 || !placed_tank2) {
+    //     std::cout << "Warning: One or both tanks not placed randomly. Please check file manually.\n";
+    // }
 
     file.close();
     std::cout << "Random board file created successfully.\n";

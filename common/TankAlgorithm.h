@@ -14,6 +14,8 @@ protected:
     int player_index; // ADDED: Store player index
     int tank_index;   // ADDED: Store tank index
     std::shared_ptr<Tank> my_tank; 
+    int width = 0; // Width of the game board
+    int height = 0; // Height of the game board
     std::shared_ptr<GameBoard> game_board; // Pointer to the game board
     std::vector<ActionRequest> my_future_moves; // Future moves for the tank
     bool have_battle_info = false;

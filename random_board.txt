@@ -1,0 +1,12 @@
+Random Board
+MaxSteps =18
+NumShells =32
+Rows = 7
+Cols =  5
+2@2##
+@ 2 1
+ 2@12
+1   @
+ @ 22
+2##  
+@@12 
