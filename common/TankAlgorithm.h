@@ -30,11 +30,6 @@ protected:
 public:
 
     virtual void updateBattleInfo(BattleInfo& battleInfo) = 0;
-    bool isDangerAhead();
-    int isAlignedHorizontally();
-    int isAlignedHorizontally(std::pair<size_t, size_t> position, CanonDirection direction) const;
-    int isAlignedVertically();
-    int isAlignedVertically(std::pair<size_t, size_t> position, CanonDirection direction) const;
     int isFacingOpponent();
     int isFacingOpponent(std::pair<size_t, size_t> position, CanonDirection direction) const;
     int getPlayerIndex() const {

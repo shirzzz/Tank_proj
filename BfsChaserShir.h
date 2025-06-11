@@ -13,9 +13,11 @@ private:
     std::vector<std::vector<int>> getGraphOutOfBoard();
     std::vector<int> getFutureMovesBfs(const std::vector<std::vector<int>>& graph, int start_node);
     void setFutureMoves(const std::vector<int>& path, int height, int start);
-    
+    void handleEmptyPath(int start, int height);
+    bool tryToShootOpponent(int indexPos, int height);
+    void rotateTowardsAndMoveForward(int x1, int y1, int x2, int y2);
+    void rotateCanonTowards(CanonDirection target_direction);
     std::pair<int, int> fromIndextoPos(int index, int height);
-    bool isChased(const Tank& self, const std::shared_ptr<GameBoard> board);
     std::vector<int> opponentsSpots();
 
 public:

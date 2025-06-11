@@ -15,12 +15,14 @@ private:
         return std::make_unique<Chased>(*this);
     }
     ActionRequest rotateToward(std::pair<size_t, size_t> opponent);
-    // Function to check if the tank is in danger from a shell
-    bool isDangerAhead();
-    // Function to check if the tank is in danger
-    bool isInDanger(const Tank& tank, const GameBoard& board);
-    // Main decision function of the Chased tank
+    int canKillOpponent(std::pair<int, int> pos);
     ActionRequest decideNextAction();
+    ActionRequest rotateTowardAndUpdate(int index);
+    ActionRequest moveTowardOpponent();
+    void rotateCanonRight45();
+    void rotateCanonLeft45();
+    void rotateCanonRight90();
+    void rotateCanonLeft90();
     std::vector<ActionRequest> getFutureMoves() const {
         return my_future_moves;
     }

@@ -1,13 +1,15 @@
 Random Board
-MaxSteps =35
-NumShells =8
-Rows = 8
-Cols =  8
-@##2 2  
-1  21 1#
-@     @#
-  @#   #
-   #    
- 2   21 
-  @ @ @@
-   #    
+MaxSteps =62
+NumShells =89
+Rows = 10
+Cols =  9
+   #@@1  
+  @     1
+ #1 121  
+@#    # @
+@2    #  
+ #1   12 
+ @1##@ @ 
+@@ @  @2 
+ @ #   # 
+ #@@@ ## 

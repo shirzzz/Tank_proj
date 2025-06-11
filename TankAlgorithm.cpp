@@ -3,40 +3,6 @@
 #include "GameBoard.h"
 #include "MyBattleInfo.h"
 #include "DirectionUtils.h"  
-
-// Check if any shell will move into the tile in front of the tank
-
-//Itai do we need this function?
-
-// bool TankAlgorithm::isDangerAhead() {
-//     std::pair<int, int> dir = directionToVector(my_tank.get()->getCanonDirection());  // Itai look at this line I used canon_direction instead of my_tank_ref.getCanonDirection()
-//     int dx = dir.first;
-//     int dy = dir.second;
-//     int fx = my_tank.get()->getX() + dx;  //  Use my_tank_ref instead of tank
-//     int fy = my_tank.get()->getY()+ dy;  //  Use my_tank_ref instead of tank
-//     //  Use game_board instead of board
-//     for (const Shell& shell : game_board->getShells()) {
-//         int sx = shell.getX();
-//         int sy = shell.getY();
-//         auto shell_dir = directionToVector(shell.getDirection());  // Renamed dir to shell_dir to avoid conflict
-//         int sdx = shell_dir.first;
-//         int sdy = shell_dir.second;
-//         for (int step = 0; step < 5; ++step) {
-//             if (sx == fx && sy == fy) return true;
-//             sx += sdx;
-//             sy += sdy;
-//             // Use game_board instead of board
-//             if (sx < 0 || sx >= static_cast<int>(game_board->getWidth()) || 
-//                 sy < 0 || sy >= static_cast<int>(game_board->getHeight()))
-//                 break;
-//         }
-//     }
-//     return false;
-// }
-
-
-
-
 // check if cannon direction matches direction to opponent
 int TankAlgorithm::isFacingOpponent() {  
     int i = 0;

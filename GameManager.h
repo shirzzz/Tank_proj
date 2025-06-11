@@ -33,39 +33,54 @@ private:
     int moves_left = INT_MAX;
 
     //Class methods which are only used in this class
-    
-    // Core game progression
-    void updateGame();             // Advance tank logic
-    void updateShells() const;     // Move all shells
-
-     // Collision handlers
-    void resolveShellCollisions(); // Handle shell collisions with tanks/walls/other shells
-    void resolveTankCollisions();  // Handle tank collisions with tanks/mines
-
-    // Game status
-    void displayGame() const;      // Display actions and outcomes
-    void endGame();                // Ends the game
-    
+    void updateShells() const;
+    void updateTanks() const;
+    void resolveShellCollisions();
+    void detectShellVsShellCollisions(const std::vector<Shell>& shells, std::vector<Shape*>& toExplode);
+    void detectShellVsWallOrTank(std::vector<Shell>& shells, std::vector<Shape*>& toExplode);
+    void handleShellTankCollisions(std::shared_ptr<Shape> cell, Shell& shell, std::vector<Shape*>& toExplode);
+    void processExplosions(std::vector<Shape*>& toExplode);
+    void resolveTankCollisions();
+    std::vector<std::shared_ptr<Tank>> collectAllTanks();
+    void handleTankToTankCollisions(std::vector<std::shared_ptr<Tank>>& all_tanks);
+    void handleTankMineCollisions(std::vector<std::shared_ptr<Tank>>& all_tanks);
+    void handleTankShellCollisions(std::vector<std::shared_ptr<Tank>>& all_tanks);
     void processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action);
-
-    // Accessors
-    bool isGameOver() const { return game_over; }
-    int getMovesLeft() const { return moves_left; }
-
-    // Modifiers
-    void setMovesLeft(int moves) { moves_left = moves; }
-    void setGameOver(bool game_over) { this->game_over = game_over; }
-    bool getGameOver() const { return game_over; }
-    std::vector<Shell>& getmyShells() { return shared_board->getShells(); }
-    std::shared_ptr<GameBoard> getBoard() { return shared_board; }
-        
-    bool isGameEnded();
-        
-    // Assignment 2 - Win condition checker
-    void checkWinCondition();
-    void updateTanks() const; // Update tanks' positions and actions
-
-public:
+    void logActionStart(const std::shared_ptr<Tank>& tank, const TankAlgorithm& tank_algorithm, ActionRequest action);
+    void handlePassiveBackward(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
+    void handleGetBattleInfo(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
+    void handleMoveForward(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
+    void handleMoveBackward(std::shared_ptr<Tank> tank);
+    void handleRotate(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action);
+    std::string actionToString(ActionRequest action);
+    void handleShoot(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
+    void handleDoNothing(std::shared_ptr<Tank> tank);
+    void updateGame();
+    bool checkInitialTanks(std::ofstream& out);
+    bool checkEndRound(int num_tanks_player1, int num_tanks_player2);
+    int countAliveTanks(Player1& player);
+    int countAliveTanks(Player2& player);
+    void writeTankActions(std::ofstream& out, Player& player);
+    void writeFinalResult(std::ofstream& out);
+    void endGame();
+    bool loadBoardFromFile(std::istream& file_board, const std::string filename);
+    bool logFileOpenError(const std::string& filename);
+    void logBoardProcessingStart(std::ofstream& errors, const std::string& filename);
+    bool parseConfig(std::istream& in, std::ofstream& errors, const std::string& filename);
+    void initMineGridAndMoves();
+    bool validateBoardDimensions(std::ofstream& errors, const std::string& filename);
+    std::vector<std::vector<std::shared_ptr<Shape>>> parseBoardLayout(std::istream& in);
+    std::shared_ptr<Shape> createCell(char c, int x, int  y);
+    void initializePlayers();
+    void assignTanksAndAlgorithms(const std::vector<std::vector<std::shared_ptr<Shape>>>& board);
+    void setupSharedBoard(const std::vector<std::vector<std::shared_ptr<Shape>>>& board);
+    void displayAndLogBoard(std::ofstream& errors, const std::string& filename);
+    void displayGame() const;
+    bool isGameOver() const;
+    int numUsefulShells(Player2& p2);
+    int numUsefulShells(Player1& p1);
+    void setGameOver(bool val){game_over = val;}
+    public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(MyPlayerFactory& pf, MyTankAlgorithmFactory& tf)  // CHANGED: Use concrete types
         : player_factory(&pf), tank_factory(&tf) {
@@ -79,7 +94,6 @@ public:
     // Assignment 2 - Direct filename reading
     void readBoard(const std::string& filename);
     void run();
-    bool loadBoardFromFile(std::istream& file_board, std::string filename);
 
 };
 

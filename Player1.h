@@ -10,9 +10,7 @@
 class Player1 : public Player {
 private:
     size_t num_tanks = 0;
-    size_t sum_shells = 0; // Total number of shells available for all tanks
-    std::vector<bool> killed_tanks;
-    int num_killed_tanks = 0;
+
     std::vector<std::shared_ptr<Tank>> tanks;
     std::vector<std::unique_ptr<TankAlgorithm>> tank_algorithms;
 
@@ -53,7 +51,6 @@ public:
     }
     
     void setNumTanks(size_t num) {
-        killed_tanks.resize(num);
         num_tanks = num;
     }
     
@@ -61,36 +58,36 @@ public:
         return num_tanks;
     }
     
-    void addKilledTank(int index) {
-        killed_tanks[index] = true;
-    }
+    // void addKilledTank(int index) {
+    //     killed_tanks[index] = true;
+    // }
     
-    bool isTankKilled(int index) const {
-        return killed_tanks[index];
-    }
+    // bool isTankKilled(int index) const {
+    //     return killed_tanks[index];
+    // }
     
-    int getNumKilledTanks() const {
-        return num_killed_tanks;
-    }
+    // int getNumKilledTanks() const {
+    //     return num_killed_tanks;
+    // }
     
-    void setNumKilledTanks(int num) {
-        num_killed_tanks = num;
-    }
+    // void setNumKilledTanks(int num) {
+    //     num_killed_tanks = num;
+    // }
     
-    size_t getSumShells() const {
-        return sum_shells;
-    }
+    // size_t getSumShells() const {
+    //     return sum_shells;
+    // }
     
-    void player1Shoot() {
-        sum_shells--;
-    }
+    // void player1Shoot() {
+    //     sum_shells--;
+    // }
     
-    void removeTank(std::shared_ptr<Tank> tank) {
-        auto it = std::find(tanks.begin(), tanks.end(), tank);
-        if (it != tanks.end()) {
-            tanks.erase(it);
-        }
-    }
+    // void removeTank(std::shared_ptr<Tank> tank) {
+    //     auto it = std::find(tanks.begin(), tanks.end(), tank);
+    //     if (it != tanks.end()) {
+    //         tanks.erase(it);
+    //     }
+    // }
 };
 
 #endif //PLAYER1_H

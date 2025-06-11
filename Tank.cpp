@@ -48,9 +48,6 @@ std::pair<int, int> Tank::moveForward(int board_width, int board_height) {
     if (y_moved >= board_height) y_moved -= board_height;
     
     return {x_moved, y_moved};
-    // previousPosition = {x, y}; // Store previous position before moving
-    // x = x_moved;
-    // y = y_moved;
 }
 
 std::pair<int, int> Tank::moveBackward(int board_width, int board_height) {
@@ -72,9 +69,6 @@ std::pair<int, int> Tank::moveBackward(int board_width, int board_height) {
     if (y_moved < 0) y_moved += board_height;
     if (y_moved >= board_height) y_moved -= board_height;
     return {x_moved, y_moved};
-    // previousPosition = {x, y}; // Store previous position before moving
-    // x = x_moved;
-    // y = y_moved;
 }
 
 // Rotations
@@ -129,14 +123,6 @@ void Tank::rotateQuarterRight() {
         case CanonDirection::UL: canon_dir = CanonDirection::UR; break;
     }
 }
-
-// Actions Tracking
-// void Tank::addAction(ActionRequest action) {
-//     std::string action_str;
-//     action_str = std::to_string(static_cast<int>(action));
-//     my_actions_str.push_back(action_str);
-//     my_actions.push_back(action);
-// }
 
 const std::vector<std::string>& Tank::getActions() const {
     return my_actions_str;
