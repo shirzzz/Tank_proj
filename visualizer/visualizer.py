@@ -4,7 +4,7 @@ import re
 
 # ----- CONFIG -----
 CELL_SIZE = 60
-FPS = 0.1
+FPS = 1
 WRAP_EDGES = False  # Set to True to enable edge wrapping
 
 # ----- GLOBALS -----

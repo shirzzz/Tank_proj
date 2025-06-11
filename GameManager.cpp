@@ -613,7 +613,6 @@ void GameManager::readBoard(const std::string& filename) {
 }
 
 bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filename) {
-    std::cout<<"%%%%%%%%%%%%%%%%%%%%%%%"<<std::endl;
     std::ofstream file_errors("input_errors.txt");
     if (!file_errors) return logFileOpenError(filename);
 
