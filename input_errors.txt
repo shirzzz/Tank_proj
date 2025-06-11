@@ -1,5 +1,0 @@
-Processing board file: random_board.txt
-===========================================
-Successfully loaded board from random_board.txt
-Player 1 tanks: 2
-Player 2 tanks: 3
