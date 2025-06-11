@@ -19,12 +19,9 @@ private:
     std::vector<int> opponentsSpots();
 
 public:
-    // EXISTING constructor (keep this):
-    // BfsChaserShir(std::shared_ptr<Tank> tank): TankAlgorithm(tank){};
     std::unique_ptr<TankAlgorithm> clone() const override {
         return std::make_unique<BfsChaserShir>(*this);
     }
-    // FIXED: Constructor that matches your factory - pass nullptr to base class:
     BfsChaserShir(int player_index, int tank_index) : TankAlgorithm(player_index, tank_index){}
     
     ~BfsChaserShir() override = default;

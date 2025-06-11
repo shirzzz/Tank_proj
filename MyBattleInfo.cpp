@@ -1,9 +1,6 @@
 // MyBattleInfo.cpp - Implementation file
 #include "MyBattleInfo.h"
 
-// REMOVED: Class definition (belongs in header file)
-// REMOVED: Extra blank lines and misplaced comments
-
 MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar, std::vector<std::shared_ptr<Tank>> myTanks)
     : myPlayerChar(myPlayerChar), myTanks(std::move(myTanks)) {
     if (!satelliteView) return;
@@ -32,5 +29,5 @@ std::vector<std::pair<size_t, size_t>> MyBattleInfo::getOpponents() const {
 
 GameBoard* MyBattleInfo::getGameBoard() const {
     return gameBoard; // Return the pointer to the game board
-} // FIXED: Removed extra semicolon
+} 
 

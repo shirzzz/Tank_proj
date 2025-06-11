@@ -11,7 +11,7 @@ void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satel
         return;
     }
     
-    // FIXED: Pass tanks directly without copying
+    // Pass tanks directly without copying
     MyBattleInfo battleInfo(mySatView, '1', this->tanks);
     
     // Call the tank algorithm's updateBattleInfo method

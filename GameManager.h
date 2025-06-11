@@ -46,7 +46,6 @@ private:
     void displayGame() const;      // Display actions and outcomes
     void endGame();                // Ends the game
     
-    // Action processor - FIXED: Changed TankAlgorithm to TankAlgorithm& (reference)
     void processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action);
 
     // Accessors

@@ -4,12 +4,12 @@
 MySatelliteView::MySatelliteView(const GameBoard& board) : board(board) {}
 
 char MySatelliteView::getObjectAt(size_t x, size_t y) const {
-    // FIXED: Cast size_t to int for comparison with GameBoard methods
+    //Cast size_t to int for comparison with GameBoard methods
     if (static_cast<int>(y) >= board.getHeight() || static_cast<int>(x) >= board.getWidth()) {
         return '&';
     }
 
-    // FIXED: Cast size_t to int for getCell parameters and handle const issue
+    // Cast size_t to int for getCell parameters and handle const issue
     auto cell = const_cast<GameBoard&>(board).getCell(static_cast<int>(x), static_cast<int>(y));
     if (!cell) return ' ';
 

@@ -88,7 +88,6 @@ Player1.o: Player1.cpp Player1.h MyBattleInfo.h MySatelliteView.h
 
 Player2.o: Player2.cpp Player2.h MyBattleInfo.h MySatelliteView.h
 
-# Clean up build files - FIXED: Better cross-platform clean
 clean:
 ifeq ($(OS),Windows_NT)
 	-del /Q *.o 2>nul

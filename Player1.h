@@ -20,11 +20,11 @@ public:
     // Default constructor
     Player1() : Player(0, 0, 0, 0, 0), num_tanks(0) {}
     
-    // ADDED: Delete copy operations (because of unique_ptr)
+    // Delete copy operations (because of unique_ptr)
     Player1(const Player1&) = delete;
     Player1& operator=(const Player1&) = delete;
     
-    // ADDED: Default move operations
+    // Default move operations
     Player1(Player1&&) = default;
     Player1& operator=(Player1&&) = default;
     
@@ -32,7 +32,7 @@ public:
     Player1(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells, size_t num_tanks)
         : Player(player_index, x, y, max_steps, num_shells), num_tanks(num_tanks) {}
 
-    // FIXED: Only declaration here - implementation in .cpp file
+    //  Only declaration here - implementation in .cpp file
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) override;
     
     void addTank(std::shared_ptr<Tank> tank) {
@@ -47,7 +47,7 @@ public:
         return tanks;
     }
     
-    // FIXED: Removed const from return type
+    //Removed const from return type
     std::vector<std::unique_ptr<TankAlgorithm>>& getTankAlgorithms() {
         return tank_algorithms;
     }

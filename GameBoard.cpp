@@ -114,7 +114,6 @@ void GameBoard::updateShellPosition(Shell *shell, int new_x, int new_y) {
 }
 
 void GameBoard::moveTank(std::shared_ptr<Tank>& current_tank,  int new_x, int new_y){
-    // std::shared_ptr<Tank>& current_tank = (tank_index =='1') ? tank1 : tank2;
     if(current_tank){
         int old_x = current_tank->getX();
         int old_y = current_tank->getY();
@@ -171,14 +170,12 @@ bool GameBoard::isSteppingWall(int x, int y) const{
     return false; 
 }
 
-bool GameBoard::isSteppingMine(int x, int y) const{
-    if (x < 0 || y < 0 || x >= width || y >= height) return false;
-    if (board[y][x]) {
-        CellType c = board[y][x]->getCellType();
-        return c == CellType::MINE;
+bool GameBoard::isSteppingMine(int x, int y) const {
+        if (x >= 0 && y >= 0 && y < height && x < width) {
+            return is_mine[y][x]; // Check if the cell is a mine
+        }
+        return false; // Out of bounds
     }
-    return false; 
-}
 
 std::pair<int, int> GameBoard::getNextPosition(int x, int y, CanonDirection direction) const {
     int dx = 0, dy = 0;
@@ -240,24 +237,6 @@ void GameBoard::moveShell(Shell* shell) {
         board[old_y][old_x] = std::make_shared<Mine>(old_x, old_y); // Reset cell to mine if it was a mine
     }
 }
-//need your help shir!!
-//I got it :-) maybe we should move it to the GameManager?
-//Itai your help is always welcome!
-// ActionRequest GameBoard::movingAlgorithm(std::shared_ptr<Tank> tank) {
-//    if (!tank) {
-//        std::cerr << "Error: Attempted to move a tank that does not exist." << std::endl;
-//        return ActionRequest::DoNothing; // Return a default action if tank is null
-//    }
-//    if (tank.getIndexTank() == '1') {
-//        BfsChaserShir chaser_algorithm(tank);
-//        ActionRequest action =  chaser_algorithm.getAction();
-//        return action;
-//    } else if (tank.getIndexTank() == '2') {
-//        Chased chasedAI(tank);
-//        return chasedAI.getAction();
-//    }
-// }
-
 
 int GameBoard::getWidth() const {
     return width;

@@ -9,7 +9,8 @@
 class Chased : public TankAlgorithm {
 private:
     //Class methods which are only used in this class
-    
+    std::pair<int, int> currect_position_of_trail; 
+    CanonDirection current_direction; // Current direction of the tank
     std::unique_ptr<TankAlgorithm> clone() const override {
         return std::make_unique<Chased>(*this);
     }

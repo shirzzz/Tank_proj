@@ -23,10 +23,6 @@
 #include "MyPlayerFactory.h"  // ADDED: Include your concrete factories
 #include "MyTankAlgorithmFactory.h"  // ADDED: Include your concrete factories
 
-// REMOVED: Global player pointers - use member variables instead
-// Player1* player1 = nullptr;  // DELETED
-// Player2* player2 = nullptr;  // DELETED
-
 void GameManager::updateShells() const {
     auto& shells = shared_board->getShells();
     for (Shell& shell : shells) {
@@ -186,13 +182,11 @@ void GameManager::resolveTankCollisions() {
                 this->player1.setNumKilledTanks(this->player1.getNumKilledTanks() + 1);
                 tank->killTank();
                 shared_board->removeTank(tank);
-                //this->player1.removeTank(tank);
             } else if (tank->getIndexTank() == '2' && tank->isAlive()) {
                 this->player2.addKilledTank(tank->getIndexTank());
                 this->player2.setNumKilledTanks(this->player2.getNumKilledTanks() + 1);
                 tank->killTank();
                 shared_board->removeTank(tank);
-               // this->player2.removeTank(tank);
             }
             is_mine[y][x] = false; // Remove the mine from the board
             shared_board->bombMine(x, y); // Remove the mine from the game board
@@ -212,11 +206,9 @@ void GameManager::resolveTankCollisions() {
                 if(tank->getIndexTank() == '1') {
                     this->player1.addKilledTank(tank->getIndexTank());
                     this->player1.setNumKilledTanks(this->player1.getNumKilledTanks() + 1);
-                    //this->player1.removeTank(tank);
                 } else if (tank->getIndexTank() == '2') {
                     this->player2.addKilledTank(tank->getIndexTank());
                     this->player2.setNumKilledTanks(this->player2.getNumKilledTanks() + 1);
-                    //this->player2.removeTank(tank);
                 }
                 shared_board->removeTank(tank);
                 shared_board->removeShell(shell);
@@ -224,8 +216,6 @@ void GameManager::resolveTankCollisions() {
             }
         }
     }
-
-    //endGame();
 }
 
 void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_algorithm, ActionRequest action) {
@@ -257,19 +247,13 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
         }
         else {
             tank->addAction("MoveBackward (Ignored)");
-            // If the tank is dead, it cannot move backward
-            // If the tank is alive, but the new position is a wall, ignore the action
         }
-        // else if(shared_board->isSteppingWall(new_position.first, new_position.second)){
-        //     tank->addAction("MoveBackward (Ignored)");
-        // }
     }
 
     // std::cout<<"-------------------------------------------------------------------------------------------------------------------\n";
     switch (action) {
         case ActionRequest::GetBattleInfo:{
             MySatelliteView view(*shared_board);
-            // FIXED: MyBattleInfo constructor - pass MySatelliteView pointer and tank's player character
             MyBattleInfo info(&view, tank->getIndexTank());
             if(tank->isAlive()){
                 if(tank->getIndexTank() == '1') {
@@ -296,7 +280,6 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
                 if(!shared_board->isSteppingWall(new_position.first, new_position.second)){
                         tank->setWaitingToGoBack(-1);
                         tank->addAction("MoveForward");
-                        //shared_board->moveTank(tank, new_position.first, new_position.second);
                         tank->setNextPosition(new_position.first, new_position.second, tank->getCanonDirection(), 1, shared_board->getWidth(), shared_board->getHeight());
                         tank_algorithm.setHaveBattleInfo(false);
                     }
@@ -441,7 +424,6 @@ void GameManager::processAction(std::shared_ptr<Tank> tank,TankAlgorithm& tank_a
 void GameManager::updateGame() {
     if (game_over) return;
     
-    // FIXED: Use index-based mapping between tanks and algorithms
     auto& player1_algorithms = this->player1.getTankAlgorithms();
     auto& player1_tanks = this->player1.getTanks();
 
@@ -455,7 +437,6 @@ void GameManager::updateGame() {
             processAction(tank, *tank_algorithm, action1);
         }
     }
-    // FIXED: Same pattern for player2
     auto& player2_algorithms = this->player2.getTankAlgorithms();
     auto& player2_tanks = this->player2.getTanks();
     
@@ -491,14 +472,14 @@ void GameManager::run() {
     else if(this->player1.getNumTanks() == 0){
         wining_tank = '2';
         std::cout << "Game Over: Player 1 has no tanks left!" << std::endl;
-        output_file << "Player 2 won with " <<this->player2.getTanks().size()<<"tanks still alive"<<std::endl;
+        output_file << "Player 2 won with " <<this->player2.getTanks().size()<<" tanks still alive"<<std::endl;
         endGame();
         return;
     }
     else if(this->player2.getNumTanks() == 0){
         wining_tank = '1';
         std::cout << "Game Over: Player 2 has no tanks left!" << std::endl;
-        output_file<< "Player 1 won with " <<this->player1.getTanks().size()<<"tanks still alive"<<std::endl;
+        output_file<< "Player 1 won with " <<this->player1.getTanks().size()<<" tanks still alive"<<std::endl;
         endGame();
         return;
     }
@@ -536,7 +517,9 @@ void GameManager::run() {
         
         if (step % 2 == 0) {
             updateGame();
+            resolveShellCollisions();
             resolveTankCollisions();
+
             updateTanks();
             if(num_tanks_player1 == 0 && num_tanks_player2 == 0){
                 std::cout << "Game Over: Both players have no tanks left!" << std::endl;
@@ -715,10 +698,6 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
     }
     is_mine = std::vector<std::vector<bool>>(height, std::vector<bool>(width, false)); // Initialize mine grid
 
-    // REMOVED: Factory calls that were causing issues
-    // auto player1_ptr = player_factory->create(1, width, height, max_steps, num_shells);
-    // auto player2_ptr = player_factory->create(2, width, height, max_steps, num_shells);
-    
     moves_left = max_steps; // Initialize moves left to max steps
 
     if (width <= 0 || height <= 0) {
@@ -776,11 +755,11 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
         }
     }    
 
-    // FIXED: Create our Player1 and Player2 instances with the correct tank counts
+    //Create our Player1 and Player2 instances with the correct tank counts
     this->player1 = Player1(1, width, height, max_steps, num_shells, count_tanks_for_player1);
     this->player2 = Player2(2, width, height, max_steps, num_shells, count_tanks_for_player2);
     
-    // FIXED: Add tanks and algorithms to our players in one pass
+    //Add tanks and algorithms to our players in one pass
     int tank_algorithm_count_p1 = 0;
     int tank_algorithm_count_p2 = 0;
     
@@ -789,9 +768,9 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
             if (board[i][j] && board[i][j]->getCellType() == CellType::TANK1) {
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
-                    // FIXED: Add tank to player1
+                    // Add tank to player1
                     this->player1.addTank(tank);
-                    // FIXED: Create and add tank algorithm to player1
+                    // Create and add tank algorithm to player1
                     this->player1.addTankAlgorithm(getTankAlgorithmFactory()->create(1, tank_algorithm_count_p1));
                     tank_algorithm_count_p1++;
                 }
@@ -799,9 +778,9 @@ bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filena
             else if (board[i][j] && board[i][j]->getCellType() == CellType::TANK2) {
                 std::shared_ptr<Tank> tank = std::dynamic_pointer_cast<Tank>(board[i][j]);
                 if (tank) {
-                    // FIXED: Add tank to player2
+                    //  Add tank to player2
                     this->player2.addTank(tank);
-                    // FIXED: Create and add tank algorithm to player2
+                    //  Create and add tank algorithm to player2
                     this->player2.addTankAlgorithm(getTankAlgorithmFactory()->create(2, tank_algorithm_count_p2));
                     tank_algorithm_count_p2++;
                 }

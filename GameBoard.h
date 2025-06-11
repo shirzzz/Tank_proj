@@ -53,10 +53,6 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
     int getWidth() const;
     int getHeight() const;
 
-    // // Tank Accessors
-    // std::shared_ptr<Tank> getTank1() const { return tank1; }
-    // std::shared_ptr<Tank> getTank2() const { return tank2; }
-
     std::vector<Shell>&  getShells () {
         return shells; // Mutable reference to shells
     }
@@ -93,7 +89,6 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
     void setNumWalls(int num) { num_walls = num; }
     bool isCellLegal(int x, int y) const;
     bool isSteppingWall(int x, int y) const;
-    bool isSteppingMine(int x, int y) const;
     int getMaxSteps() const { return max_steps; }
     void moveTank(std::shared_ptr<Tank>& tank, int newX, int newY);
     std::pair<int, int> getNextPosition(int x, int y, CanonDirection direction) const;
@@ -103,6 +98,7 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
             board[y][x] = std::make_shared<Empty>(x, y); // Reset cell to empty
         }
     }
+    bool isSteppingMine(int x, int y) const;
 };
 
 #endif // GAMEBOARD_H

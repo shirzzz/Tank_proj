@@ -33,7 +33,6 @@ public:
     Player2(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells, size_t num_tanks)
         : Player(player_index, x, y, max_steps, num_shells), num_tanks(num_tanks) {}
 
-    // FIXED: Only declaration here - implementation in .cpp file
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) override;
     
     void addTank(std::shared_ptr<Tank> tank) {
@@ -48,7 +47,6 @@ public:
         return tanks;
     }
     
-    // FIXED: Removed const from return type to allow modification
     std::vector<std::unique_ptr<TankAlgorithm>>& getTankAlgorithms() {
         return tank_algorithms;
     }

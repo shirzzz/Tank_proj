@@ -41,11 +41,15 @@ std::string OurTester::buildRandomBoardFile() {
             else if (roll <= 30) {
                 c = '@'; // Mine
             }
-            else if (roll <= 45) {
-                c = '1'; // Tank 1
-            }
-            else if (roll <= 60) {
-                c = '2'; // Tank 2
+            else if (roll >= 60 && roll <= 70) {
+                // Randomly place tanks with a 10% chance
+                if (j % 2 == 0) { // Alternate placement for variety
+                    c = '1'; // Tank 1
+                    // placed_tank1 = true;
+                } else {
+                    c = '2'; // Tank 2
+                    // placed_tank2 = true;
+                }
             }
             file << c;
         }

@@ -7,8 +7,6 @@
 #include <vector>
 #include <string>
 #include <utility>
-
-// FIXED: Moved class definition to proper location in header
 class MyBattleInfo : public BattleInfo {
 public:
     // Tank-specific fields
@@ -20,7 +18,6 @@ public:
     // Constructor declaration
     MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar = '1', std::vector<std::shared_ptr<Tank>> myTanks = std::vector<std::shared_ptr<Tank>>());
     
-    // ADDED: Missing method declarations
     std::vector<std::pair<size_t, size_t>> getOpponents() const;
     GameBoard* getGameBoard() const;
-}; // ADDED: Missing semicolon
+};

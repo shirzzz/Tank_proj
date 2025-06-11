@@ -124,8 +124,6 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
         }
         
     }
-    //Itai here I need to use the canon direction of my tank
-    //CanonDirection canon_direction = my_tank->getCanonDirection();
 
     for (size_t i = 1; i < path.size(); ++i) {
         int x1 = path[i - 1] / height;
@@ -159,12 +157,10 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
                 if (left_steps <= right_steps) {
                     for (int j = 0; j < left_steps; ++j) {
                         my_future_moves.push_back(ActionRequest::RotateLeft45);
-                        //my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
                     }
                 } else {
                     for (int j = 0; j < right_steps; ++j) {
                         my_future_moves.push_back(ActionRequest::RotateRight45);
-                        //my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
                     }
                 }
 
@@ -186,12 +182,10 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
         if (left_steps <= right_steps) {
             for (int j = 0; j < left_steps; ++j) {
                 my_future_moves.push_back(ActionRequest::RotateLeft45);
-                //my_tank.get()->setCanonDirection(rotateDirectionLeft(my_tank.get()->getCanonDirection()));
             }
         } else {
             for (int j = 0; j < right_steps; ++j) {
                 my_future_moves.push_back(ActionRequest::RotateRight45);
-                //my_tank.get()->setCanonDirection(rotateDirectionRight(my_tank.get()->getCanonDirection()));
             }
         }
 
@@ -210,9 +204,8 @@ ActionRequest BfsChaserShir::getAction() {
             int start_node = my_tank.get()->getX() * height+ my_tank.get()->getY();
             std::vector<int> path = getFutureMovesBfs(graph, start_node);
             setFutureMoves(path,height, start_node);
-            //need to check with shir
+
             if (my_future_moves.empty()) {
-            //Shir: I believe it's better to shoot if we have no future moves
                 return ActionRequest::DoNothing;
             }
             ActionRequest next_move = my_future_moves.front();
