@@ -1,5 +1,0 @@
-Processing board file: input.txt
-===========================================
-Successfully loaded board from input.txt
-Player 1 tanks: 1
-Player 2 tanks: 1
