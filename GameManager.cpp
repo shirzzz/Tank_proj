@@ -475,7 +475,9 @@ void GameManager::run() {
         updateShells();
         shared_board->displayBoard();
 
-        if (checkEndRound(num_tanks_player1, num_tanks_player2)) return;
+        if (checkEndRound(num_tanks_player1, num_tanks_player2)) {
+            endGame();
+        }
 
         if (step % 2 == 0) {
             updateGame();
@@ -483,7 +485,9 @@ void GameManager::run() {
             resolveTankCollisions();
             updateTanks();
 
-            if (checkEndRound(num_tanks_player1, num_tanks_player2)) return;
+            if (checkEndRound(num_tanks_player1, num_tanks_player2)){
+                endGame();
+            }
         }
 
         step++;
