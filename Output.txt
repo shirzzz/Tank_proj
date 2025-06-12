@@ -1,3 +1,10 @@
-GetBattleInfo,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing,DoNothing
-GetBattleInfo,RotateRight45,RotateRight45,RotateRight45,RotateRight45,RotateRight45,GetBattleInfo,RotateRight45,RotateRight45,Shoot,Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot,Shoot (ignored)
-Tie, reached max steps = 77, player 1 has 1, player2 has 1
+GetBattleInfo,DoNothing,DoNothing
+GetBattleInfo,DoNothing,DoNothing
+GetBattleInfo,DoNothing,DoNothing
+GetBattleInfo,Shoot,GetBattleInfo
+GetBattleInfo,Shoot,GetBattleInfo
+GetBattleInfo,Shoot,GetBattleInfo
+GetBattleInfo,RotateRight45,Shoot
+GetBattleInfo,DoNothing,DoNothing
+GetBattleInfo,Shoot,Shoot (ignored)
+Player 1 won with 8 still alive

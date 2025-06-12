@@ -4,78 +4,62 @@ import re
 
 # ----- CONFIG -----
 CELL_SIZE = 60
-FPS = 1
-WRAP_EDGES = False  # Set to True to enable edge wrapping
+FPS = 0.5
+WRAP_EDGES = False
 
 # ----- GLOBALS -----
 GRID_WIDTH = None
 GRID_HEIGHT = None
 
-grid = []  # Map grid (characters)
-wall_hits = {}  # (x, y) -> hit count for weakening walls
+grid = []
+wall_hits = {}
 
 # ----- CLASSES -----
 class Tank:
-    def __init__(self, player_id, tank_index, x, y, images_dict):
+    def __init__(self, player_id, tank_index, x, y, images):
         self.player_id = player_id
         self.tank_index = tank_index
         self.x = x
         self.y = y
         self.direction = 'LEFT' if player_id == 1 else 'RIGHT'
         self.alive = True
-        self.images = images_dict
+        self.images = images
 
     def move(self, step):
         if not self.alive:
             return
         dx, dy = self._direction_to_delta()
-        new_x = self.x + dx * step
-        new_y = self.y + dy * step
+        new_x, new_y = self.x + dx * step, self.y + dy * step
         if WRAP_EDGES:
             new_x %= GRID_WIDTH
             new_y %= GRID_HEIGHT
-        # within bounds
         if 0 <= new_x < GRID_WIDTH and 0 <= new_y < GRID_HEIGHT:
             cell = grid[new_y][new_x]
-            # collide with wall?
             if cell == '#':
                 return
-            # move onto mine => death
             if cell == '@':
                 self.x, self.y = new_x, new_y
+                print("########################\nAHAHAHH I AM DEAD\n########################")
                 self.alive = False
                 return
             self.x, self.y = new_x, new_y
 
-    def move_forward(self):
-        self.move(1)
-
-    def move_backward(self):
-        self.move(-1)
+    def move_forward(self): self.move(1)
+    def move_backward(self): self.move(-1)
 
     def _direction_to_delta(self):
         return {
-            'UP': (0, -1), 'DOWN': (0, 1),
-            'LEFT': (-1, 0), 'RIGHT': (1, 0),
-            'UP_RIGHT': (1, -1), 'UP_LEFT': (-1, -1),
-            'DOWN_RIGHT': (1, 1), 'DOWN_LEFT': (-1, 1)
+            'UP': (0, -1), 'DOWN': (0, 1), 'LEFT': (-1, 0), 'RIGHT': (1, 0),
+            'UP_RIGHT': (1, -1), 'UP_LEFT': (-1, -1), 'DOWN_RIGHT': (1, 1), 'DOWN_LEFT': (-1, 1)
         }.get(self.direction, (0, 0))
 
-    def rotate_left45(self):
-        self._rotate(-1)
-
-    def rotate_right45(self):
-        self._rotate(1)
-
-    def rotate_left90(self):
-        self._rotate(-2)
-
-    def rotate_right90(self):
-        self._rotate(2)
+    def rotate_left45(self): self._rotate(-1)
+    def rotate_right45(self): self._rotate(1)
+    def rotate_left90(self): self._rotate(-2)
+    def rotate_right90(self): self._rotate(2)
 
     def _rotate(self, step):
-        directions = ['UP', 'UP_RIGHT', 'RIGHT', 'DOWN_RIGHT',
-                      'DOWN', 'DOWN_LEFT', 'LEFT', 'UP_LEFT']
+        directions = ['UP', 'UP_RIGHT', 'RIGHT', 'DOWN_RIGHT', 'DOWN', 'DOWN_LEFT', 'LEFT', 'UP_LEFT']
         if self.direction in directions:
             idx = directions.index(self.direction)
             self.direction = directions[(idx + step) % len(directions)]
@@ -84,8 +68,7 @@ class Tank:
         if not self.alive:
             return None
         dx, dy = self._direction_to_delta()
-        sx = self.x + dx
-        sy = self.y + dy
+        sx, sy = self.x + dx, self.y + dy
         if WRAP_EDGES:
             sx %= GRID_WIDTH
             sy %= GRID_HEIGHT
@@ -97,27 +80,26 @@ class Tank:
 
 class Shell:
     def __init__(self, x, y, dx, dy):
-        self.x = x
-        self.y = y
-        self.dx = dx
-        self.dy = dy
+        self.x, self.y = x, y
+        self.dx, self.dy = dx, dy
         self.radius = CELL_SIZE // 6
         self.alive = True
+        self.just_spawned = True
 
     def update(self, tanks):
-        # move two steps, checking collisions cell by cell
+        if self.just_spawned:
+            self.just_spawned = False
+            return
         for _ in range(2):
             self.x += self.dx
             self.y += self.dy
             if WRAP_EDGES:
                 self.x %= GRID_WIDTH
                 self.y %= GRID_HEIGHT
-            # bounds
             if not (0 <= self.x < GRID_WIDTH and 0 <= self.y < GRID_HEIGHT):
                 self.alive = False
                 return
             cell = grid[int(self.y)][int(self.x)]
-            # hit wall
             if cell == '#':
                 pos = (int(self.x), int(self.y))
                 wall_hits[pos] = wall_hits.get(pos, 0) + 1
@@ -125,18 +107,15 @@ class Shell:
                     grid[int(self.y)][int(self.x)] = '.'
                 self.alive = False
                 return
-            # hit mine - shells pass through
-            # hit tank
             for tank in tanks:
                 if tank.alive and tank.x == int(self.x) and tank.y == int(self.y):
+                    print(f'########################\nAHAHAH a SHELL HIT MEEE in position <{self.x}, {self.y}>\n########################')
                     tank.alive = False
                     self.alive = False
                     return
 
     def draw(self, screen):
-        px = self.x * CELL_SIZE + CELL_SIZE // 2
-        py = self.y * CELL_SIZE + CELL_SIZE // 2
-        pygame.draw.circle(screen, (200, 30, 30), (px, py), self.radius)
+        screen.blit(images['shell'], (self.x * CELL_SIZE, self.y * CELL_SIZE))
 
 # ----- DRAWING -----
 def draw_grid(screen):
@@ -146,8 +125,7 @@ def draw_grid(screen):
             pygame.draw.rect(screen, (230, 230, 230), rect)
             pygame.draw.rect(screen, (100, 100, 100), rect, 1)
 
-
-def draw_map(screen, images):
+def draw_map(screen):
     for y, row in enumerate(grid):
         for x, cell in enumerate(row):
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
@@ -158,14 +136,12 @@ def draw_map(screen, images):
             else:
                 screen.blit(images['empty'], rect)
 
-
 def draw_tanks(screen, tanks):
     for tank in tanks:
         if tank.alive:
             sprite = tank.get_sprite()
             if sprite:
                 screen.blit(sprite, (tank.x * CELL_SIZE, tank.y * CELL_SIZE))
-
 
 def draw_shells(screen, shells):
     for shell in shells:
@@ -174,28 +150,31 @@ def draw_shells(screen, shells):
 
 # ----- HELPERS -----
 def clean_action(token):
+    if '(killed)' in token or '(ignored)' in token or '(Ignored)' in token:
+        return "DoNothing"
     return re.sub(r'\s*\(.*?\)', '', token).strip() or "DoNothing"
-
 
 def parse_action(action_str, tank):
     if not tank.alive:
         return None
-    action = action_str.strip().lower()
-    if action == "killed":
+    action = action_str.strip()
+    if "(killed)" in action_str.lower():
         tank.alive = False
-    elif action == "moveforward":
+    if "(ignored)" in action_str.lower():
+        return None
+    elif action == "MoveForward":
         tank.move_forward()
-    elif action == "movebackward":
+    elif action == "MoveBackward":
         tank.move_backward()
-    elif action == "rotateleft45":
+    elif action == "RotateLeft45":
         tank.rotate_left45()
-    elif action == "rotateright45":
+    elif action == "RotateRight45":
         tank.rotate_right45()
-    elif action == "rotateleft90":
+    elif action == "RotateLeft90":
         tank.rotate_left90()
-    elif action == "rotateright90":
+    elif action == "RotateRight90":
         tank.rotate_right90()
-    elif action == "shoot":
+    elif action == "Shoot":
         return tank.shoot()
     return None
 
@@ -206,15 +185,13 @@ def load_images():
         'player1_upright', 'player1_upleft', 'player1_downright', 'player1_downleft',
         'player2_up', 'player2_down', 'player2_left', 'player2_right',
         'player2_upright', 'player2_upleft', 'player2_downright', 'player2_downleft',
-        'wall', 'mine', 'empty'
+        'wall', 'mine', 'empty', 'shell'
     ]
-    images = {}
+    result = {}
     for name in names:
-        path = f'images/{name}.png'
-        img = pygame.image.load(path).convert_alpha()
-        images[name] = pygame.transform.scale(img, (CELL_SIZE, CELL_SIZE))
-    return images
-
+        img = pygame.image.load(f'images/{name}.png').convert_alpha()
+        result[name] = pygame.transform.scale(img, (CELL_SIZE, CELL_SIZE))
+    return result
 
 def load_map_dimensions():
     global GRID_WIDTH, GRID_HEIGHT
@@ -226,12 +203,11 @@ def load_map_dimensions():
         elif line.startswith("Cols"):
             GRID_WIDTH = int(line.split('=')[1])
 
-
 def load_map():
     global grid, wall_hits
     with open("map.txt", "r") as f:
         lines = f.readlines()[5:]
-    grid = []
+    grid.clear()
     wall_hits.clear()
     for y in range(GRID_HEIGHT):
         line = lines[y].rstrip("\n") if y < len(lines) else ""
@@ -240,6 +216,7 @@ def load_map():
 
 # ----- MAIN LOOP -----
 def main():
+    global images
     pygame.init()
     load_map_dimensions()
     load_map()
@@ -249,9 +226,7 @@ def main():
     clock = pygame.time.Clock()
     images = load_images()
 
-    # Init tanks
-    tanks = []
-    counts = {1: 0, 2: 0}
+    tanks, counts = [], {1: 0, 2: 0}
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             cell = grid[y][x]
@@ -260,59 +235,51 @@ def main():
                 player_id = 1 if num % 2 == 1 else 2
                 tanks.append(Tank(player_id, counts[player_id], x, y, images))
                 counts[player_id] += 1
-                grid[y][x] = '.'  # Clear tank digit
+                grid[y][x] = '.'
 
-    # Load actions
     action_log = []
     with open("output.txt", "r") as f:
         for line in f:
-            if line.strip() and not line.lower().startswith("player"):
+            if line.strip() and not line.lower().startswith("player") and not line.lower().startswith("tie"):
                 actions = [clean_action(t) for t in line.split(",")]
-                action_log.append(actions)
+                action_log.append([a for a in actions if a])
 
-    current_round = 0
-    shells = []
+    current_round, shells = 0, []
     running = True
-
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Apply actions
-        if current_round < len(action_log):
-            actions = action_log[current_round]
+        if current_round >= len(action_log[0]) and len(shells) == 0:
+            running = False
+
+        if current_round < len(action_log[0]):
+            actions = [action_log[i][current_round] if current_round < len(action_log[i]) else "DoNothing" for i in range(len(tanks))]
             for i, tank in enumerate(tanks):
-                act = actions[i] if i < len(actions) else "DoNothing"
-                shell = parse_action(act, tank)
+                shell = parse_action(actions[i], tank)
                 if shell:
                     shells.append(shell)
             current_round += 1
 
-        # Update shells
-        # Move and handle collisions
         for shell in shells:
             if shell.alive:
                 shell.update(tanks)
 
-        # Shell-shell collisions
         positions = {}
         for shell in shells:
             if shell.alive:
                 pos = (int(shell.x), int(shell.y))
                 positions.setdefault(pos, []).append(shell)
-        for pos, group in positions.items():
+        for group in positions.values():
             if len(group) > 1:
                 for sh in group:
                     sh.alive = False
+        shells = [s for s in shells if s.alive]
 
-        # Remove dead shells
-        shells = [sh for sh in shells if sh.alive]
-
-        # Draw everything
         screen.fill((255, 255, 255))
         draw_grid(screen)
-        draw_map(screen, images)
+        draw_map(screen)
         draw_tanks(screen, tanks)
         draw_shells(screen, shells)
         pygame.display.flip()
