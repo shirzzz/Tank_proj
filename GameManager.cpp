@@ -52,9 +52,6 @@ void GameManager::updateTanks() const{
 
 void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
-    std::cout<<"&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-    std::cout<<"Num of shells : "<<shells.size()<<std::endl;
-    std::cout<<"&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
     std::vector<Shape*> toExplode;
 
     detectShellVsShellCollisions(shells, toExplode);
@@ -70,11 +67,7 @@ void GameManager::detectShellVsShellCollisions(const std::vector<Shell>& shells,
             auto pj = shared_board->getNextPosition(shells[j].getX(), shells[j].getY(), shells[j].getDirection());
             auto oi = shells[i].getPosition();
             auto oj = shells[j].getPosition();
-            std::cout<<"****************************************\n";
             if (pi == pj || (pi == oj && pj == oi)) {
-                std::cout<<"****************************************\n";
-                std::cout<<"SHELL HIT SHELL";
-                std::cout<<"***************************************\n";
                 toExplode.push_back(const_cast<Shell*>(&shells[i]));
                 toExplode.push_back(const_cast<Shell*>(&shells[j]));
             }
@@ -95,9 +88,6 @@ void GameManager::detectShellVsWallOrTank(std::vector<Shell>& shells, std::vecto
             if (wall->getLives() <= 0) {
                 toExplode.push_back(wall);
             }
-            std::cout<<"#########################\n";
-            std::cout<<"SHELL EXPLODED HERE 1\n";
-            std::cout<<"#########################\n";
             toExplode.push_back(&shell);
         } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
             handleShellTankCollisions(next_position, shell, toExplode);
@@ -111,9 +101,6 @@ void GameManager::handleShellTankCollisions(std::pair<int, int> next_position, S
              if (tank && tank->isAlive()) {
                 tank->killTank();
                 shared_board->removeTank(tank);
-                std::cout<<"#########################\n";
-                std::cout<<"SHELL EXPLODED HERE 2\n";
-                std::cout<<"#########################\n";
                 toExplode.push_back(&shell);
                 return;
             }   
@@ -124,9 +111,6 @@ void GameManager::handleShellTankCollisions(std::pair<int, int> next_position, S
              if (tank && tank->isAlive()) {
                 tank->killTank();
                 shared_board->removeTank(tank);
-                std::cout<<"#########################\n";
-                std::cout<<"SHELL EXPLODED HERE 3\n";
-                std::cout<<"#########################\n";
                 toExplode.push_back(&shell);
                 return;
             }   

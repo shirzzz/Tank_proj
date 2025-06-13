@@ -56,11 +56,6 @@ std::string OurTester::buildRandomBoardFile() {
         file << "\n";
     }
 
-    // Force place tanks if they were not placed randomly
-    // if (!placed_tank1 || !placed_tank2) {
-    //     std::cout << "Warning: One or both tanks not placed randomly. Please check file manually.\n";
-    // }
-
     file.close();
     std::cout << "Random board file created successfully.\n";
     return filename;

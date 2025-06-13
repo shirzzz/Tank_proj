@@ -278,9 +278,6 @@ void GameBoard::addShell(const Shell& shell) {
     shells.push_back(shell);
     int x = shell.getX();
     int y = shell.getY();
-    std::cout<<"#########################\n";
-    std::cout<<"A NEW SHEL WAS BORN IN POSITION: <"<<x<<", "<<y<<">\n";
-    std::cout<<"#########################\n";
     board[y][x] = std::make_shared<Shell>(x, y, shell.getDirection());
 }
 

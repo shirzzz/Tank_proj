@@ -85,10 +85,6 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(const std::vector<std::vector<
 }
 
 void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int start) {
-    for(int pos : path){
-        std::pair <int,int> position = fromIndextoPos(pos, height);
-        std::cout<<"The next step is: <"<<position.first<<", "<<position.second<<">\n";
-    }
     if (path.empty()) {
         handleEmptyPath(start, height);
         return;
@@ -107,8 +103,6 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
 
         if (tryToShootOpponent(path[i], height))
             continue;
-
-        std::cout<<"LOOKKKKKKKKK I GOT HERE!!\n";
         int dx = x2 - x1;
         int dy = y2 - y1;
         CanonDirection target_direction = getDirectionFromDelta(dx, dy);
