@@ -80,9 +80,6 @@ ActionRequest Chased::moveTowardOpponent() {
         rotateCanonRight45();
         return ActionRequest::RotateRight45;
     }
-
-    printf("Moving forward to (%d, %d)\n", next_cell.first, next_cell.second);
-    std::cout << game_board.get()->getCell(next_cell.first, next_cell.second)->getCellType() << "\n";
     currect_position_of_trail = next_cell;
     return ActionRequest::MoveForward;
 }

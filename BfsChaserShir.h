@@ -8,6 +8,7 @@
 
 class BfsChaserShir : public TankAlgorithm {
 private:
+    CanonDirection current_direction;
     //Class methods which are only used in this class
     int canKillOpponent(int spot);
     std::vector<std::vector<int>> getGraphOutOfBoard();
@@ -19,7 +20,10 @@ private:
     void rotateCanonTowards(CanonDirection target_direction);
     std::pair<int, int> fromIndextoPos(int index, int height);
     std::vector<int> opponentsSpots();
-
+    void rotateCanonRight45();
+    void rotateCanonLeft45();
+    void rotateCanonRight90();
+    void rotateCanonLeft90();
 public:
     std::unique_ptr<TankAlgorithm> clone() const override {
         return std::make_unique<BfsChaserShir>(*this);

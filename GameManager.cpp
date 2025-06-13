@@ -52,6 +52,9 @@ void GameManager::updateTanks() const{
 
 void GameManager::resolveShellCollisions() {
     auto& shells = shared_board->getShells();
+    std::cout<<"&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+    std::cout<<"Num of shells : "<<shells.size()<<std::endl;
+    std::cout<<"&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
     std::vector<Shape*> toExplode;
 
     detectShellVsShellCollisions(shells, toExplode);
@@ -67,8 +70,11 @@ void GameManager::detectShellVsShellCollisions(const std::vector<Shell>& shells,
             auto pj = shared_board->getNextPosition(shells[j].getX(), shells[j].getY(), shells[j].getDirection());
             auto oi = shells[i].getPosition();
             auto oj = shells[j].getPosition();
-
+            std::cout<<"****************************************\n";
             if (pi == pj || (pi == oj && pj == oi)) {
+                std::cout<<"****************************************\n";
+                std::cout<<"SHELL HIT SHELL";
+                std::cout<<"***************************************\n";
                 toExplode.push_back(const_cast<Shell*>(&shells[i]));
                 toExplode.push_back(const_cast<Shell*>(&shells[j]));
             }
@@ -79,34 +85,56 @@ void GameManager::detectShellVsShellCollisions(const std::vector<Shell>& shells,
 
 void GameManager::detectShellVsWallOrTank(std::vector<Shell>& shells, std::vector<Shape*>& toExplode) {
     for (Shell& shell : shells) {
-        auto [x, y] = shared_board->getNextPosition(shell.getX(), shell.getY(), shell.getDirection());
+        std::pair<int, int> next_position = shared_board->getNextPosition(shell.getX(), shell.getY(), shell.getDirection());
+        auto [x, y] = next_position;
         std::shared_ptr<Shape> cell = shared_board->getCell(x, y);
 
         if (cell->getCellType() == CellType::WALL) {
             Wall* wall = static_cast<Wall*>(cell.get());
-            std::cout << "######################################\n";
-            std::cout << "Collision detected between shell and wall at position (" << x << ", " << y << ")\n";
-            std::cout << "######################################\n";
-            std::cout << "lives of wall: " << wall->getLives() << "\n";
-
             wall->setLives(wall->getLives() - 1);
             if (wall->getLives() <= 0) {
                 toExplode.push_back(wall);
             }
+            std::cout<<"#########################\n";
+            std::cout<<"SHELL EXPLODED HERE 1\n";
+            std::cout<<"#########################\n";
             toExplode.push_back(&shell);
         } else if (cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
-            handleShellTankCollisions(cell, shell, toExplode);
+            handleShellTankCollisions(next_position, shell, toExplode);
         }
     }
 }
 
-void GameManager::handleShellTankCollisions(std::shared_ptr<Shape> cell, Shell& shell, std::vector<Shape*>& toExplode) {
-    std::shared_ptr<Tank> hit_tank = std::dynamic_pointer_cast<Tank>(cell);
-    if (hit_tank && hit_tank->isAlive()) {
-        hit_tank->killTank();
-        shared_board->removeTank(hit_tank);
-        toExplode.push_back(&shell);
+void GameManager::handleShellTankCollisions(std::pair<int, int> next_position, Shell& shell, std::vector<Shape*>& toExplode) {
+    for(auto tank : player1.getTanks()){
+        if(tank.get()->getX() == next_position.first && tank.get()->getY() == next_position.second){
+             if (tank && tank->isAlive()) {
+                tank->killTank();
+                shared_board->removeTank(tank);
+                std::cout<<"#########################\n";
+                std::cout<<"SHELL EXPLODED HERE 2\n";
+                std::cout<<"#########################\n";
+                toExplode.push_back(&shell);
+                return;
+            }   
+        }
     }
+    for(auto tank : player2.getTanks()){
+        if(tank.get()->getX() == next_position.first && tank.get()->getY() == next_position.second){
+             if (tank && tank->isAlive()) {
+                tank->killTank();
+                shared_board->removeTank(tank);
+                std::cout<<"#########################\n";
+                std::cout<<"SHELL EXPLODED HERE 3\n";
+                std::cout<<"#########################\n";
+                toExplode.push_back(&shell);
+                return;
+            }   
+        }
+    }
+
+
+   
 }
 
 
@@ -114,10 +142,6 @@ void GameManager::processExplosions(std::vector<Shape*>& toExplode) {
     for (auto* shape : toExplode) {
         switch (shape->getCellType()) {
             case CellType::WALL:
-                std::cout << "######################################\n";
-                std::cout << "Removing wall at position (" << shape->getX() << ", " << shape->getY() << ")\n";
-                std::cout << "######################################\n";
-                std::cout << "lives of wall: " << static_cast<Wall*>(shape)->getLives() << "\n";
                 shared_board->removeWall(static_cast<Wall*>(shape));
                 break;
             case CellType::SHELL:
@@ -156,10 +180,6 @@ void GameManager::handleTankToTankCollisions(std::vector<std::shared_ptr<Tank>>&
             auto o1 = tank1->getPosition(), o2 = tank2->getPosition();
 
             if (p1 == p2 || (p1 == o2 && p2 == o1)) {
-                std::cout<<"######################################\n";
-                std::cout << "Collision detected between tanks " << tank1->getIndexTank() << " and " << tank2->getIndexTank() << std::endl;
-                std::cout<<"######################################\n";
-
                 for (auto& tank : {tank1, tank2}) {
                     if (tank->isAlive()) {
                         tank->killTank();
@@ -177,10 +197,6 @@ void GameManager::handleTankMineCollisions(std::vector<std::shared_ptr<Tank>>& a
         if (!tank) continue;
         auto [x, y] = tank->getNextPosition();
         if (is_mine[y][x]) {
-            std::cout<<"######################################\n";
-            std::cout << "Tank " << tank->getIndexTank() << " hit a mine at position (" << x << ", " << y << ")" << std::endl;
-            std::cout<<"######################################\n";
-
             if (tank->isAlive()) {
                 tank->killTank();
                 shared_board->removeTank(tank);
@@ -199,10 +215,6 @@ void GameManager::handleTankShellCollisions(std::vector<std::shared_ptr<Tank>>& 
         auto [sx, sy] = shell.getPosition();
         for (auto& tank : all_tanks) {
             if (tank && tank->getPosition() == std::make_pair(sx, sy) && tank->isAlive()) {
-                std::cout<<"######################################\n";
-                std::cout << "Tank " << tank->getIndexTank() << " hit by shell at position (" << sx << ", " << sy << ")" << std::endl;
-                std::cout<<"######################################\n";
-
                 tank->killTank();
                 shared_board->removeTank(tank);
                 shared_board->removeShell(shell);
@@ -243,7 +255,7 @@ void GameManager::processAction(std::shared_ptr<Tank> tank, TankAlgorithm& tank_
             handleShoot(tank, tank_algorithm);
             break;
         case ActionRequest::DoNothing:
-            handleDoNothing(tank);
+            handleDoNothing(tank, tank_algorithm);
             break;
     }
 }
@@ -416,12 +428,13 @@ int GameManager::numUsefulShells(Player2& p2){
 }
 
 
-void GameManager::handleDoNothing(std::shared_ptr<Tank> tank) {
+void GameManager::handleDoNothing(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm) {
     if (tank->getWaitingToGoBack() != -1) {
         tank->addAction("DoNothing (ignored)");
         tank->setWaitingToGoBack(tank->getWaitingToGoBack() - 1);
     } else if (tank->isAlive()) {
         tank->addAction("DoNothing");
+        tank_algorithm.setHaveBattleInfo(false);
     } else {
         tank->addAction("DoNothing (killed)");
     }
@@ -458,7 +471,7 @@ void GameManager::updateGame() {
 }
 
 void GameManager::run() {
-    std::ofstream output_file("Output.txt");
+    std::ofstream output_file(output_file_name);
     if (!output_file) {
         std::cerr << "Failed to open Output file.\n";
         return;
@@ -493,14 +506,10 @@ void GameManager::run() {
         step++;
 
         if (--moves_left == 0) {
-            std::cout<<"number of steps: "<<step <<"\n";
-            std::cout << "Game Over: No moves left!\n";
             wining_tank = '0';
             endGame();
         }
     }
-
-    std::cout << "Game ended after " << step << " steps.\n";
     writeTankActions(output_file, player1);
     writeTankActions(output_file, player2);
     writeFinalResult(output_file);
@@ -644,14 +653,12 @@ void GameManager::logBoardProcessingStart(std::ofstream& errors, const std::stri
 }
 
 bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std::string& filename) {
-    std::cout<<"LOOK I AM HEREEEEEEEEEEEEEEEE"<<std::endl;
     std::regex max_steps_re(R"(MaxSteps\s*=\s*(\d+))"),
                shells_re(R"(NumShells\s*=\s*(\d+))"),
                rows_re(R"(Rows\s*=\s*(\d+))"),
                cols_re(R"(Cols\s*=\s*(\d+))");
     std::string line;
     std::getline(in, line);
-    std::cout<<"The file name is: "<<line<<std::endl;
     if (line.empty()) {
         errors << "Error in " << filename << ": Empty file or missing configuration parameters." << std::endl;
         std::cerr << "Empty file or missing configuration parameters in " << filename << std::endl;
@@ -662,7 +669,6 @@ bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std
         if (line.empty()) {
             continue; // Skip empty lines
         }
-        std::cout<<"The line is: "<< line<<std::endl;
         std::smatch match;
         if (std::regex_search(line, match, max_steps_re)) max_steps = std::stoi(match[1]);
         else if (std::regex_search(line, match, shells_re)) num_shells = std::stoi(match[1]);
@@ -673,10 +679,6 @@ bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std
             return false;
         }
     }
-    std::cout<<"MaxSteps = "<<max_steps;
-    std::cout<<"num_shells = "<<num_shells;
-    std::cout<<"height = "<<height;
-    std::cout<<"width = " <<width;
     return true;
 }
 
@@ -784,4 +786,12 @@ void GameManager::displayGame() const {
     std::cout << "Player 2 tanks: " << num_tanks_player2 << std::endl;
     std::cout << "Moves left: " << moves_left << std::endl;
     std::cout << "=================" << std::endl;
+} 
+
+#include <filesystem> // C++17
+
+void GameManager::setOutputFileNameFromInput(const std::string& inputFileName) {
+    // Extract just the filename (no directories)
+    std::string cleanName = std::filesystem::path(inputFileName).filename().string();
+    output_file_name = "output_" + cleanName;
 }

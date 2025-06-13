@@ -52,6 +52,9 @@
         "bitset": "cpp",
         "ctime": "cpp",
         "regex": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "codecvt": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp"
     }
 }

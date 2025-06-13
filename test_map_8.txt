@@ -1,0 +1,8 @@
+8-Missing rows/cols
+MaxSteps= 1000
+NumShells =1
+Rows=3
+Cols = 6
+######
+#1##2#
+######

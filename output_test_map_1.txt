@@ -1,0 +1,3 @@
+GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo
+GetBattleInfo,MoveForward,MoveForward,MoveForward,MoveForward,MoveForward,GetBattleInfo,RotateRight45,MoveForward,RotateLeft90,Shoot
+Player 2 won with 1 still alive

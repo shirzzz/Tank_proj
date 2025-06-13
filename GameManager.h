@@ -26,7 +26,7 @@ private:
     size_t num_shells = 0; // Number of shells available for each tank
     size_t width = 0; // Width of the game board
     size_t height = 0; // Height of the game board
-
+    std::string output_file_name;
     Player1 player1;
     Player2 player2;
     char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
@@ -38,7 +38,7 @@ private:
     void resolveShellCollisions();
     void detectShellVsShellCollisions(const std::vector<Shell>& shells, std::vector<Shape*>& toExplode);
     void detectShellVsWallOrTank(std::vector<Shell>& shells, std::vector<Shape*>& toExplode);
-    void handleShellTankCollisions(std::shared_ptr<Shape> cell, Shell& shell, std::vector<Shape*>& toExplode);
+    void handleShellTankCollisions(std::pair<int, int> next_position, Shell& shell, std::vector<Shape*>& toExplode);
     void processExplosions(std::vector<Shape*>& toExplode);
     void resolveTankCollisions();
     std::vector<std::shared_ptr<Tank>> collectAllTanks();
@@ -54,7 +54,7 @@ private:
     void handleRotate(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm, ActionRequest action);
     std::string actionToString(ActionRequest action);
     void handleShoot(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
-    void handleDoNothing(std::shared_ptr<Tank> tank);
+    void handleDoNothing(std::shared_ptr<Tank> tank, TankAlgorithm& tank_algorithm);
     void updateGame();
     bool checkInitialTanks(std::ofstream& out);
     bool checkEndRound(int num_tanks_player1, int num_tanks_player2);
@@ -80,6 +80,8 @@ private:
     int numUsefulShells(Player2& p2);
     int numUsefulShells(Player1& p1);
     void setGameOver(bool val){game_over = val;}
+
+
     public:
     // Assignment 2 Constructor - Takes factories as required by assignment
     GameManager(MyPlayerFactory& pf, MyTankAlgorithmFactory& tf)  // CHANGED: Use concrete types
@@ -94,6 +96,7 @@ private:
     // Assignment 2 - Direct filename reading
     void readBoard(const std::string& filename);
     void run();
+    void setOutputFileNameFromInput(const std::string& inputFileName);
 
 };
 

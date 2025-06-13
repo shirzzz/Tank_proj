@@ -1,11 +1,11 @@
 Random Board
-MaxSteps =56
-NumShells =92
+MaxSteps =77
+NumShells =14
 Rows = 6
-Cols =  9
-1  ## ## 
-  @# #  #
-1  #1# @1
-  @    # 
- 2  1@1  
-# 1#1 @  
+Cols =  13
+#########   #
+#         1 #
+#           #
+# 2      ####
+#      #    #
+#############

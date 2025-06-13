@@ -85,6 +85,10 @@ std::vector<int> BfsChaserShir::getFutureMovesBfs(const std::vector<std::vector<
 }
 
 void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int start) {
+    for(int pos : path){
+        std::pair <int,int> position = fromIndextoPos(pos, height);
+        std::cout<<"The next step is: <"<<position.first<<", "<<position.second<<">\n";
+    }
     if (path.empty()) {
         handleEmptyPath(start, height);
         return;
@@ -104,6 +108,14 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
         if (tryToShootOpponent(path[i], height))
             continue;
 
+        std::cout<<"LOOKKKKKKKKK I GOT HERE!!\n";
+        int dx = x2 - x1;
+        int dy = y2 - y1;
+        CanonDirection target_direction = getDirectionFromDelta(dx, dy);
+        if(current_direction == target_direction){
+            my_future_moves.push_back(ActionRequest::MoveForward);
+            return;
+        }
         rotateTowardsAndMoveForward(x1, y1, x2, y2);
     }
 }
@@ -147,18 +159,59 @@ void BfsChaserShir::rotateTowardsAndMoveForward(int x1, int y1, int x2, int y2) 
     my_future_moves.push_back(ActionRequest::MoveForward);
 }
 
+void BfsChaserShir::rotateCanonRight45() {
+    switch (current_direction) {
+        case CanonDirection::U:  current_direction = CanonDirection::UR; break;
+        case CanonDirection::UR: current_direction = CanonDirection::R;  break;
+        case CanonDirection::R:  current_direction = CanonDirection::DR; break;
+        case CanonDirection::DR: current_direction = CanonDirection::D;  break;
+        case CanonDirection::D:  current_direction = CanonDirection::DL; break;
+        case CanonDirection::DL: current_direction = CanonDirection::L;  break;
+        case CanonDirection::L:  current_direction = CanonDirection::UL; break;
+        case CanonDirection::UL: current_direction = CanonDirection::U;  break;
+    }
+}
+
+void BfsChaserShir::rotateCanonLeft45() {
+    switch (current_direction) {
+        case CanonDirection::U:  current_direction = CanonDirection::UL; break;
+        case CanonDirection::UL: current_direction = CanonDirection::L;  break;
+        case CanonDirection::L:  current_direction = CanonDirection::DL; break;
+        case CanonDirection::DL: current_direction = CanonDirection::D;  break;
+        case CanonDirection::D:  current_direction = CanonDirection::DR; break;
+        case CanonDirection::DR: current_direction = CanonDirection::R;  break;
+        case CanonDirection::R:  current_direction = CanonDirection::UR; break;
+        case CanonDirection::UR: current_direction = CanonDirection::U;  break;
+    }
+}
+
+void BfsChaserShir::rotateCanonRight90() {
+    rotateCanonRight45();
+    rotateCanonRight45();
+}
+
+void BfsChaserShir::rotateCanonLeft90() {
+    rotateCanonLeft45();
+    rotateCanonLeft45();
+}
+
+
 void BfsChaserShir::rotateCanonTowards(CanonDirection target_direction) {
-    int current = static_cast<int>(my_tank.get()->getCanonDirection());
+    int current = static_cast<int>(current_direction);
     int target = static_cast<int>(target_direction);
     int right_steps = (target - current + 8) % 8;
     int left_steps = (current - target + 8) % 8;
 
     if (left_steps <= right_steps) {
-        for (int j = 0; j < left_steps; ++j)
+        for (int j = 0; j < left_steps; ++j){
+            rotateCanonLeft45();
             my_future_moves.push_back(ActionRequest::RotateLeft45);
+        }
     } else {
-        for (int j = 0; j < right_steps; ++j)
+        for (int j = 0; j < right_steps; ++j){
+            rotateCanonRight45();
             my_future_moves.push_back(ActionRequest::RotateRight45);
+        }
     }
 }
 
@@ -173,6 +226,7 @@ ActionRequest BfsChaserShir::getAction() {
             std::vector<std::vector<int>> graph = getGraphOutOfBoard();
             int start_node = my_tank.get()->getX() * height+ my_tank.get()->getY();
             std::vector<int> path = getFutureMovesBfs(graph, start_node);
+            current_direction = my_tank.get()->getCanonDirection();
             setFutureMoves(path,height, start_node);
 
             if (my_future_moves.empty()) {
