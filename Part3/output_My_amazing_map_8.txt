@@ -1,0 +1,7 @@
+GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,Shoot,GetBattleInfo,Shoot (ignored),Shoot (killed)
+GetBattleInfo,RotateLeft45,RotateLeft45 (killed),RotateLeft45 (killed),RotateLeft45 (killed),Shoot (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed)
+GetBattleInfo,Shoot,GetBattleInfo,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot,GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed)
+GetBattleInfo,Shoot,GetBattleInfo,Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed),Shoot (killed)
+GetBattleInfo,Shoot,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot,Shoot (killed),Shoot (killed),Shoot (killed),GetBattleInfo (killed),GetBattleInfo (killed),GetBattleInfo (killed)
+GetBattleInfo,Shoot,Shoot (ignored),Shoot (ignored),Shoot (ignored),Shoot (ignored),GetBattleInfo,RotateLeft45,Shoot (ignored),Shoot,Shoot (ignored),Shoot (ignored),GetBattleInfo,Shoot (ignored),Shoot (ignored)
+Player 2 won with 1 still alive

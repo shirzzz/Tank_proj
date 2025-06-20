@@ -1,0 +1,6 @@
+GetBattleInfo,RotateRight45,RotateRight45,RotateRight45
+GetBattleInfo,RotateRight45,Shoot,Shoot (ignored)
+GetBattleInfo,MoveForward,RotateRight45,Shoot
+GetBattleInfo,RotateRight45,Shoot,Shoot (killed)
+GetBattleInfo,RotateRight90,RotateRight90,RotateRight90
+Player 2 won with 3 still alive

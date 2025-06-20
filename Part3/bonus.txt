@@ -1,0 +1,16 @@
+✨ Bonus Features Implemented
+1. 👀 Visual Simulation (visualizer.py)
+Implemented a standalone Python-based visualizer using Pygame.
+
+Reads map.txt and output.txt and animates:
+
+a. Tank movement
+b. Shells
+c. Explosions (via death states)
+d. Wall weakening & destruction
+
+Supports:
+
+a. Toroidal wrapping (WRAP_EDGES = True)
+b.Sprite-based direction rendering
+c. Adjustable animation speed (via FPS constant)

@@ -1,0 +1,10 @@
+Random Board
+MaxSteps =40
+NumShells =13
+Rows = 5
+Cols =  7
+@@     
+@  @  #
+ # 2#2@
+ #     
+@##    

@@ -1,3 +1,0 @@
-GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing,GetBattleInfo,DoNothing
-GetBattleInfo,RotateRight45,RotateRight45,RotateRight45,RotateRight45,RotateRight45,GetBattleInfo,Shoot,Shoot (ignored),Shoot (ignored)
-Player 1 won with 1 still alive
