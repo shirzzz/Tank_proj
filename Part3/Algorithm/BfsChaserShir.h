@@ -1,11 +1,11 @@
-#ifndef BFSCHASERSHIR_H
+#ifndef BFSCHASERSHIR_Hs
 #define BFSCHASERSHIR_H
 #pragma once
 #include <memory>
-#include "common/TankAlgorithm.h"  
+#include "../common/TankAlgorithm.h"  
 #include "common/ActionRequest.h"
 #include "GameBoard.h"
-
+namespace Algorithm_211466123_212399455{
 class BfsChaserShir : public TankAlgorithm {
 private:
     CanonDirection current_direction;
@@ -40,3 +40,4 @@ public:
 };
 
 #endif //BFSCHASERSHIR_H
+}

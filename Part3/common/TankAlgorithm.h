@@ -4,8 +4,8 @@
 #include "ActionRequest.h"
 #include "BattleInfo.h"
 #include <memory>
-#include "../Tank.h"
-#include "../GameBoard.h"
+#include "../UserCommon/Tank.h"
+#include "GameBoard.h"
 
 class TankAlgorithm {
 private:

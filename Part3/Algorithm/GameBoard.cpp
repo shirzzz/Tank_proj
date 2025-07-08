@@ -1,18 +1,18 @@
 #include "GameBoard.h"
 #include "CellType.h"
-#include "Tank.h"
-#include "Shell.h"
-#include "CanonDirection.h"
+#include "../UserCommon/Tank.h"
+#include "../UserCommon/Shell.h"
+#include "../UserCommon/CanonDirection.h"
 #include "regex"
-#include "Shape.h"
+#include "../UserCommon/Shape.h"
 #include "Empty.h"
-#include "Wall.h"
+#include "../UserCommon/Wall.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <memory>
 #include "Chased.h"
-#include "Mine.h"
+#include "../UserCommon/Mine.h"
 #include "BfsChaserShir.h"
 
 /**
@@ -33,7 +33,7 @@
  * data parsing (handled by this method) while still maintaining context
  * about the data source for error reporting purposes.
  */
-
+namespace Algorithm_211466123_212399455{
 void  GameBoard::displayBoard() const {
     std::cout << "Game Board:" << std::endl;
     for (int y = 0; y < height; ++y) {
@@ -309,5 +309,5 @@ void GameBoard::setCell(int x, int y, std::shared_ptr<Shape> shape) {
         board[y][x] = std::make_shared<Shape>(*shape);
     }
 }
-
+}
 

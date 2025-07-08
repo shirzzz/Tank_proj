@@ -6,6 +6,8 @@
 #include <algorithm>
 #include "GameBoard.h"
 #include "DirectionUtils.h"
+namespace Algorithm_211466123_212399455{
+//to add chasing from shells + making sure the tunk is not shooting itself
 
 std::pair<int, int> BfsChaserShir::fromIndextoPos (int index, int height) {
     return {index / height, index % height};
@@ -279,4 +281,4 @@ std::vector<int> BfsChaserShir::opponentsSpots() {
     }
     return opponents_spots;
 }
-
+}

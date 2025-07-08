@@ -1,2 +1,0 @@
-1. how to create the gameboard in the main
-2. I think we need to add to the board players

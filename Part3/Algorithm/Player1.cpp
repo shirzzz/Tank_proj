@@ -1,6 +1,6 @@
 #include "Player1.h"
-#include "MyBattleInfo.h"
-#include "MySatelliteView.h"
+#include "../UserCommon/MyBattleInfo.h"
+#include "../UserCommon/MySatelliteView.h"
 
 void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
     // Cast SatelliteView to MySatelliteView to access our specific methods

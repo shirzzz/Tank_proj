@@ -1,8 +1,8 @@
 #include "Player2.h"
-#include "MyBattleInfo.h"
-#include "MySatelliteView.h"
+#include "../UserCommon/MyBattleInfo.h"
+#include "../UserCommon/MySatelliteView.h"
 #include <iostream>
-
+namespace Algorithm_211466123_212399455{
 void Player2::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
     // Cast SatelliteView to MySatelliteView to access our specific methods
     MySatelliteView* mySatView = dynamic_cast<MySatelliteView*>(&satellite_view);
@@ -23,4 +23,5 @@ void Player2::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satel
     // Optional: Log or store coordination information
     std::cout << "Player 2 provided battle info to tank. Found " 
               << battleInfo.knownEnemyLocations.size() << " enemy tanks." << std::endl;
+}
 }

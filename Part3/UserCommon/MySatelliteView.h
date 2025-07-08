@@ -1,7 +1,7 @@
 #pragma once
 #include <cstddef>
 #include "common/SatelliteView.h"
-#include "GameBoard.h"
+#include "../Algorithm/GameBoard.h"
 
 class MySatelliteView : public SatelliteView {
 private:

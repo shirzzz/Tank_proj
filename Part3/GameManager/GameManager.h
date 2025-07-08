@@ -4,15 +4,17 @@
 
 #include "common/ActionRequest.h"
 #include "Tank.h"
-#include "MyPlayerFactory.h"  // CHANGED: Use your concrete factory
-#include "MyTankAlgorithmFactory.h"  // CHANGED: Use your concrete factory
-#include "Player1.h"
-#include "Player2.h"
+#include "../UserCommon/MyPlayerFactory.h"  // CHANGED: Use your concrete factory
+#include "../UserCommon/MyTankAlgorithmFactory.h"  // CHANGED: Use your concrete factory
+#include "../Algorithm/Player1.h"
+#include "../Algorithm/Player2.h"
 #include <string>
 #include <climits>  // For INT_MAX
 #include <memory>
-#include "GameBoard.h"
+#include "../Algorithm/GameBoard.h"
 #include <fstream>
+
+namespace GameManager_211466123_212399455{
 
 class GameManager {
 private:
@@ -102,3 +104,4 @@ private:
 };
 
 #endif // GAMEMANAGER_H
+} // namespace GameManager_211466123_212399455

@@ -14,6 +14,8 @@
 #include <memory>
 #include <iostream>
 
+namespace Algorithm_211466123_212399455{
+
 class GameBoard {
     int width, height;
     std::vector<std::vector<std::shared_ptr<Shape>>> board;
@@ -102,3 +104,5 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
 };
 
 #endif // GAMEBOARD_H
+
+}

@@ -1,5 +1,6 @@
-#ifndef PLAYER1_H
-#define PLAYER1_H
+//Player2.h
+#ifndef PLAYER2_H
+#define PLAYER2_H
 #pragma once
 #include "common/Player.h"         
 #include "Tank.h"           
@@ -7,30 +8,30 @@
 #include <memory>
 #include <algorithm>
 
-class Player1 : public Player {
+namespace Algorithm_211466123_212399455{
+
+class Player2 : public Player {
 private:
     size_t num_tanks = 0;
-
     std::vector<std::shared_ptr<Tank>> tanks;
     std::vector<std::unique_ptr<TankAlgorithm>> tank_algorithms;
 
 public:
     // Default constructor
-    Player1() : Player(0, 0, 0, 0, 0), num_tanks(0) {}
+    Player2() : Player(0, 0, 0, 0, 0), num_tanks(0) {}
     
-    // Delete copy operations (because of unique_ptr)
-    Player1(const Player1&) = delete;
-    Player1& operator=(const Player1&) = delete;
+    // ADDED: Delete copy operations (because of unique_ptr)
+    Player2(const Player2&) = delete;
+    Player2& operator=(const Player2&) = delete;
     
-    // Default move operations
-    Player1(Player1&&) = default;
-    Player1& operator=(Player1&&) = default;
+    // ADDED: Default move operations
+    Player2(Player2&&) = default;
+    Player2& operator=(Player2&&) = default;
     
     // Parameterized constructor
-    Player1(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells, size_t num_tanks)
+    Player2(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells, size_t num_tanks)
         : Player(player_index, x, y, max_steps, num_shells), num_tanks(num_tanks) {}
 
-    //  Only declaration here - implementation in .cpp file
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) override;
     
     void addTank(std::shared_ptr<Tank> tank) {
@@ -45,7 +46,6 @@ public:
         return tanks;
     }
     
-    //Removed const from return type
     std::vector<std::unique_ptr<TankAlgorithm>>& getTankAlgorithms() {
         return tank_algorithms;
     }
@@ -58,10 +58,6 @@ public:
         return num_tanks;
     }
     
-    // void addKilledTank(int index) {
-    //     killed_tanks[index] = true;
-    // }
-    
     // bool isTankKilled(int index) const {
     //     return killed_tanks[index];
     // }
@@ -70,15 +66,11 @@ public:
     //     return num_killed_tanks;
     // }
     
-    // void setNumKilledTanks(int num) {
-    //     num_killed_tanks = num;
-    // }
-    
     // size_t getSumShells() const {
     //     return sum_shells;
     // }
     
-    // void player1Shoot() {
+    // void player2Shoot() {
     //     sum_shells--;
     // }
     
@@ -90,4 +82,5 @@ public:
     // }
 };
 
-#endif //PLAYER1_H
+#endif //PLAYER2_H
+}

@@ -1,27 +1,29 @@
 #include "GameManager.h"
 #include "GameBoard.h"
-#include "Tank.h"
-#include "Shell.h"
+#include "../UserCommon/Tank.h"
+#include "../UserCommon/Shell.h"
 #include "DestructionCause.h"
 #include "Chased.h"
-#include "DirectionUtils.h"
+#include "../UserCommon/DirectionUtils.h"
 #include "common/ActionRequest.h"
-#include "CanonDirection.h"
-#include "Wall.h"
-#include "MySatelliteView.h"
-#include "CellType.h"
+#include "../UserCommon/CanonDirection.h"
+#include "../UserCommon/Wall.h"
+#include "../UserCommon/MySatelliteView.h"
+#include "../UserCommon/CellType.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <regex>
-#include "Player1.h"
-#include "Player2.h"
+#include "../Algorithm/Player1.h"
+#include "../Algorithm/Player2.h"
 #include <fstream>
-#include "MyBattleInfo.h"
+#include "../UserCommon/MyBattleInfo.h"  // ADDED: Include your concrete battle info
 #include "Mine.h"
 #include "Empty.h"
-#include "MyPlayerFactory.h"  // ADDED: Include your concrete factories
-#include "MyTankAlgorithmFactory.h"  // ADDED: Include your concrete factories
+#include "../UserCommon/MyPlayerFactory.h"  // ADDED: Include your concrete factories
+#include "../UserCommon/MyTankAlgorithmFactory.h"  // ADDED: Include your concrete factories
+
+namespace GameManager_211466123_212399455 {
 
 void GameManager::updateShells() const {
     auto& shells = shared_board->getShells();
@@ -789,4 +791,5 @@ void GameManager::setOutputFileNameFromInput(const std::string& inputFileName) {
     // Extract just the filename (no directories)
     std::string cleanName = std::filesystem::path(inputFileName).filename().string();
     output_file_name = "output_" + cleanName;
+}
 }
