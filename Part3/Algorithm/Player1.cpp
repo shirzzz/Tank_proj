@@ -2,6 +2,8 @@
 #include "../UserCommon/MyBattleInfo.h"
 #include "../UserCommon/MySatelliteView.h"
 
+
+
 void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
     // Cast SatelliteView to MySatelliteView to access our specific methods
     MySatelliteView* mySatView = dynamic_cast<MySatelliteView*>(&satellite_view);

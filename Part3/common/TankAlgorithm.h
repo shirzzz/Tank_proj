@@ -5,7 +5,7 @@
 #include "BattleInfo.h"
 #include <memory>
 #include "../UserCommon/Tank.h"
-#include "GameBoard.h"
+#include "../Algorithm/GameBoard.h"
 
 class TankAlgorithm {
 private:

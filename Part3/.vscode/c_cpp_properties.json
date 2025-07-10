@@ -3,6 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
+                "${workspaceFolder}/common",
+                "${workspaceFolder}/Algorithm",
                 "${workspaceFolder}/**"
             ],
             "defines": [],
