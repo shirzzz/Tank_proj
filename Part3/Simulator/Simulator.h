@@ -7,8 +7,8 @@
 #include <unordered_map>
 #include <thread>
 #include <vector>
-
-
+#include <AlgorithmRegistrar.h>
+#include <GameManagerRegistrar.h>
 struct Config {
     bool verbose = false; // Default to not verbose
     std::unordered_map<std::string, std::string> args; 

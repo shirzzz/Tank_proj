@@ -7,6 +7,8 @@
 #include "../UserCommon/Tank.h"
 #include "../Algorithm/GameBoard.h"
 
+using Algorithm_211466123_212399455::GameBoard;
+
 class TankAlgorithm {
 private:
 

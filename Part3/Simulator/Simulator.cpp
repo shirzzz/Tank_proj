@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <dlfcn.h> // For dynamic loading of shared libraries
 #include <filesystem>
+#include <GameManagerRegistration.h>
     // Constructor
     Simulator::Simulator(){};
     // Constructor with config
@@ -145,12 +146,26 @@ void Simulator::assignParameters(const Config& cfg) {
 
 bool Simulator::loadSO(const std::string& file_path) const {
     // Load the shared object file (SO) using dlopen or similar method
+    std::string name_so = std::filesystem::path(file_path).stem();
+    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+    registrar.createAlgorithmFactoryEntry(name_so);
+    dlerror(); // Clear any existing error
     void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
     if (!handle) {
         std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
+        registrar.removeLast(); // Remove the last entry if loading fails
         return false;
     }
-    std::cout << "Loaded: " << file_path << std::endl;
+    try{
+        registrar.validateLastRegistration();
+    } catch (const AlgorithmRegistrar::BadRegistrationException& e) {
+        std::cerr << "Bad registration for algorithm: " << e.name << std::endl;
+        std::cerr << "Has name: " << e.hasName << ", Has Player Factory: " << e.hasPlayerFactory 
+                  << ", Has Tank Algorithm Factory: " << e.hasTankAlgorithmFactory << std::endl;
+        registrar.removeLast(); // Remove the last entry if validation fails
+        return false;
+    }
+    std::cout << "Loaded successfully: " << file_path << std::endl;
     return true; // Indicate success
 }
 
@@ -183,6 +198,25 @@ bool Simulator::runComparative(const std::string& game_map,
                                             return false;
                                         }
                                     }
+                                    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+                                    if (registrar.count() < 2) {
+                                        std::cerr << "Not enough algorithms registered for comparative simulation." << std::endl;
+                                        return false;
+                                    }
+                                    const auto& algo1_factory = registrar.begin()->createTankAlgorithm(0, 0);
+                                    const auto& algo2_factory = registrar.begin()->createTankAlgorithm(1, 0);
+                                    if (!algo1_factory || !algo2_factory) {
+                                        std::cerr << "Failed to create tank algorithms." << std::endl;
+                                        return false;
+                                    }
+                                    auto& manager_registrar = GameManagerRegistrar::getGameManagerRegistrar();
+                                    if (manager_registrar.empty()) {
+                                        std::cerr << "No game managers registered." << std::endl;
+                                        return false;
+                                    }
+                                    auto& game_manager = manager_registrar.begin()->createGameManager();
+                                    //Itai for god sake I dont know what to do with this, I just added it
+
     std::cout << "Running comparative simulation..." << std::endl;
     return true; // Indicate success
 } 

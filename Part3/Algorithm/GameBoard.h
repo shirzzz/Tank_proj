@@ -103,6 +103,8 @@ GameBoard(int width, int height, std::vector<std::vector<std::shared_ptr<Shape>>
     bool isSteppingMine(int x, int y) const;
 };
 
-#endif // GAMEBOARD_H
+
 
 }
+
+#endif // GAMEBOARD_H
