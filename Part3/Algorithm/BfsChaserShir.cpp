@@ -123,6 +123,7 @@ void BfsChaserShir::setSafeEscapeMoves(std::vector<Shell>& shells){
             } else {
                 // Rotate canon towards the escape direction
                 rotateCanonTowards(escape_direction);
+                my_future_moves.push_back(ActionRequest::MoveForward);
             }
         }
     }
