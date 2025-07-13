@@ -9,6 +9,13 @@
 #include <vector>
 #include <AlgorithmRegistrar.h>
 #include <GameManagerRegistrar.h>
+#include <../common/GameResult.h>
+struct pair_hash {
+    std::size_t operator()(const std::pair<int, GameResult::Reason>& p) const {
+        return std::hash<int>()(p.first) ^ (std::hash<int>()(static_cast<int>(p.second)) << 1);
+    }
+};
+
 struct Config {
     bool verbose = false; // Default to not verbose
     std::unordered_map<std::string, std::string> args; 

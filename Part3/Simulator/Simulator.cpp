@@ -5,6 +5,7 @@
 #include <dlfcn.h> // For dynamic loading of shared libraries
 #include <filesystem>
 #include <GameManagerRegistration.h>
+
     // Constructor
     Simulator::Simulator(){};
     // Constructor with config
@@ -214,12 +215,61 @@ bool Simulator::runComparative(const std::string& game_map,
                                         std::cerr << "No game managers registered." << std::endl;
                                         return false;
                                     }
-                                    auto& game_manager = manager_registrar.begin()->createGameManager();
+                                    
                                     //Itai for god sake I dont know what to do with this, I just added it
-
-    std::cout << "Running comparative simulation..." << std::endl;
-    return true; // Indicate success
-} 
+                                    //Itai I dont know the proper way to run the simulation, but I will make a skeleton
+                                    std::string dir = game_managers_folder;
+                                    std::string full_path  = dir + "/" + "output.txt";
+                                    std::ofstream output_file(full_path);
+                                    if (!output_file) {
+                                        std::cerr << "Failed to open output file: " << full_path << std::endl;
+                                        return false;
+                                    }
+                                    output_file<<"game_map: " << game_map << std::endl;
+                                    output_file<<"algorithm1: " << algo1 << std::endl;
+                                    output_file<<"algorithm2: " << algo2 << std::endl;
+                                    output_file<<"\n"<<std::endl;
+                                    std::unordered_map<std::pair<int, GameResult>, std::vector<std::string>, pair_hash> game_results;
+                                    for(const auto& manager : manager_registrar.getGameManagers()) {
+                                        if (!manager) {
+                                            std::cerr << "Failed to create game manager." << std::endl;
+                                            return false;
+                                        }
+                                        manager->setOutputFile(full_path);
+                                        manager->setGameMap(game_map);
+                                        manager->addPlayerFactory(algo1_factory);
+                                        manager->addPlayerFactory(algo2_factory);
+                                        manager->setVerbose(verbose_);
+                                        manager->setNumThreads(num_threads_);
+                                        GameResult result = manager->runGame();
+                                        game_results[{result.winner, result}].push_back(manager->getName()); //this is a map of the results
+                                    }
+                                    //After I have the map of the results I should sort them by the size of the group
+                                    //first I am moving the results to a vector
+                                    std::vector<std::pair<std::pair<int, GameResult>, std::vector<std::string>>> sorted_results(game_results.begin(), game_results.end());
+                                    //then I am sorting the vector
+                                    std::sort(sorted_results.begin(), sorted_results.end(), [](const auto& a, const auto& b) {
+                                        return a.second.size() > b.second.size();
+                                    });
+                                    for(const auto& result : sorted_results) {
+                                        for(std::string manager_name : result.second) {
+                                            output_file << manager_name << " , ";
+                                        }
+                                        output_file << std::endl;
+                                        if( result.first.first == 0) {
+                                            output_file << "Tie, Reason: " << static_cast<int>(result.first.second.reason) << std::endl;
+                                        } else {
+                                            output_file << "Winner: " << result.first.first << ", Reason: " << static_cast<int>(result.first.second.reason)
+                                        << ", Remaining Tanks: "<<result.first.second.remaining_tanks[result.first.first - 1] << std::endl;
+                                        }    
+                                        output_file<<"7"<<std::endl; //Itai here supposed to be the number of rounds, but I dont know how to get it so I just put 7
+                                        output_file<<"end of game map"<<std::endl; //Itai here supposed to be the end of the game map, but I dont know how to get it so I just put "end of game map"
+                                        output_file << std::endl;
+                                    }
+                                    output_file.close();
+                                    std::cout << "Comparative simulation completed. Results saved to: " << full_path << std::endl;
+                                    return true;
+                                }
 
 bool Simulator::runCompetitive(const std::string& maps_folder,
                                 const std::string& game_manager,
@@ -244,12 +294,52 @@ bool Simulator::runCompetitive(const std::string& maps_folder,
         std::cerr << "No maps found in folder: " << maps_folder << std::endl;
         return false;
     }
+    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+    auto& game_manager_registrar = GameManagerRegistrar::getGameManagerRegistrar();
+    std::unordered_map<std::string, int> game_scores;
+    std::string dir = algorithms_folder;
+    std::string full_path = dir + "/" + "competitive_output.txt";
+    std::ofstream output_file(full_path);
+    if (!output_file) {
+        std::cerr << "Failed to open output file: " << full_path << std::endl;
+        return false;
+    }
+    output_file<<"game_maps_folder: " << maps_folder << std::endl;
+    output_file<<"game_manager: " << game_manager << std::endl;
+    output_file<<"\n"<<std::endl;
     for (int k = 0; k < maps.size(); ++k) {
         for(int i = 0; i < algorithms.size(); ++i) {
             std::cout << "Running game with map: " << maps[k] 
                         << ", algorithm1: " << algorithms[i] 
                         << ", algorithm2: " << algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())] << std::endl;
-
+            auto& game_manager_factory = game_manager_registrar.getGameManagers()[0]; // Assuming we use the first game manager, Itai I am not sure about the registrar
+            GameResult result = game_manager_factory->runGame(
+                maps[k], 
+                algorithms[i], 
+                algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())], 
+                verbose_, 
+                num_threads_
+            );
+            if(result.winner == 0){
+                game_scores[algorithms[i]] += 1; // Tie
+                game_scores[algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())]] += 1; // Tie
+            }
+            else {
+                game_scores[algorithms[i]] += result.winner == 1 ? 3 : 0; // Win for algorithm1
+                game_scores[algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())]] += result.winner == 2 ? 3 : 0; // Win for algorithm2
+            }
         }
     }
+    //putting the results in a vector and sorting it
+    std::vector<std::pair<std::string, int>> sorted_scores(game_scores.begin(), game_scores.end());
+    std::sort(sorted_scores.begin(), sorted_scores.end(), [](const auto& a, const auto& b) {
+        return a.second > b.second; // Sort by score
+    });
+    // Writing results to the output file
+    for(const auto& score : sorted_scores) {
+        output_file << score.first << " "<< score.second << std::endl;
+    }
+    output_file.close();
+    std::cout << "Competitive simulation completed. Results saved to: " << full_path << std::endl;
+    return true;
 }
