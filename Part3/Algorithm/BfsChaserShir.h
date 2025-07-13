@@ -24,6 +24,16 @@ private:
     void rotateCanonLeft45();
     void rotateCanonRight90();
     void rotateCanonLeft90();
+    //checking if the tank is shooting its teammates
+    bool amIshootingMyTeammates() const;
+    //running away from shells
+    bool isShellThreateningMe(const Shell& shell) const;
+    std::vector<Shell> shouldRunAwayFromShells() const;
+    bool shouldIShootShell(const Shell& shell) const;
+    void setSafeEscapeMoves(std::vector<Shell>& shells);
+    CanonDirection findEscapeDirection(const std::vector<Shell>& shells, int radius) const;
+
+
 public:
     std::unique_ptr<TankAlgorithm> clone() const override {
         return std::make_unique<BfsChaserShir>(*this);

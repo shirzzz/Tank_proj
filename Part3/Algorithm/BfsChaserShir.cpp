@@ -7,7 +7,167 @@
 #include "GameBoard.h"
 #include "DirectionUtils.h"
 namespace Algorithm_211466123_212399455{
-//to add chasing from shells + making sure the tunk is not shooting itself
+//to add chasing from shells
+
+bool BfsChaserShir::amIshootingMyTeammates() const {
+    if (!game_board) return false; // No game board available
+    std::pair<int, int> delta = directionToVector(my_tank->getCanonDirection());
+    int dx = delta.first;
+    int dy = delta.second;
+    int x = my_tank.get()->getX();
+    int y = my_tank.get()->getY();
+    while (true) {
+        x  = (x + dx)  % game_board->getWidth();
+        y = (y + dy)  % game_board->getHeight();
+        auto cell = game_board->getCell(x, y);
+        if (!cell || cell->getCellType() == CellType::WALL || cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2 || cell->getCellType() == CellType::SHELL) {
+            if(my_tank->getIndexTank() == '1' && cell->getCellType() == CellType::TANK1) {
+                return true; // Shooting at a teammate
+            } else if(my_tank->getIndexTank() == '2' && cell->getCellType() == CellType::TANK2) {
+                return true; // Shooting at a teammate
+            }
+            if(my_tank->getIndexTank() == '1' && cell->getCellType() == CellType::TANK2) {
+                return false; // Shooting at an opponent
+            } else if(my_tank->getIndexTank() == '2' && cell->getCellType() == CellType::TANK1) {
+                return false; // Shooting at an opponent
+            }
+            if(cell->getCellType() == CellType::SHELL) {
+                return false; // Shooting at a shell, not a teammate
+            }
+            if(cell->getCellType() == CellType::WALL) {
+                return false; // Shooting at a wall, not a teammate
+            }
+        }
+        else{
+            continue; // Continue until we hit a wall or a tank
+        }
+    }
+    return false; // Not facing the tank
+}
+
+bool BfsChaserShir::isShellThreateningMe(const Shell& shell) const {
+    // Check if the shell is threatening my tank
+    if (!game_board) return false; // No game board available
+    std::pair<int, int> delta = directionToVector(shell.getDirection());
+    int dx = delta.first;
+    int dy = delta.second;
+    int x = shell.getX();
+    int y = shell.getY();
+    while (true) {
+        x  = (x + dx)  % game_board->getWidth();
+        y = (y + dy)  % game_board->getHeight();
+        auto cell = game_board->getCell(x, y);
+        switch(cell->getCellType()) {
+            case CellType::WALL:
+                return false; // Shell hit a wall, not threatening
+            case CellType::TANK1:
+            case CellType::TANK2:
+                if (cell->getX() == my_tank->getX() && cell->getY() == my_tank->getY()) {
+                    return true; // Shell is threatening my tank
+                }
+                return false; // Shell hit a tank, not threatening
+            case CellType::SHELL:
+                return false; // Shell hit another shell, not threatening
+            default:
+                continue; // Continue until we hit a wall or a tank
+        }
+    }
+}
+
+std::vector<Shell> BfsChaserShir::shouldRunAwayFromShells() const {
+    //Function which returns a vector of shells that are threatening the tank
+    std::vector<Shell> shells_to_run_from;
+    if (!game_board) return shells_to_run_from; // No game board available
+    for (const Shell& shell : game_board->getShells()) {
+        if (isShellThreateningMe(shell)) {
+            shells_to_run_from.push_back(shell);
+        }
+    }
+    return shells_to_run_from;
+}
+
+bool BfsChaserShir::shouldIShootShell(const Shell& shell) const {
+    // Function to check if the tank should shoot at the shell
+    if (!game_board) return false; // No game board available
+    std::pair<int, int> delta = directionToVector(my_tank->getCanonDirection());
+    int dx = delta.first;
+    int dy = delta.second;
+    int x = my_tank->getX();
+    int y = my_tank->getY();
+    while (true) {
+        x  = (x + dx)  % game_board->getWidth();
+        y = (y + dy)  % game_board->getHeight();
+        auto cell = game_board->getCell(x, y);
+        if(!cell && cell->getX() == shell.getX() && cell->getY() == shell.getY()) {
+                return true; // Shell is in the line of fire
+            }
+        if (!cell && cell->getCellType() == CellType::WALL || cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
+            return false; // Not in the line of fire
+        }
+    }
+}
+
+void BfsChaserShir::setSafeEscapeMoves(std::vector<Shell>& shells){
+    // Function to set safe escape moves from threatening shells
+    if (!game_board) return; // No game board available
+    for (Shell& shell : shells) {
+        if (shouldIShootShell(shell)) {
+            my_future_moves.push_back(ActionRequest::Shoot);
+        } else {
+            std::pair<int, int> shell_pos = shell.getPosition();
+            int dx = shell_pos.first - my_tank->getX();
+            int dy = shell_pos.second - my_tank->getY();
+            CanonDirection escape_direction = findEscapeDirection(shells, 3); // Assuming a danger radius of 3
+            if(escape_direction == my_tank->getCanonDirection()) {
+                my_future_moves.push_back(ActionRequest::MoveForward);
+            } else {
+                // Rotate canon towards the escape direction
+                rotateCanonTowards(escape_direction);
+            }
+        }
+    }
+}
+
+CanonDirection BfsChaserShir::findEscapeDirection(const std::vector<Shell>& shells, int danger_radius) const {
+    // Function to find a safe escape direction from threatening shells
+    if (!game_board) return CanonDirection::U; // No game board available
+    std::pair<int, int> current_pos = my_tank->getPosition();
+    std::vector<CanonDirection> escape_directions = {
+        CanonDirection::U, CanonDirection::UR, CanonDirection::R,
+        CanonDirection::DR, CanonDirection::D, CanonDirection::DL,
+        CanonDirection::L, CanonDirection::UL
+    };
+    for(auto& direction : escape_directions) {
+        std::pair<int, int> delta = directionToVector(direction);
+        int new_x = (current_pos.first + delta.first + game_board->getWidth()) % game_board->getWidth();
+        int new_y = (current_pos.second + delta.second + game_board->getHeight()) % game_board->getHeight();
+        if (game_board->isCellWalkable(new_x, new_y)) {
+            bool safe = true;
+            for (const Shell& shell : shells) {
+                int shell_x = shell.getX();
+                int shell_y = shell.getY();
+                std::pair<int, int> shell_direction = directionToVector(shell.getDirection());
+                int shell_dx = shell_direction.first;
+                int shell_dy = shell_direction.second;
+                for(int step = 0; step <= danger_radius; ++step) {
+                    int next_shell_x = (shell_x + step * shell_dx) % game_board->getWidth();
+                    int next_shell_y = (shell_y + step * shell_dy) % game_board->getHeight();
+                    if (next_shell_x == new_x && next_shell_y == new_y) {
+                        safe = false; // Shell is threatening this position
+                        break;
+                    }
+                }
+            }
+            if (safe) {
+                return direction; // Found a safe escape direction
+            }
+        }
+    }
+    return my_tank->getCanonDirection(); // Default direction if no escape found
+}
+
+
+
 
 std::pair<int, int> BfsChaserShir::fromIndextoPos (int index, int height) {
     return {index / height, index % height};
@@ -99,7 +259,12 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
         int y2 = path[i] % height;
 
         if (isFacingOpponent() != -1) {
-            my_future_moves.push_back(ActionRequest::Shoot);
+            if(!amIshootingMyTeammates()){
+                my_future_moves.push_back(ActionRequest::Shoot);
+            }
+            else{
+                my_future_moves.push_back(ActionRequest::GetBattleInfo);
+            }
             continue;
         }
 
@@ -214,11 +379,27 @@ void BfsChaserShir::rotateCanonTowards(CanonDirection target_direction) {
 
 ActionRequest BfsChaserShir::getAction() {
     if (!my_future_moves.empty()) {
+        std::vector<Shell> shells_threatening = shouldRunAwayFromShells();
+        if (shells_threatening.size() > 0) {
+            my_future_moves.clear(); // Clear future moves if we need to run away from shells
+            setSafeEscapeMoves(shells_threatening);
+        }
         ActionRequest next_move = my_future_moves.front();
         my_future_moves.erase(my_future_moves.begin());
         return next_move;
     } else {
         if (have_battle_info) {
+            std::vector<Shell> shells_threatening = shouldRunAwayFromShells();
+            if(shells_threatening.size() > 0) {
+                setSafeEscapeMoves(shells_threatening);
+                if (!my_future_moves.empty()) {
+                    my_future_moves.clear();               
+                }
+                    setSafeEscapeMoves(shells_threatening);
+                    ActionRequest next_move = my_future_moves.front();
+                    my_future_moves.erase(my_future_moves.begin());
+                    return next_move;
+                }
             std::vector<std::vector<int>> graph = getGraphOutOfBoard();
             int start_node = my_tank.get()->getX() * height+ my_tank.get()->getY();
             std::vector<int> path = getFutureMovesBfs(graph, start_node);
