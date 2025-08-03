@@ -7,8 +7,8 @@
 #include <unordered_map>
 #include <thread>
 #include <vector>
-#include <AlgorithmRegistrar.h>
-#include <GameManagerRegistrar.h>
+#include "AlgorithmRegistrar.h"
+#include "GameManagerRegistrar.h"
 #include <../common/GameResult.h>
 struct pair_hash {
     std::size_t operator()(const std::pair<int, GameResult::Reason>& p) const {
@@ -22,6 +22,8 @@ struct Config {
     RunMode run_mode = RunMode::Invalid; // Default to invalid mode
 };
 
+enum class SOType { Algorithm, GameManager };
+
 class Simulator {
 private:
     RunMode run_mode = RunMode::Invalid; // Default to invalid mode
@@ -29,7 +31,7 @@ private:
     size_t num_threads_ = 1;
     std::unordered_map<std::string, std::string> params;
     std::vector<std::string> getFilesInFolder(const std::string& folder) const;
-    bool loadSO(const std::string& file_path) const;
+    bool loadSO(const std::string& file_path, SOType type) const;
     
 
 public:

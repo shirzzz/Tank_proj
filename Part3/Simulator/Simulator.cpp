@@ -5,6 +5,8 @@
 #include <dlfcn.h> // For dynamic loading of shared libraries
 #include <filesystem>
 #include <GameManagerRegistration.h>
+#include "AlgorithmRegistrar.h"
+#include "GameManagerRegistrar.h"
 
     // Constructor
     Simulator::Simulator(){};
@@ -145,29 +147,48 @@ void Simulator::assignParameters(const Config& cfg) {
     }
 }
 
-bool Simulator::loadSO(const std::string& file_path) const {
-    // Load the shared object file (SO) using dlopen or similar method
+bool Simulator::loadSO(const std::string& file_path, SOType type) const {
     std::string name_so = std::filesystem::path(file_path).stem();
-    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
-    registrar.createAlgorithmFactoryEntry(name_so);
-    dlerror(); // Clear any existing error
-    void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
-    if (!handle) {
-        std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
-        registrar.removeLast(); // Remove the last entry if loading fails
-        return false;
-    }
-    try{
-        registrar.validateLastRegistration();
-    } catch (const AlgorithmRegistrar::BadRegistrationException& e) {
-        std::cerr << "Bad registration for algorithm: " << e.name << std::endl;
-        std::cerr << "Has name: " << e.hasName << ", Has Player Factory: " << e.hasPlayerFactory 
-                  << ", Has Tank Algorithm Factory: " << e.hasTankAlgorithmFactory << std::endl;
-        registrar.removeLast(); // Remove the last entry if validation fails
-        return false;
+    if (type == SOType::Algorithm) {
+        auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+        registrar.createAlgorithmFactoryEntry(name_so);
+        dlerror(); // Clear any existing error
+        void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
+        if (!handle) {
+            std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
+            registrar.removeLast();
+            return false;
+        }
+        try {
+            registrar.validateLastRegistration();
+        } catch (const AlgorithmRegistrar::BadRegistrationException& e) {
+            std::cerr << "Bad registration for algorithm: " << e.name << std::endl;
+            std::cerr << "Has name: " << e.hasName << ", Has Player Factory: " << e.hasPlayerFactory
+                      << ", Has Tank Algorithm Factory: " << e.hasTankAlgorithmFactory << std::endl;
+            registrar.removeLast();
+            return false;
+        }
+    } else if (type == SOType::GameManager) {
+        auto& registrar = GameManagerRegistrar::getGameManagerRegistrar();
+        registrar.createGameManagerFactoryEntry(name_so);
+        dlerror();
+        void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
+        if (!handle) {
+            std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
+            registrar.removeLast();
+            return false;
+        }
+        try {
+            registrar.validateLastRegistration();
+        } catch (const GameManagerRegistrar::BadRegistrationException& e) {
+            std::cerr << "Bad registration for game manager: " << e.name << std::endl;
+            std::cerr << "Has name: " << e.hasName << ", Has GameManager Factory: " << e.hasGameManagerFactory << std::endl;
+            registrar.removeLast();
+            return false;
+        }
     }
     std::cout << "Loaded successfully: " << file_path << std::endl;
-    return true; // Indicate success
+    return true;
 }
 
 std::vector<std::string> Simulator::getFilesInFolder(const std::string& folder) const {
@@ -184,7 +205,7 @@ bool Simulator::runComparative(const std::string& game_map,
                                 const std::string& game_managers_folder,
                                 const std::string& algo1,
                                 const std::string& algo2) const {
-                                    if(!loadSO(algo1) || !loadSO(algo2)) {
+                                    if(!loadSO(algo1, SOType::Algorithm) || !loadSO(algo2, SOType::Algorithm)) {
                                         std::cerr << "Failed to load algorithms." << std::endl;
                                         return false;
                                     }
@@ -194,7 +215,7 @@ bool Simulator::runComparative(const std::string& game_map,
                                         return false;
                                     }
                                     for(const auto& manager : game_managers) {
-                                        if(!loadSO(manager)) {
+                                        if(!loadSO(manager, SOType::GameManager)) {
                                             std::cerr << "Failed to load game manager: " << manager << std::endl;
                                             return false;
                                         }
@@ -280,12 +301,12 @@ bool Simulator::runCompetitive(const std::string& maps_folder,
         return false;
     }
     for (const auto& algo : algorithms) {
-        if (!loadSO(algo)) {
+        if (!loadSO(algo, SOType::Algorithm)) {
             std::cerr << "Failed to load algorithm: " << algo << std::endl;
             return false;
         }
     }
-    if (!loadSO(game_manager)) {
+    if (!loadSO(game_manager, SOType::GameManager)) {
         std::cerr << "Failed to load game manager: " << game_manager << std::endl;
         return false;
     }

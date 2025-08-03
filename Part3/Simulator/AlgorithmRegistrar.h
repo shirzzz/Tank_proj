@@ -5,7 +5,7 @@
 #include <memory>
 #include <cassert>
 #include "../common/TankAlgorithmFactory.h"
-#include "PlayerFactory.h"
+#include "../common/PlayerFactory.h"
 // #using Algorithm_211466123_212399455::TankAlgorithm;
 class AlgorithmRegistrar {
     class AlgorithmAndPlayerFactories {
