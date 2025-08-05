@@ -1,17 +1,17 @@
 #include "GameBoard.h"
-#include "CellType.h"
+#include "../UserCommon/CellType.h"
 #include "../UserCommon/Tank.h"
 #include "../UserCommon/Shell.h"
 #include "../UserCommon/CanonDirection.h"
 #include "regex"
 #include "../UserCommon/Shape.h"
-#include "Empty.h"
+#include "../UserCommon/Empty.h"
 #include "../UserCommon/Wall.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <memory>
-#include "Chased.h"
+#include "../Chased.h"
 #include "../UserCommon/Mine.h"
 #include "BfsChaserShir.h"
 

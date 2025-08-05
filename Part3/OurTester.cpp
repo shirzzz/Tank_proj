@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include "OurTester.h"
-#include "GameBoard.h"
+#include "Algorithm/GameBoard.h"
 
 std::string OurTester::buildRandomBoardFile(int i) {
     // bool placed_player1 = false;

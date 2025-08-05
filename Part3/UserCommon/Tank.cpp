@@ -1,8 +1,8 @@
 #include "Tank.h"
 #include "CanonDirection.h"
-#include "Chased.h"
+#include "../Chased.h"
 #include "Shape.h"
-#include "DestructionCause.h"
+#include "../DestructionCause.h"
 
 #include <iostream>
 

@@ -3,8 +3,8 @@
 
 #include "CanonDirection.h"
 #include "Shape.h"
-#include "common/ActionRequest.h"
-#include "DestructionCause.h"
+#include "../common/ActionRequest.h"
+#include "../DestructionCause.h"
 
 #include <vector>
 #include <string>

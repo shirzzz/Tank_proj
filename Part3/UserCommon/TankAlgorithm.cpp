@@ -1,6 +1,6 @@
-#include "common/TankAlgorithm.h"
-#include "common/ActionRequest.h"
-#include "GameBoard.h"
+#include "../common/TankAlgorithm.h"
+#include "../common/ActionRequest.h"
+#include "../Algorithm/GameBoard.h"
 #include "MyBattleInfo.h"
 #include "DirectionUtils.h"  
 // check if cannon direction matches direction to opponent
@@ -29,7 +29,7 @@ void TankAlgorithm::updateBattleInfo(BattleInfo& info) {
         
     // 1. Save the game board
     if (myInfo.gameBoard) {
-        game_board = std::shared_ptr<GameBoard>(myInfo.gameBoard, [](GameBoard*){
+        game_board = std::shared_ptr<Algorithm_211466123_212399455::GameBoard>(myInfo.gameBoard, [](Algorithm_211466123_212399455::GameBoard*){
             // Don't delete - the original MyBattleInfo owns this pointer
         });
         height = myInfo.gameBoard->getHeight();  

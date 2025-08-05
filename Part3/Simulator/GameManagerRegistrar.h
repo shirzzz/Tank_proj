@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 //#include "GameManagerFactory.h" WE DONT HAVE A FACTORY FOR GAMEMANAGER I DONT KNOW WHAT TO DO WITH THIS
-#include "GameManager.h"
+#include "../GameManager/GameManager.h"
 class GameManagerRegistrar {
     std::vector<GameManagerFactory> game_managers;
     static GameManagerRegistrar registrar;
@@ -36,3 +36,5 @@ public:
         throw std::out_of_range("Index out of range in GameManagerRegistrar");
     }
 };
+
+#endif // GAME_MANAGER_REGISTRAR_H

@@ -2,14 +2,14 @@
 #define GAMEBOARD_H
 
 #include "vector"
-#include "CellType.h"
-#include "Empty.h"
-#include "CanonDirection.h"
-#include "Tank.h"
-#include "Shell.h"
+#include "../UserCommon/CellType.h"
+#include "../UserCommon/Empty.h"
+#include "../UserCommon/CanonDirection.h"
+#include "../UserCommon/Tank.h"
+#include "../UserCommon/Shell.h"
 #include <string>
 #include <vector>
-#include "Wall.h"
+#include "../UserCommon/Wall.h"
 #include <algorithm>
 #include <memory>
 #include <iostream>

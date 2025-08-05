@@ -13,10 +13,10 @@ endif
 TARGET = tanks_game
 
 # Source files
-SOURCES = BfsChaserShir.cpp Chased.cpp DirectionUtils.cpp GameBoard.cpp GameManager.cpp OurTester.cpp Shape.cpp Shell.cpp Tank.cpp Wall.cpp main.cpp MySatelliteView.cpp MyBattleInfo.cpp TankAlgorithm.cpp Player1.cpp Player2.cpp 
+SOURCES = Algorithm/BfsChaserShir.cpp Chased.cpp Algorithm/GameBoard.cpp GameManager/GameManager.cpp OurTester.cpp UserCommon/Shape.cpp UserCommon/Shell.cpp UserCommon/Tank.cpp UserCommon/Wall.cpp main.cpp UserCommon/MySatelliteView.cpp UserCommon/MyBattleInfo.cpp UserCommon/TankAlgorithm.cpp Algorithm/Player1.cpp Algorithm/Player2.cpp UserCommon/DirectionUtils.cpp
 
 # Header files
-HEADERS = ActionRequest.h BfsChaserShir.h CanonDirection.h CellType.h DestructionCause.h Chased.h DirectionUtils.h Empty.h GameBoard.h GameManager.h Mine.h OurTester.h Shape.h Shell.h Tank.h Wall.h Player1BattleInfo.h Player2BattleInfo.h PlayerFactory.h TankAlgorithmFactory.h SatelliteView.h TankAlgorithm.h BattleInfo.h MySatelliteView.h MyBattleInfo.h MyPlayerFactory.h MyTankAlgorithmFactory.h
+HEADERS = common/ActionRequest.h Algorithm/BfsChaserShir.h UserCommon/CanonDirection.h UserCommon/CellType.h Algorithm/DestructionCause.h Chased.h UserCommon/DirectionUtils.h UserCommon/Empty.h Algorithm/GameBoard.h GameManager/GameManager.h UserCommon/Mine.h OurTester.h UserCommon/Shape.h UserCommon/Shell.h UserCommon/Tank.h UserCommon/Wall.h Algorithm/Player1BattleInfo.h Algorithm/Player2BattleInfo.h common/PlayerFactory.h common/TankAlgorithmFactory.h UserCommon/SatelliteView.h common/TankAlgorithm.h UserCommon/MySatelliteView.h UserCommon/MyBattleInfo.h UserCommon/MyPlayerFactory.h UserCommon/MyTankAlgorithmFactory.h
 
 # Object files
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -48,27 +48,25 @@ $(TARGET): $(OBJECTS)
 	$(CPP) $(CPP_FLAGS) -c $< -o $@
 
 # Individual dependencies (keeping your original dependencies)
-BfsChaserShir.o: BfsChaserShir.cpp BfsChaserShir.h GameBoard.h DirectionUtils.h ActionType.h
+Algorithm/BfsChaserShir.o: Algorithm/BfsChaserShir.cpp Algorithm/BfsChaserShir.h Algorithm/GameBoard.h UserCommon/DirectionUtils.h common/ActionRequest.h
 
-Chased.o: Chased.cpp Chased.h DirectionUtils.h ActionType.h GameBoard.h Tank.h Shell.h
+Chased.o: Chased.cpp Chased.h UserCommon/DirectionUtils.h common/ActionRequest.h Algorithm/GameBoard.h UserCommon/Tank.h UserCommon/Shell.h
 
-DirectionUtils.o: DirectionUtils.cpp DirectionUtils.h CanonDirection.h
+Algorithm/GameBoard.o: Algorithm/GameBoard.cpp Algorithm/GameBoard.h UserCommon/CellType.h UserCommon/Tank.h UserCommon/Shell.h UserCommon/Shape.h UserCommon/Empty.h UserCommon/Wall.h UserCommon/Mine.h Chased.h Algorithm/BfsChaserShir.h
 
-GameBoard.o: GameBoard.cpp GameBoard.h CellType.h Tank.h Shell.h Shape.h Empty.h Wall.h Mine.h Chased.h BfsChaserShir.h
+GameManager.o: GameManager.cpp GameManager.h Algorithm/GameBoard.h UserCommon/Tank.h UserCommon/Shell.h DestructionCause.h Chased.h UserCommon/CanonDirection.h UserCommon/CellType.h UserCommon/Empty.h
 
-GameManager.o: GameManager.cpp GameManager.h GameBoard.h Tank.h Shell.h DestructionCause.h Chased.h ActionType.h CanonDirection.h CellType.h Empty.h
+OurTester.o: OurTester.cpp OurTester.h Algorithm/GameBoard.h
 
-OurTester.o: OurTester.cpp OurTester.h GameBoard.h
+UserCommon/Shape.o: UserCommon/Shape.cpp UserCommon/Shape.h
 
-Shape.o: Shape.cpp Shape.h
+UserCommon/Shell.o: UserCommon/Shell.cpp UserCommon/Shell.h UserCommon/Shape.h UserCommon/CanonDirection.h
 
-Shell.o: Shell.cpp Shell.h Shape.h CanonDirection.h
+UserCommon/Tank.o: UserCommon/Tank.cpp UserCommon/Tank.h UserCommon/Shape.h UserCommon/CanonDirection.h common/ActionRequest.h DestructionCause.h
 
-Tank.o: Tank.cpp Tank.h Shape.h CanonDirection.h ActionType.h DestructionCause.h
+UserCommon/Wall.o: UserCommon/Wall.cpp UserCommon/Wall.h UserCommon/Shape.h
 
-Wall.o: Wall.cpp Wall.h Shape.h
-
-main.o: main.cpp GameBoard.h GameManager.h ActionType.h
+main.o: main.cpp Algorithm/GameBoard.h GameManager/GameManager.h
 
 Player1Algorithm.o: Player1Algorithm.cpp Player1Algorithm.h
 
@@ -78,15 +76,15 @@ MySatelliteView.o: MySatelliteView.cpp MySatelliteView.h
 
 MyBattleInfo.o: MyBattleInfo.cpp MyBattleInfo.h
 
-TankAlgorithm.o: TankAlgorithm.cpp common/TankAlgorithm.h MyBattleInfo.h DirectionUtils.h
+UserCommon/TankAlgorithm.o: UserCommon/TankAlgorithm.cpp common/TankAlgorithm.h UserCommon/MyBattleInfo.h UserCommon/DirectionUtils.h
 
 MyPlayerFactory.o: MyPlayerFactory.cpp MyPlayerFactory.h GameBoard.h Player1.h Player2.h
 
 MyTankAlgorithmFactory.o: MyTankAlgorithmFactory.cpp MyTankAlgorithmFactory.h GameBoard.h Player1.h Player2.h
 
-Player1.o: Player1.cpp Player1.h MyBattleInfo.h MySatelliteView.h
+Algorithm/Player1.o: Algorithm/Player1.cpp Algorithm/Player1.h UserCommon/MyBattleInfo.h UserCommon/MySatelliteView.h
 
-Player2.o: Player2.cpp Player2.h MyBattleInfo.h MySatelliteView.h
+Algorithm/Player2.o: Algorithm/Player2.cpp Algorithm/Player2.h UserCommon/MyBattleInfo.h UserCommon/MySatelliteView.h
 
 clean:
 ifeq ($(OS),Windows_NT)

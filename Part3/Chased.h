@@ -1,8 +1,8 @@
 #ifndef CHASED_H
 #define CHASED_H
-#include "Tank.h"
-#include "GameBoard.h"
-#include "DirectionUtils.h"
+#include "UserCommon/Tank.h"
+#include "Algorithm/GameBoard.h"
+#include "UserCommon/DirectionUtils.h"
 #include "common/ActionRequest.h"
 #include "common/TankAlgorithm.h"
 

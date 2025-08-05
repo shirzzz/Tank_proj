@@ -5,7 +5,7 @@ MyBattleInfo::MyBattleInfo(MySatelliteView* satelliteView, char myPlayerChar, st
     : myPlayerChar(myPlayerChar), myTanks(std::move(myTanks)) {
     if (!satelliteView) return;
 
-    gameBoard = const_cast<GameBoard*>(satelliteView->getBoardReference());
+    gameBoard = const_cast<Algorithm_211466123_212399455::GameBoard*>(satelliteView->getBoardReference());
     knownEnemyLocations.clear();
     char enemyChar = (myPlayerChar == '1') ? '2' : '1';
 
@@ -27,7 +27,7 @@ std::vector<std::pair<size_t, size_t>> MyBattleInfo::getOpponents() const {
     return knownEnemyLocations; // Return the list of known enemy locations
 }
 
-GameBoard* MyBattleInfo::getGameBoard() const {
+Algorithm_211466123_212399455::GameBoard* MyBattleInfo::getGameBoard() const {
     return gameBoard; // Return the pointer to the game board
 } 
 

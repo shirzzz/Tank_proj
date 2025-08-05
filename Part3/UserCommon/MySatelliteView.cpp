@@ -1,7 +1,7 @@
 #include "MySatelliteView.h"
 #include "CellType.h"
 
-MySatelliteView::MySatelliteView(const GameBoard& board) : board(board) {}
+MySatelliteView::MySatelliteView(const Algorithm_211466123_212399455::GameBoard& board) : board(board) {}
 
 char MySatelliteView::getObjectAt(size_t x, size_t y) const {
     //Cast size_t to int for comparison with GameBoard methods
@@ -10,7 +10,7 @@ char MySatelliteView::getObjectAt(size_t x, size_t y) const {
     }
 
     // Cast size_t to int for getCell parameters and handle const issue
-    auto cell = const_cast<GameBoard&>(board).getCell(static_cast<int>(x), static_cast<int>(y));
+    auto cell = const_cast<Algorithm_211466123_212399455::GameBoard&>(board).getCell(static_cast<int>(x), static_cast<int>(y));
     if (!cell) return ' ';
 
     switch (cell->getCellType()) {

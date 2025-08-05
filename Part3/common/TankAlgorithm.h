@@ -1,11 +1,12 @@
 // TankAlgorithm.h
 #ifndef TANKALGORITHM_H
 #define TANKALGORITHM_H
-#include "ActionRequest.h"
-#include "BattleInfo.h"
+#include "../common/ActionRequest.h"
+#include "../common/BattleInfo.h"
 #include <memory>
 #include "../UserCommon/Tank.h"
 #include "../Algorithm/GameBoard.h"
+#include "../DestructionCause.h"
 
 using Algorithm_211466123_212399455::GameBoard;
 

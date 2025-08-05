@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+tanks_game
+*.so
+*.dll
+*.dylib
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Output files
+outputs/
+*.out
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db 

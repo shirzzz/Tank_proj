@@ -5,9 +5,8 @@
 //I dont know what I am doing
 
 //let's assume it is working
-#include "common/GameManagerRegistration.h"
-#include "GameManagerRegistrar.h"
-
-GameManagerRegistration::GameManagerRegistration(GameManagerFactory factory) {
-    GameManagerRegistrar::getGameManagerRegistrar().addGameManagerFactoryToLastEntry(std::move(factory));
+#include "../common/GameManagerRegistration.h"
+GameManagerRegistration::GameManagerRegistration(GameManager gamemanager){
+    auto& registrar = GameManagerRegistrar::getGameManagerRegistrar();
+    registrar.addGameManagerFactory(std::move(gamemanager));
 }

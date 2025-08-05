@@ -4,7 +4,7 @@
 
 
 
-void Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
+void Algorithm_211466123_212399455::Player1::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& satellite_view) {
     // Cast SatelliteView to MySatelliteView to access our specific methods
     MySatelliteView* mySatView = dynamic_cast<MySatelliteView*>(&satellite_view);
     if (!mySatView) {

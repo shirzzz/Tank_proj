@@ -4,21 +4,19 @@
 #include <unordered_set>
 #include <iostream>
 #include <algorithm>
-#include "GameBoard.h"
-#include "DirectionUtils.h"
+#include "../Algorithm/GameBoard.h"
+#include "../UserCommon/DirectionUtils.h"
 namespace Algorithm_211466123_212399455{
 //to add chasing from shells
 
 bool BfsChaserShir::amIshootingMyTeammates() const {
     if (!game_board) return false; // No game board available
     std::pair<int, int> delta = directionToVector(my_tank->getCanonDirection());
-    int dx = delta.first;
-    int dy = delta.second;
     int x = my_tank.get()->getX();
     int y = my_tank.get()->getY();
     while (true) {
-        x  = (x + dx)  % game_board->getWidth();
-        y = (y + dy)  % game_board->getHeight();
+        x  = (x + delta.first)  % game_board->getWidth();
+        y = (y + delta.second)  % game_board->getHeight();
         auto cell = game_board->getCell(x, y);
         if (!cell || cell->getCellType() == CellType::WALL || cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2 || cell->getCellType() == CellType::SHELL) {
             if(my_tank->getIndexTank() == '1' && cell->getCellType() == CellType::TANK1) {
@@ -49,13 +47,11 @@ bool BfsChaserShir::isShellThreateningMe(const Shell& shell) const {
     // Check if the shell is threatening my tank
     if (!game_board) return false; // No game board available
     std::pair<int, int> delta = directionToVector(shell.getDirection());
-    int dx = delta.first;
-    int dy = delta.second;
     int x = shell.getX();
     int y = shell.getY();
     while (true) {
-        x  = (x + dx)  % game_board->getWidth();
-        y = (y + dy)  % game_board->getHeight();
+        x  = (x + delta.first)  % game_board->getWidth();
+        y = (y + delta.second)  % game_board->getHeight();
         auto cell = game_board->getCell(x, y);
         switch(cell->getCellType()) {
             case CellType::WALL:
@@ -90,18 +86,16 @@ bool BfsChaserShir::shouldIShootShell(const Shell& shell) const {
     // Function to check if the tank should shoot at the shell
     if (!game_board) return false; // No game board available
     std::pair<int, int> delta = directionToVector(my_tank->getCanonDirection());
-    int dx = delta.first;
-    int dy = delta.second;
     int x = my_tank->getX();
     int y = my_tank->getY();
     while (true) {
-        x  = (x + dx)  % game_board->getWidth();
-        y = (y + dy)  % game_board->getHeight();
+        x  = (x + delta.first)  % game_board->getWidth();
+        y = (y + delta.second)  % game_board->getHeight();
         auto cell = game_board->getCell(x, y);
         if(!cell && cell->getX() == shell.getX() && cell->getY() == shell.getY()) {
                 return true; // Shell is in the line of fire
             }
-        if (!cell && cell->getCellType() == CellType::WALL || cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
+        if (!cell || cell->getCellType() == CellType::WALL || cell->getCellType() == CellType::TANK1 || cell->getCellType() == CellType::TANK2) {
             return false; // Not in the line of fire
         }
     }
@@ -114,9 +108,6 @@ void BfsChaserShir::setSafeEscapeMoves(std::vector<Shell>& shells){
         if (shouldIShootShell(shell)) {
             my_future_moves.push_back(ActionRequest::Shoot);
         } else {
-            std::pair<int, int> shell_pos = shell.getPosition();
-            int dx = shell_pos.first - my_tank->getX();
-            int dy = shell_pos.second - my_tank->getY();
             CanonDirection escape_direction = findEscapeDirection(shells, 3); // Assuming a danger radius of 3
             if(escape_direction == my_tank->getCanonDirection()) {
                 my_future_moves.push_back(ActionRequest::MoveForward);
@@ -271,9 +262,7 @@ void BfsChaserShir::setFutureMoves(const std::vector<int>& path, int height, int
 
         if (tryToShootOpponent(path[i], height))
             continue;
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-        CanonDirection target_direction = getDirectionFromDelta(dx, dy);
+        CanonDirection target_direction = getDirectionFromDelta(x2 - x1, 0);
         if(current_direction == target_direction){
             my_future_moves.push_back(ActionRequest::MoveForward);
             return;

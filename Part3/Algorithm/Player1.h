@@ -1,8 +1,8 @@
 #ifndef PLAYER1_H
 #define PLAYER1_H
 #pragma once
-#include "common/Player.h"         
-#include "Tank.h"           
+#include "../common/Player.h"         
+#include "../UserCommon/Tank.h"           
 #include <vector>          
 #include <memory>
 #include <algorithm>

@@ -2,8 +2,8 @@
 #define GAMEMANAGER_H
 #pragma once
 
-#include "common/ActionRequest.h"
-#include "Tank.h"
+#include "../common/ActionRequest.h"
+#include "../UserCommon/Tank.h"
 #include "../UserCommon/MyPlayerFactory.h"  // CHANGED: Use your concrete factory
 #include "../UserCommon/MyTankAlgorithmFactory.h"  // CHANGED: Use your concrete factory
 #include "../Algorithm/Player1.h"
@@ -12,6 +12,7 @@
 #include <climits>  // For INT_MAX
 #include <memory>
 #include "../Algorithm/GameBoard.h"
+#include "../UserCommon/Shape.h"
 #include <fstream>
 
 namespace GameManager_211466123_212399455{
@@ -30,8 +31,8 @@ private:
     size_t width = 0; // Width of the game board
     size_t height = 0; // Height of the game board
     std::string output_file_name;
-    Player1 player1;
-    Player2 player2;
+    Algorithm_211466123_212399455::Player1 player1;
+    Algorithm_211466123_212399455::Player2 player2;
     char wining_tank = '0'; // 0 for draw, 1 for tank1, 2 for tank2
     int moves_left = INT_MAX;
 
@@ -61,8 +62,8 @@ private:
     void updateGame();
     bool checkInitialTanks(std::ofstream& out);
     bool checkEndRound(int num_tanks_player1, int num_tanks_player2);
-    int countAliveTanks(Player1& player);
-    int countAliveTanks(Player2& player);
+    int countAliveTanks(Algorithm_211466123_212399455::Player1& player);
+    int countAliveTanks(Algorithm_211466123_212399455::Player2& player);
     void writeTankActions(std::ofstream& out, Player& player);
     void writeFinalResult(std::ofstream& out);
     void endGame();
@@ -80,8 +81,8 @@ private:
     void displayAndLogBoard(std::ofstream& errors, const std::string& filename);
     void displayGame() const;
     bool isGameOver() const;
-    int numUsefulShells(Player2& p2);
-    int numUsefulShells(Player1& p1);
+    int numUsefulShells(Algorithm_211466123_212399455::Player2& p2);
+    int numUsefulShells(Algorithm_211466123_212399455::Player1& p1);
     void setGameOver(bool val){game_over = val;}
 
 

@@ -3,8 +3,8 @@
 #pragma once
 #include <memory>
 #include "../common/TankAlgorithm.h"  
-#include "common/ActionRequest.h"
-#include "GameBoard.h"
+#include "../common/ActionRequest.h"
+#include "../Algorithm/GameBoard.h"
 namespace Algorithm_211466123_212399455{
 class BfsChaserShir : public TankAlgorithm {
 private:

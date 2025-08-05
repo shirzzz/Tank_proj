@@ -1,11 +1,11 @@
 #include "GameManager.h"
-#include "GameBoard.h"
+#include "../Algorithm/GameBoard.h"
 #include "../UserCommon/Tank.h"
 #include "../UserCommon/Shell.h"
-#include "DestructionCause.h"
-#include "Chased.h"
+#include "../DestructionCause.h"
+#include "../Chased.h"
 #include "../UserCommon/DirectionUtils.h"
-#include "common/ActionRequest.h"
+#include "../common/ActionRequest.h"
 #include "../UserCommon/CanonDirection.h"
 #include "../UserCommon/Wall.h"
 #include "../UserCommon/MySatelliteView.h"
@@ -18,10 +18,11 @@
 #include "../Algorithm/Player2.h"
 #include <fstream>
 #include "../UserCommon/MyBattleInfo.h"  // ADDED: Include your concrete battle info
-#include "Mine.h"
-#include "Empty.h"
+#include "../UserCommon/Mine.h"
+#include "../UserCommon/Empty.h"
 #include "../UserCommon/MyPlayerFactory.h"  // ADDED: Include your concrete factories
 #include "../UserCommon/MyTankAlgorithmFactory.h"  // ADDED: Include your concrete factories
+#include <filesystem> // C++17
 
 namespace GameManager_211466123_212399455 {
 
@@ -397,7 +398,7 @@ void GameManager::handleShoot(std::shared_ptr<Tank> tank, TankAlgorithm& tank_al
     }
 }
 
-int GameManager::numUsefulShells(Player1& p1){
+int GameManager::numUsefulShells(Algorithm_211466123_212399455::Player1& p1){
     int sum = 0;
     for(auto tank : p1.getTanks()){
         if(!tank->isAlive()) continue;
@@ -406,7 +407,7 @@ int GameManager::numUsefulShells(Player1& p1){
     return sum;
 }
 
-int GameManager::numUsefulShells(Player2& p2){
+int GameManager::numUsefulShells(Algorithm_211466123_212399455::Player2& p2){
         int sum = 0;
     for(auto tank : p2.getTanks()){
         if(!tank->isAlive()) continue;
@@ -543,7 +544,7 @@ bool GameManager::checkEndRound(int t1, int t2) {
     return false;
 }
 
-int GameManager::countAliveTanks(Player1& player) {
+int GameManager::countAliveTanks(Algorithm_211466123_212399455::Player1& player) {
     int count = 0;
     for (auto& tank : player.getTanks()) {
         if (tank && tank->isAlive()) count++;
@@ -551,7 +552,7 @@ int GameManager::countAliveTanks(Player1& player) {
     return count;
 }
 
-int GameManager::countAliveTanks(Player2& player) {
+int GameManager::countAliveTanks(Algorithm_211466123_212399455::Player2& player) {
     int count = 0;
     for (auto& tank : player.getTanks()) {
         if (tank && tank->isAlive()) count++;
@@ -562,13 +563,13 @@ int GameManager::countAliveTanks(Player2& player) {
 void GameManager::writeTankActions(std::ofstream& out, Player& player) {
     std::vector<std::shared_ptr<Tank>> tanks;
     if(player.getPlayerIndex() == 1){
-        Player1* p1 = dynamic_cast<Player1*>(&player);
+        Algorithm_211466123_212399455::Player1* p1 = dynamic_cast<Algorithm_211466123_212399455::Player1*>(&player);
         if(p1){
             tanks = p1->getTanks();
         }
     }
     else if(player.getPlayerIndex() == 2){
-        Player2* p2 = dynamic_cast<Player2*>(&player);
+        Algorithm_211466123_212399455::Player2* p2 = dynamic_cast<Algorithm_211466123_212399455::Player2*>(&player);
         if(p2){
             tanks = p2->getTanks();
         }
@@ -694,8 +695,8 @@ bool GameManager::validateBoardDimensions(std::ofstream& errors, const std::stri
 
 std::vector<std::vector<std::shared_ptr<Shape>>> GameManager::parseBoardLayout(std::istream& in) {
     std::vector<std::vector<std::shared_ptr<Shape>>> board(height, std::vector<std::shared_ptr<Shape>>(width));
-    player1 = Player1(1, width, height, max_steps, num_shells, 0);
-    player2 = Player2(2, width, height, max_steps, num_shells, 0);
+    player1 = Algorithm_211466123_212399455::Player1(1, width, height, max_steps, num_shells, 0);
+    player2 = Algorithm_211466123_212399455::Player2(2, width, height, max_steps, num_shells, 0);
 
     for (size_t i = 0; i < height; i++) {
         std::string line;
@@ -784,8 +785,6 @@ void GameManager::displayGame() const {
     std::cout << "Moves left: " << moves_left << std::endl;
     std::cout << "=================" << std::endl;
 } 
-
-#include <filesystem> // C++17
 
 void GameManager::setOutputFileNameFromInput(const std::string& inputFileName) {
     // Extract just the filename (no directories)

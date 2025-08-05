@@ -2,11 +2,8 @@
 #include <iostream>
 #include <thread>
 #include <algorithm>
-#include <dlfcn.h> // For dynamic loading of shared libraries
+//#include <dlfcn.h> // For dynamic loading of shared libraries - not available on Windows
 #include <filesystem>
-#include <GameManagerRegistration.h>
-#include "AlgorithmRegistrar.h"
-#include "GameManagerRegistrar.h"
 
     // Constructor
     Simulator::Simulator(){};
@@ -147,48 +144,29 @@ void Simulator::assignParameters(const Config& cfg) {
     }
 }
 
-bool Simulator::loadSO(const std::string& file_path, SOType type) const {
-    std::string name_so = std::filesystem::path(file_path).stem();
-    if (type == SOType::Algorithm) {
-        auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
-        registrar.createAlgorithmFactoryEntry(name_so);
-        dlerror(); // Clear any existing error
-        void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
-        if (!handle) {
-            std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
-            registrar.removeLast();
-            return false;
-        }
-        try {
-            registrar.validateLastRegistration();
-        } catch (const AlgorithmRegistrar::BadRegistrationException& e) {
-            std::cerr << "Bad registration for algorithm: " << e.name << std::endl;
-            std::cerr << "Has name: " << e.hasName << ", Has Player Factory: " << e.hasPlayerFactory
-                      << ", Has Tank Algorithm Factory: " << e.hasTankAlgorithmFactory << std::endl;
-            registrar.removeLast();
-            return false;
-        }
-    } else if (type == SOType::GameManager) {
-        auto& registrar = GameManagerRegistrar::getGameManagerRegistrar();
-        registrar.createGameManagerFactoryEntry(name_so);
-        dlerror();
-        void* handle = dlopen(file_path.c_str(), RTLD_LAZY);
-        if (!handle) {
-            std::cerr << "Error loading shared object file: " << dlerror() << std::endl;
-            registrar.removeLast();
-            return false;
-        }
-        try {
-            registrar.validateLastRegistration();
-        } catch (const GameManagerRegistrar::BadRegistrationException& e) {
-            std::cerr << "Bad registration for game manager: " << e.name << std::endl;
-            std::cerr << "Has name: " << e.hasName << ", Has GameManager Factory: " << e.hasGameManagerFactory << std::endl;
-            registrar.removeLast();
-            return false;
-        }
+bool Simulator::loadSO(const std::string& file_path) const {
+    // Load the shared object file (SO) using dlopen or similar method
+    std::string name_so = std::filesystem::path(file_path).stem().string();
+    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+    registrar.createAlgorithmFactoryEntry(name_so);
+    //dlerror(); // Clear any existing error - not available on Windows
+    void* handle = nullptr; // Placeholder for Windows compatibility
+    if (handle == nullptr) { // Simulate dlopen for Windows
+        std::cerr << "Error loading shared object file (Windows compatibility): " << file_path << std::endl;
+        registrar.removeLast(); // Remove the last entry if loading fails
+        return false;
+    }
+    try{
+        registrar.validateLastRegistration();
+    } catch (const AlgorithmRegistrar::BadRegistrationException& e) {
+        std::cerr << "Bad registration for algorithm: " << e.name << std::endl;
+        std::cerr << "Has name: " << e.hasName << ", Has Player Factory: " << e.hasPlayerFactory 
+                  << ", Has Tank Algorithm Factory: " << e.hasTankAlgorithmFactory << std::endl;
+        registrar.removeLast(); // Remove the last entry if validation fails
+        return false;
     }
     std::cout << "Loaded successfully: " << file_path << std::endl;
-    return true;
+    return true; // Indicate success
 }
 
 std::vector<std::string> Simulator::getFilesInFolder(const std::string& folder) const {
@@ -201,41 +179,11 @@ std::vector<std::string> Simulator::getFilesInFolder(const std::string& folder) 
     return files;
 }
 
-void Simulator::runComparativeWorker(std::queue<ComparativeTask>& tasks_queue,
-                                      std::mutex& queue_mutex,
-                                      std::mutex& output_mutex,
-                                      std::unordered_map<std::pair<int, GameResult>, std::vector<std::string>, pair_hash>& game_results) {
-    while (true) {
-        ComparativeTask task;
-        {
-            std::lock_guard<std::mutex> lock(queue_mutex);
-            if (tasks_queue.empty()) {
-                return; // Exit if no more tasks
-            }
-            task = std::move(tasks_queue.front());
-            tasks_queue.pop();
-        }
-        task.game_manager->setNumThreads(num_threads_);
-        task.game_manager->setGameMap(task.game_map);
-        task.game_manager->addPlayerFactory(task.algo1_factory);
-        task.game_manager->addPlayerFactory(task.algo2_factory);
-        task.game_manager->setVerbose(verbose_);
-
-        GameResult result = task.game_manager->runGame();
-        std::lock_guard<std::mutex> lock(output_mutex);
-        game_results[{result.winner, result.reason}].push_back(task.game_manager->getName());
-        if (verbose_) {
-            std::cout << "Game completed: " << task.game_map << ", Winner: " << result.winner
-                      << ", Reason: " << static_cast<int>(result.reason) << std::endl;
-        }
-    }
-}
-
 bool Simulator::runComparative(const std::string& game_map,
                                 const std::string& game_managers_folder,
                                 const std::string& algo1,
                                 const std::string& algo2) const {
-                                    if(!loadSO(algo1, SOType::Algorithm) || !loadSO(algo2, SOType::Algorithm)) {
+                                    if(!loadSO(algo1) || !loadSO(algo2)) {
                                         std::cerr << "Failed to load algorithms." << std::endl;
                                         return false;
                                     }
@@ -245,7 +193,7 @@ bool Simulator::runComparative(const std::string& game_map,
                                         return false;
                                     }
                                     for(const auto& manager : game_managers) {
-                                        if(!loadSO(manager, SOType::GameManager)) {
+                                        if(!loadSO(manager)) {
                                             std::cerr << "Failed to load game manager: " << manager << std::endl;
                                             return false;
                                         }
@@ -281,28 +229,19 @@ bool Simulator::runComparative(const std::string& game_map,
                                     output_file<<"algorithm2: " << algo2 << std::endl;
                                     output_file<<"\n"<<std::endl;
                                     std::unordered_map<std::pair<int, GameResult>, std::vector<std::string>, pair_hash> game_results;
-                                    std::queue<ComparativeTask> tasks_queue;
-                                    std::mutex queue_mutex;
-                                    std::mutex output_mutex;
-                                    std::unordered_map<std::pair<int, GameResult::Reason>, std::vector<std::string>, pair_hash> game_results;
-                                    for (const auto&manager : manager_registrar.getGameManagers()) {
-                                        tasks_queue.push(ComparativeTask{
-                                            manager,
-                                            game_map,
-                                            algo1_factory,
-                                            algo2_factory,
-                                            verbose_,
-                                            num_threads_,
-                                            full_path
-                                        });
-                                    }
-                                    std::vector<std::thread> threads;
-                                    size_t num_workers = std::min(num_threads_, tasks_queue.size());
-                                    for (size_t i = 0; i < num_workers; ++i) {
-                                        threads.emplace_back(&Simulator::runComparativeWorker, this, std::ref(tasks_queue), std::ref(queue_mutex), std::ref(output_mutex), std::ref(game_results));
-                                    }
-                                    for (auto& thread : threads) {
-                                        thread.join();
+                                    for(const auto& manager : manager_registrar.getGameManagers()) {
+                                        if (!manager) {
+                                            std::cerr << "Failed to create game manager." << std::endl;
+                                            return false;
+                                        }
+                                        manager->setOutputFile(full_path);
+                                        manager->setGameMap(game_map);
+                                        manager->addPlayerFactory(algo1_factory);
+                                        manager->addPlayerFactory(algo2_factory);
+                                        manager->setVerbose(verbose_);
+                                        manager->setNumThreads(num_threads_);
+                                        GameResult result = manager->runGame();
+                                        game_results[{result.winner, result}].push_back(manager->getName()); //this is a map of the results
                                     }
                                     //After I have the map of the results I should sort them by the size of the group
                                     //first I am moving the results to a vector
@@ -331,137 +270,74 @@ bool Simulator::runComparative(const std::string& game_map,
                                     return true;
                                 }
 
-void Simulator::runCompetitiveWorker(std::queue<CompetitiveTask>& tasks_queue,
-                                std::mutex& queue_mutex,
-                                std::mutex& score_mutex,
-                                std::unordered_map<std::string, int>& game_results) {
-    while (true) {
-        CompetitiveTask task;
-        {
-            std::lock_guard<std::mutex> lock(queue_mutex);
-            if (tasks_queue.empty()) {
-                return; // Exit if no more tasks
-            }
-            task = std::move(tasks_queue.front());
-            tasks_queue.pop();
-        }
-        task.game_manager->setNumThreads(num_threads_);
-        task.game_manager->setGameMap(task.map_file);
-        task.game_manager->addPlayerFactory(task.algo1_factory);
-        task.game_manager->addPlayerFactory(task.algo2_factory);
-        task.game_manager->setVerbose(verbose_);
-
-        GameResult result = task.game_manager->runGame();
-        std::lock_guard<std::mutex> lock(score_mutex);
-        game_results[task.algo1_name] += result.winner == 1 ? 3 : (result.winner == 0 ? 1 : 0);
-        game_results[task.algo2_name] += result.winner == 2 ? 3 : (result.winner == 0 ? 1 : 0);
-        if (verbose_) {
-            std::cout << "Game completed: " << task.map_file << ", Winner: " << result.winner
-                      << ", Reason: " << static_cast<int>(result.reason) << std::endl;
-        }
-    }
-}
-
 bool Simulator::runCompetitive(const std::string& maps_folder,
-                               const std::string& game_manager,
-                               const std::string& algorithms_folder) const {
+                                const std::string& game_manager,
+                                const std::string& algorithms_folder) const {
     std::vector<std::string> algorithms = getFilesInFolder(algorithms_folder);
-    if (algorithms.size() < 2) {
-        std::cerr << "Need at least 2 algorithms in folder: " << algorithms_folder << std::endl;
+    if (algorithms.empty()) {
+        std::cerr << "No algorithms found in folder: " << algorithms_folder << std::endl;
         return false;
     }
-
     for (const auto& algo : algorithms) {
-        if (!loadSO(algo, SOType::Algorithm)) {
+        if (!loadSO(algo)) {
             std::cerr << "Failed to load algorithm: " << algo << std::endl;
             return false;
         }
     }
-
-    if (!loadSO(game_manager, SOType::GameManager)) {
+    if (!loadSO(game_manager)) {
         std::cerr << "Failed to load game manager: " << game_manager << std::endl;
         return false;
     }
-
     std::vector<std::string> maps = getFilesInFolder(maps_folder);
     if (maps.empty()) {
         std::cerr << "No maps found in folder: " << maps_folder << std::endl;
         return false;
     }
-
-    auto& algo_registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+    auto& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
     auto& game_manager_registrar = GameManagerRegistrar::getGameManagerRegistrar();
-    auto game_manager_instance = game_manager_registrar.getGameManagers()[0]; // using first game manager
-
-    // Build map from .so filename stem to factory
-    std::unordered_map<std::string, TankAlgorithmFactory> algo_factories;
-    for (const auto& entry : algo_registrar.getEntries()) {
-        algo_factories[entry.name] = entry.getTankAlgorithmFactory();  // You must implement this getter
-    }
-
-    // Build task queue
-    std::queue<CompetitiveTask> task_queue;
-    std::mutex queue_mutex;
-    std::mutex score_mutex;
     std::unordered_map<std::string, int> game_scores;
-
-    for (size_t k = 0; k < maps.size(); ++k) {
-        for (size_t i = 0; i < algorithms.size(); ++i) {
-            std::string algo1_path = algorithms[i];
-            std::string algo2_path = algorithms[(i + 1 + k % (algorithms.size() - 1)) % algorithms.size()];
-            std::string algo1_name = std::filesystem::path(algo1_path).stem();
-            std::string algo2_name = std::filesystem::path(algo2_path).stem();
-
-            task_queue.push(CompetitiveTask{
-                game_manager_instance,
-                maps[k],
-                algo1_name,
-                algo2_name,
-                algo_factories[algo1_name],
-                algo_factories[algo2_name],
-                verbose_,
-                num_threads_
-            });
-        }
-    }
-
-    // Launch threads
-    std::vector<std::thread> threads;
-    size_t thread_count = std::min(task_queue.size(), num_threads_);
-
-    for (size_t i = 0; i < thread_count; ++i) {
-        threads.emplace_back(&Simulator::runCompetitiveWorker, this,
-                             std::ref(task_queue),
-                             std::ref(queue_mutex),
-                             std::ref(score_mutex),
-                             std::ref(game_scores));
-    }
-
-    for (auto& thread : threads) {
-        thread.join();
-    }
-
-    // Output results
-    std::string full_path = algorithms_folder + "/competition_output.txt";
+    std::string dir = algorithms_folder;
+    std::string full_path = dir + "/" + "competitive_output.txt";
     std::ofstream output_file(full_path);
     if (!output_file) {
         std::cerr << "Failed to open output file: " << full_path << std::endl;
         return false;
     }
-
-    output_file << "game_maps_folder: " << maps_folder << std::endl;
-    output_file << "game_manager: " << game_manager << std::endl;
-    output_file << std::endl;
-
+    output_file<<"game_maps_folder: " << maps_folder << std::endl;
+    output_file<<"game_manager: " << game_manager << std::endl;
+    output_file<<"\n"<<std::endl;
+    for (int k = 0; k < maps.size(); ++k) {
+        for(int i = 0; i < algorithms.size(); ++i) {
+            std::cout << "Running game with map: " << maps[k] 
+                        << ", algorithm1: " << algorithms[i] 
+                        << ", algorithm2: " << algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())] << std::endl;
+            auto& game_manager_factory = game_manager_registrar.getGameManagers()[0]; // Assuming we use the first game manager, Itai I am not sure about the registrar
+            GameResult result = game_manager_factory->runGame(
+                maps[k], 
+                algorithms[i], 
+                algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())], 
+                verbose_, 
+                num_threads_
+            );
+            if(result.winner == 0){
+                game_scores[algorithms[i]] += 1; // Tie
+                game_scores[algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())]] += 1; // Tie
+            }
+            else {
+                game_scores[algorithms[i]] += result.winner == 1 ? 3 : 0; // Win for algorithm1
+                game_scores[algorithms[(i+1+k%(algorithms.size() - 1))%(algorithms.size())]] += result.winner == 2 ? 3 : 0; // Win for algorithm2
+            }
+        }
+    }
+    //putting the results in a vector and sorting it
     std::vector<std::pair<std::string, int>> sorted_scores(game_scores.begin(), game_scores.end());
     std::sort(sorted_scores.begin(), sorted_scores.end(), [](const auto& a, const auto& b) {
-        return a.second > b.second;
+        return a.second > b.second; // Sort by score
     });
-
-    for (const auto& [name, score] : sorted_scores) {
-        output_file << name << " " << score << std::endl;
+    // Writing results to the output file
+    for(const auto& score : sorted_scores) {
+        output_file << score.first << " "<< score.second << std::endl;
     }
-
     output_file.close();
     std::cout << "Competitive simulation completed. Results saved to: " << full_path << std::endl;
     return true;

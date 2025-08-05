@@ -1,9 +1,9 @@
 #include "Chased.h"
-#include "DirectionUtils.h"
+#include "UserCommon/DirectionUtils.h"
 #include "common/ActionRequest.h"
-#include "GameBoard.h"
-#include "Tank.h"
-#include "Shell.h"
+#include "Algorithm/GameBoard.h"
+#include "UserCommon/Tank.h"
+#include "UserCommon/Shell.h"
 #include <vector>
 
 int Chased::canKillOpponent(std::pair<int, int> pos) {

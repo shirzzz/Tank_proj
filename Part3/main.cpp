@@ -3,11 +3,11 @@
 #include <vector>
 #include <string>
 #include "OurTester.h"
-#include "GameBoard.h"
-#include "GameManager.h"
+#include "Algorithm/GameBoard.h"
+#include "GameManager/GameManager.h"
 //#include "ActionRequest.h"
-#include "MyPlayerFactory.h"
-#include "MyTankAlgorithmFactory.h"
+#include "UserCommon/MyPlayerFactory.h"
+#include "UserCommon/MyTankAlgorithmFactory.h"
 //#include "random"
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     MyTankAlgorithmFactory tankFactory;
     std::cout << "Creating player and tank algorithm factories." << std::endl;
     // Assignment 2 API - Create GameManager with factories
-    GameManager game(playerFactory, tankFactory);
+    GameManager_211466123_212399455::GameManager game(playerFactory, tankFactory);
     std::cout << "GameManager created with player and tank algorithm factories." << std::endl;
     game.setOutputFileNameFromInput(filename);
     // Read board and run

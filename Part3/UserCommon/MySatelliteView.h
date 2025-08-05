@@ -1,16 +1,16 @@
 #pragma once
 #include <cstddef>
-#include "common/SatelliteView.h"
+#include "../common/SatelliteView.h"
 #include "../Algorithm/GameBoard.h"
 
 class MySatelliteView : public SatelliteView {
 private:
-    const GameBoard& board;
+    const Algorithm_211466123_212399455::GameBoard& board;
 
 public:
-    explicit MySatelliteView(const GameBoard& board);
+    explicit MySatelliteView(const Algorithm_211466123_212399455::GameBoard& board);
     char getObjectAt(size_t x, size_t y) const override;
-    const GameBoard* getBoardReference() const {
+    const Algorithm_211466123_212399455::GameBoard* getBoardReference() const {
     return &board;
 }
 };

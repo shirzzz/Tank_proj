@@ -10,24 +10,24 @@
 class AlgorithmRegistrar {
     class AlgorithmAndPlayerFactories {
         std::string so_name;
-        TankAlgorithmFactory tankAlgorithmFactory;
-        PlayerFactory playerFactory;
+        std::unique_ptr<TankAlgorithmFactory> tankAlgorithmFactory;
+        std::unique_ptr<PlayerFactory> playerFactory;
     public:
         AlgorithmAndPlayerFactories(const std::string& so_name) : so_name(so_name) {}
-        void setTankAlgorithmFactory(TankAlgorithmFactory&& factory) {
+        void setTankAlgorithmFactory(std::unique_ptr<TankAlgorithmFactory> factory) {
             assert(tankAlgorithmFactory == nullptr);
             tankAlgorithmFactory = std::move(factory);
         }
-        void setPlayerFactory(PlayerFactory&& factory) {
+        void setPlayerFactory(std::unique_ptr<PlayerFactory> factory) {
             assert(playerFactory == nullptr);
             playerFactory = std::move(factory);
         }
         const std::string& name() const { return so_name; }
         std::unique_ptr<Player> createPlayer(int player_index, size_t x, size_t y, size_t max_steps, size_t num_shells) const {
-            return playerFactory(player_index, x, y, max_steps, num_shells);
+            return playerFactory ? playerFactory->create(player_index, x, y, max_steps, num_shells) : nullptr;
         }
         std::unique_ptr<TankAlgorithm> createTankAlgorithm(int player_index, int tank_index) const {
-            return tankAlgorithmFactory(player_index, tank_index);
+            return tankAlgorithmFactory ? tankAlgorithmFactory->create(player_index, tank_index) : nullptr;
         }
         bool hasPlayerFactory() const {
             return playerFactory != nullptr;
@@ -43,10 +43,10 @@ public:
     void createAlgorithmFactoryEntry(const std::string& name) {
         algorithms.emplace_back(name);
     }
-    void addPlayerFactoryToLastEntry(PlayerFactory&& factory) {
+    void addPlayerFactoryToLastEntry(std::unique_ptr<PlayerFactory> factory) {
         algorithms.back().setPlayerFactory(std::move(factory));
     }
-    void addTankAlgorithmFactoryToLastEntry(TankAlgorithmFactory&& factory) {
+    void addTankAlgorithmFactoryToLastEntry(std::unique_ptr<TankAlgorithmFactory> factory) {
         algorithms.back().setTankAlgorithmFactory(std::move(factory));
     }
     struct BadRegistrationException {
@@ -58,10 +58,10 @@ public:
         bool hasName = (last.name() != "");
         if(!hasName || !last.hasPlayerFactory() || !last.hasTankAlgorithmFactory() ) {
             throw BadRegistrationException{
-                .name = last.name(),
-                .hasName = hasName,
-                .hasPlayerFactory = last.hasPlayerFactory(),
-                .hasTankAlgorithmFactory = last.hasTankAlgorithmFactory()
+                last.name(),
+                hasName,
+                last.hasPlayerFactory(),
+                last.hasTankAlgorithmFactory()
             };
         }
     }

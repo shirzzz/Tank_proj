@@ -1,6 +1,6 @@
 
 #include "DirectionUtils.h"
-#include "GameBoard.h"
+#include "../Algorithm/GameBoard.h"
 
 std::pair<int, int> directionToVector(CanonDirection dir) {
     switch (dir) {
