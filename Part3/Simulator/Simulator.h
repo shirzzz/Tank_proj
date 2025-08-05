@@ -10,6 +10,31 @@
 #include "AlgorithmRegistrar.h"
 #include "GameManagerRegistrar.h"
 #include <../common/GameResult.h>
+#include <queue>
+#include <mutex>
+#include <memory>
+struct ComparativeTask {
+    std::shared_ptr<AbstractGameManager> game_manager;
+    std::string game_map;
+    TankAlgorithmFactory algo1_factory;
+    TankAlgorithmFactory algo2_factory;
+    bool verbose;
+    size_t num_threads;
+    std::string output_path;
+};
+
+struct CompetitiveTask {
+    std::shared_ptr<AbstractGameManager> game_manager;
+    std::string map_file;
+    std::string algo1_name;
+    std::string algo2_name;
+    TankAlgorithmFactory algo1_factory;
+    TankAlgorithmFactory algo2_factory;
+    bool verbose;
+    size_t num_threads;
+};
+
+
 struct pair_hash {
     std::size_t operator()(const std::pair<int, GameResult::Reason>& p) const {
         return std::hash<int>()(p.first) ^ (std::hash<int>()(static_cast<int>(p.second)) << 1);
@@ -60,7 +85,17 @@ public:
                         const std::string& algoritms_folder
     ) const;
 
-    //setters and getters
+    void runComparativeWorker(std::queue<ComparativeTask>& tasks_queue, 
+                                std::mutex& queue_mutex,
+                                std::mutex& output_mutex,
+                                std::unordered_map<std::pair<int, GameResult>, std::vector<std::string>, pair_hash>& game_results);
+
+    void runCompetitiveWorker(std::queue<CompetitiveTask>& tasks_queue,
+                                std::mutex& queue_mutex,
+                                std::mutex& score_mutex,
+                                std::unordered_map<std::string, int>& game_results);
+                                
+                                //setters and getters
     RunMode getRunMode() const { return run_mode; }
     bool isVerbose() const { return verbose_; }
     size_t getNumThreads() const { return num_threads_; }
