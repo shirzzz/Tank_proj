@@ -387,7 +387,7 @@ void GameManager::handleShoot(std::shared_ptr<Tank> tank, TankAlgorithm& tank_al
     int shell_y = (tank->getY() + dy + shared_board->getHeight()) % shared_board->getHeight();
 
     shared_board->addShell(*(std::make_shared<Shell>(shell_x, shell_y, tank->getCanonDirection())));
-    tank->setWaitingToShootAgain(4);
+    tank->setWaitingToShootAgain(waiting_to_shoot);
     tank->setNextPosition(tank->getX(), tank->getY(), tank->getCanonDirection(), 0,
                           shared_board->getWidth(), shared_board->getHeight());
     tank_algorithm.setHaveBattleInfo(false);
@@ -439,9 +439,11 @@ void GameManager::updateGame() {
         auto& tank_algorithm = player1_algorithms[i];
         auto& tank = player1_tanks[i];
         if (tank && tank_algorithm) {
-            tank->setPreviousPosition();
-            ActionRequest action1 = tank_algorithm->getAction();
-            processAction(tank, *tank_algorithm, action1);
+            if(tank->isAlive()){
+                tank->setPreviousPosition();
+                ActionRequest action1 = tank_algorithm->getAction();
+                processAction(tank, *tank_algorithm, action1);
+            }
         }
     }
     auto& player2_algorithms = this->player2.getTankAlgorithms();
@@ -451,12 +453,14 @@ void GameManager::updateGame() {
         auto& tank_algorithm = player2_algorithms[i];
         auto& tank = player2_tanks[i];
         if (tank && tank_algorithm) {
-            tank->setPreviousPosition();
-            ActionRequest action2 = tank_algorithm->getAction();
-            processAction(tank, *tank_algorithm, action2);
+            if(tank->isAlive()){
+                tank->setPreviousPosition();
+                ActionRequest action2 = tank_algorithm->getAction();
+                processAction(tank, *tank_algorithm, action2);
         }
     }
 
+}
 }
 
 void GameManager::run() {
@@ -609,10 +613,12 @@ void GameManager::endGame() {
 void GameManager::readBoard(const std::string& filename) {
     std::ifstream file_board(filename);
     if (!file_board.is_open()) {
+        // If the file cannot be opened, this is an unrecoverable error
         std::cerr << "Error opening file: " << filename << std::endl;
         return;
     }
     if (!loadBoardFromFile(file_board, filename)) {
+    // If the board cannot be loaded, this is an unrecoverable error
     std::cerr << "Error loading board from file." << std::endl;
     return;
     }
@@ -620,24 +626,41 @@ void GameManager::readBoard(const std::string& filename) {
 }
 
 bool GameManager::loadBoardFromFile(std::istream& file_board, std::string filename) {
-    std::ofstream file_errors("input_errors.txt");
-    if (!file_errors) return logFileOpenError(filename);
+    //std::ofstream file_errors("input_errors.txt");
+    std::vector<std::string> errors_found;
+    //if (!file_errors) return logFileOpenError(filename);
 
-    logBoardProcessingStart(file_errors, filename);
-    if (!parseConfig(file_board, file_errors, filename)) return false;
+    // logBoardProcessingStart(errors, filename);
+    if (!parseConfig(file_board, errors_found, filename)) return false;
 
     initMineGridAndMoves();
-    if (!validateBoardDimensions(file_errors, filename)) return false;
+    if (!validateBoardDimensions(filename)) return false;
 
-    auto board = parseBoardLayout(file_board);
+    auto board = parseBoardLayout(errors_found, file_board);
     if (board.empty()) return false;
 
     initializePlayers();
     assignTanksAndAlgorithms(board);
 
     setupSharedBoard(board);
-    displayAndLogBoard(file_errors, filename);
+    displayAndLogBoard(filename);
+    if (!errors_found.empty()) {
+        writeErrorstoFile(errors_found, filename);
+    }
     return true;
+}
+
+void GameManager::writeErrorstoFile(const std::vector<std::string>& errors, const std::string& filename) {
+    std::ofstream file_errors("input_errors.txt");
+    if (!file_errors) {
+        logFileOpenError(filename);
+        return;
+    }
+    file_errors << "Processing board file: " << filename << "\n===========================================\n";
+    for (const auto& error : errors) {
+        file_errors << error << "\n";
+    }
+    file_errors.close();
 }
 
 bool GameManager::logFileOpenError(const std::string& filename) {
@@ -645,12 +668,12 @@ bool GameManager::logFileOpenError(const std::string& filename) {
     return false;
 }
 
-void GameManager::logBoardProcessingStart(std::ofstream& errors, const std::string& filename) {
-    std::cout << "Opening file for writing input errors from: " << filename << std::endl;
-    errors << "Processing board file: " << filename << "\n===========================================" << std::endl;
-}
+// void GameManager::logBoardProcessingStart(vector<std::string> errors, const std::string& filename) {
+//     std::cout << "Opening file for writing input errors from: " << filename << std::endl;
+//     errors << "Processing board file: " << filename << "\n===========================================" << std::endl;
+// }
 
-bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std::string& filename) {
+bool GameManager::parseConfig(std::istream& in, vector<std::string>& errors, const std::string& filename) {
     std::regex max_steps_re(R"(MaxSteps\s*=\s*(\d+))"),
                shells_re(R"(NumShells\s*=\s*(\d+))"),
                rows_re(R"(Rows\s*=\s*(\d+))"),
@@ -658,13 +681,14 @@ bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std
     std::string line;
     std::getline(in, line);
     if (line.empty()) {
-        errors << "Error in " << filename << ": Empty file or missing configuration parameters." << std::endl;
+        //If the file is empty this is unrecoverable error
         std::cerr << "Empty file or missing configuration parameters in " << filename << std::endl;
         return false;
     }
     for (int i = 0; i < 4; i++) {
         std::getline(in, line);
         if (line.empty()) {
+            errors.push_back("Error in " + filename + " (line " + std::to_string(i + 1) + "): Empty line found.");
             continue; // Skip empty lines
         }
         std::smatch match;
@@ -673,7 +697,8 @@ bool GameManager::parseConfig(std::istream& in, std::ofstream& errors, const std
         else if (std::regex_search(line, match, rows_re)) height = std::stoi(match[1]);
         else if (std::regex_search(line, match, cols_re)) width = std::stoi(match[1]);
         else {
-            errors << "Error in " << filename << " (line " << (i + 1) << "): Invalid line: " << line << std::endl;
+            //If the line does not match any of the expected patterns, this is an unrecoverable error
+            std::cerr<< "Error in " << filename << " (line " << (i + 1) << "): Invalid line: " << line << std::endl;
             return false;
         }
     }
@@ -685,26 +710,40 @@ void GameManager::initMineGridAndMoves() {
     moves_left = max_steps;
 }
 
-bool GameManager::validateBoardDimensions(std::ofstream& errors, const std::string& filename) {
+bool GameManager::validateBoardDimensions(const std::string& filename) {
     if (width <= 0 || height <= 0) {
-        errors << "Error in " << filename << ": Invalid board dimensions (w: " << width << ", h: " << height << ")" << std::endl;
+        // If the width or height is not positive, this is an unrecoverable error
+        std::cerr << "Error in " << filename << ": Invalid board dimensions: width = " << width << ", height = " << height << std::endl;
         return false;
     }
     return true;
 }
 
-std::vector<std::vector<std::shared_ptr<Shape>>> GameManager::parseBoardLayout(std::istream& in) {
+std::vector<std::vector<std::shared_ptr<Shape>>> GameManager::parseBoardLayout(std::vector<string>& errors, std::istream& in) {
     std::vector<std::vector<std::shared_ptr<Shape>>> board(height, std::vector<std::shared_ptr<Shape>>(width));
     player1 = Algorithm_211466123_212399455::Player1(1, width, height, max_steps, num_shells, 0);
     player2 = Algorithm_211466123_212399455::Player2(2, width, height, max_steps, num_shells, 0);
-
+    std::set<char> valid_chars = {'1', '2', '#', '@', ' '};
     for (size_t i = 0; i < height; i++) {
         std::string line;
         std::getline(in, line);
+        if(line.size() > width) {
+            errors.push_back("Error in board layout at line " + std::to_string(i) + ": Line too long.");
+        }
         for (size_t j = 0; j < width; j++) {
+            if (j >= line.size()) {
+                errors.push_back("Error in board layout at (" + std::to_string(i) + ", " + std::to_string(j) + "): Line too short.");
+            }
             char c = (j < line.size()) ? line[j] : ' ';
+            if (valid_chars.find(c) == valid_chars.end()) {
+                errors.push_back("Error in board layout at (" + std::tostring(i) +", " +std::tostring(j) + "): Invalid character '" +std::tostring(c)+"'.");
+            }
             board[i][j] = createCell(c, j, i);
         }
+    }
+    std::getline(in, line)
+    if (!line.empty()) {
+        errors.push_back("Error in board layout: Extra content after board definition: " + line);
     }
     return board;
 }
@@ -751,11 +790,11 @@ void GameManager::setupSharedBoard(const std::vector<std::vector<std::shared_ptr
     shared_board = std::make_shared<GameBoard>(width, height, board, is_mine);
 }
 
-void GameManager::displayAndLogBoard(std::ofstream& errors, const std::string& filename) {
+void GameManager::displayAndLogBoard(const std::string& filename) {
     shared_board->displayBoard();
-    errors << "Successfully loaded board from " << filename << std::endl;
-    errors << "Player 1 tanks: " << player1.getTanks().size() << std::endl;
-    errors << "Player 2 tanks: " << player2.getTanks().size() << std::endl;
+    std::cout << "Successfully loaded board from " << filename << std::endl;
+    std::cout << "Player 1 tanks: " << player1.getTanks().size() << std::endl;
+    std::cout << "Player 2 tanks: " << player2.getTanks().size() << std::endl;
 }
 
 bool GameManager::isGameOver() const {

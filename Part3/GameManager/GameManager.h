@@ -69,10 +69,10 @@ private:
     void endGame();
     bool loadBoardFromFile(std::istream& file_board, const std::string filename);
     bool logFileOpenError(const std::string& filename);
-    void logBoardProcessingStart(std::ofstream& errors, const std::string& filename);
-    bool parseConfig(std::istream& in, std::ofstream& errors, const std::string& filename);
+    //void logBoardProcessingStart(std::ofstream& errors, const std::string& filename);
+    bool parseConfig(std::istream& in, vector<std::String>& errors, const std::string& filename);
     void initMineGridAndMoves();
-    bool validateBoardDimensions(std::ofstream& errors, const std::string& filename);
+    bool validateBoardDimensions(const std::string& filename);
     std::vector<std::vector<std::shared_ptr<Shape>>> parseBoardLayout(std::istream& in);
     std::shared_ptr<Shape> createCell(char c, int x, int  y);
     void initializePlayers();
@@ -84,7 +84,7 @@ private:
     int numUsefulShells(Algorithm_211466123_212399455::Player2& p2);
     int numUsefulShells(Algorithm_211466123_212399455::Player1& p1);
     void setGameOver(bool val){game_over = val;}
-
+    int waiting_to_shoot = 4; // Cooldown for shooting
 
     public:
     // Assignment 2 Constructor - Takes factories as required by assignment
