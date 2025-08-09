@@ -77,7 +77,11 @@ public:
     std::string getDestructionCauseStr() const;
     void deleteFirstAction() { my_actions.erase(my_actions.begin()); } // Remove the first action
     bool isAlive() const { return is_alive; }
-    void killTank() { is_alive = false; }
+    void killTank() {
+         is_alive = false; 
+         std::string last_action = my_actions_str.pop_back();
+         my_actions_str.push_back(last_action + "(killed)");
+    }
     void setCanonDirection(CanonDirection new_dir) { canon_dir = new_dir; }
     void setNextPosition(int x, int y, CanonDirection direction, int moving, int width, int height); //0 meanning no moving, 1 meaning moving forward, -1 meaning moving backward
     std::pair<int, int> getNextPosition() const { return next_position; }    

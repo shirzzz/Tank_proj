@@ -444,7 +444,11 @@ void GameManager::updateGame() {
                 ActionRequest action1 = tank_algorithm->getAction();
                 processAction(tank, *tank_algorithm, action1);
             }
+            else{
+                tank->addAction("killed");
+            }
         }
+
     }
     auto& player2_algorithms = this->player2.getTankAlgorithms();
     auto& player2_tanks = this->player2.getTanks();
@@ -457,6 +461,10 @@ void GameManager::updateGame() {
                 tank->setPreviousPosition();
                 ActionRequest action2 = tank_algorithm->getAction();
                 processAction(tank, *tank_algorithm, action2);
+        }
+        else{
+                tank->addAction("killed");
+            }
         }
     }
 
